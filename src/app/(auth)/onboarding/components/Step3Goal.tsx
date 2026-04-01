@@ -22,7 +22,7 @@ export default function Step3Goal({ onNext, onBack }: Props) {
   const [activeIndex, setActiveIndex] = useState(1)
   const [selectedGoal, setSelectedGoal] = useState<GoalType | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const scrollTimer = useRef<ReturnType<typeof setTimeout>>()
+  const scrollTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const jumping = useRef(false)
 
   const realIndex = (activeIndex - 1 + GOALS.length) % GOALS.length

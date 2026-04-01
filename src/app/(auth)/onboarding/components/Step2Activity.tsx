@@ -18,7 +18,7 @@ export default function Step2Activity({ onNext, onBack }: Props) {
   const [activeIndex, setActiveIndex] = useState(1)
   const [selectedLevel, setSelectedLevel] = useState<ActivityLevel | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const scrollTimer = useRef<ReturnType<typeof setTimeout>>()
+  const scrollTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const jumping = useRef(false)
 
   const realIndex = (activeIndex - 1 + LEVELS.length) % LEVELS.length

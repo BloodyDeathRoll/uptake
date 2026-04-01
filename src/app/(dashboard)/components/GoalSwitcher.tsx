@@ -38,7 +38,7 @@ export default function GoalSwitcher({ initialGoalType, profile, onGoalChange }:
   const [exiting, setExiting] = useState<(SlideItem & { toLeft: boolean }) | null>(null)
   const [enterFromRight, setEnterFromRight] = useState(true)
   const [loading, setLoading] = useState(false)
-  const exitTimer = useRef<ReturnType<typeof setTimeout>>()
+  const exitTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const navigate = async (newIndex: number, dir: 'next' | 'prev') => {
     if (loading) return

@@ -46,7 +46,7 @@ function groupByDate(meals: Meal[]): { dateKey: string; label: string; meals: Me
 
 function DeleteButton({ onDelete }: { onDelete: () => void }) {
   const [confirming, setConfirming] = useState(false)
-  const timer = useRef<ReturnType<typeof setTimeout>>()
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const handle = (e: React.MouseEvent) => {
     e.preventDefault()
