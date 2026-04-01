@@ -11,12 +11,12 @@ export const ORDERED_GOALS: GoalType[] = [
 ]
 
 export interface GoalProfile {
-  weight_kg: number
-  height_cm: number
-  age: number
+  weight_kg: number | null
+  height_cm: number | null
+  age: number | null
   sex: string | null
-  activity_level: string
-  dietary_preferences: string[]
+  activity_level: string | null
+  dietary_preferences: string[] | null
 }
 
 interface Props {
