@@ -1,0 +1,236 @@
+'use client'
+
+import Link from 'next/link'
+import { Plus, CalendarDays } from 'lucide-react'
+import { useState, useCallback } from 'react'
+import CalorieRings from './components/CalorieRings'
+import DeficitBar from './components/DeficitBar'
+import MealTimeline from './components/MealTimeline'
+import MealSuggestions from './components/MealSuggestions'
+import GoalDropdown from './components/GoalDropdown'
+import DateRangeSelector, { type DateRange } from './components/DateRangeSelector'
+import NutrientBar from '@/components/shared/NutrientBar'
+import type { Meal } from '@/hooks/useMeals'
+import type { GoalType } from '@/lib/utils/constants'
+import type { GoalProfile } from './components/GoalSwitcher'
+
+interface Snapshot {
+  total_calories: number | null; total_protein_g: number | null; total_carbs_g: number | null
+  total_fat_g: number | null; total_fiber_g: number | null; total_water_ml: number | null
+}
+
+interface Goal {
+  goal_type: string; calories_target: number | null; protein_g: number | null
+  carbs_g: number | null; fat_g: number | null; fiber_g: number | null
+  water_ml: number | null; rationale: string | null
+}
+
+interface Props {
+  snapshot: Snapshot | null
+  goal: Goal | null
+  meals: Meal[]
+  profile: GoalProfile | null
+}
+
+function localToday(): string {
+  return new Date().toLocaleDateString('en-CA')
+}
+
+function filterLatestRevisions(meals: Meal[]): Meal[] {
+  const revisedIds = new Set(meals.filter(m => m.revision_of).map(m => m.revision_of!))
+  return meals.filter(m => !revisedIds.has(m.id))
+}
+
+function aggregateFromMeals(meals: Meal[]) {
+  return meals.reduce(
+    (acc, meal) => {
+      meal.meal_items.forEach(item => {
+        acc.calories += item.calories ?? 0
+        acc.protein += item.protein_g ?? 0
+        acc.carbs += item.carbs_g ?? 0
+        acc.fat += item.fat_g ?? 0
+      })
+      return acc
+    },
+    { calories: 0, protein: 0, carbs: 0, fat: 0 }
+  )
+}
+
+export default function DashboardClient({ snapshot, goal: initialGoal, meals: serverMeals, profile }: Props) {
+  const today = localToday()
+  const [goal, setGoal] = useState(initialGoal)
+  const [dateRange, setDateRange] = useState<DateRange>({ start: today, end: today, days: 1 })
+  const [clientMeals, setClientMeals] = useState<Meal[] | null>(null)
+  const [fetchingMeals, setFetchingMeals] = useState(false)
+  const [goalSwitching, setGoalSwitching] = useState(false)
+
+  const isToday = dateRange.start === today && dateRange.end === today
+
+  const fetchMeals = useCallback(async (range: DateRange) => {
+    setFetchingMeals(true)
+    try {
+      const res = await fetch(`/api/meals?startDate=${range.start}&endDate=${range.end}`)
+      const json = await res.json()
+      setClientMeals(json.data ?? [])
+    } catch {
+      // keep previous data
+    } finally {
+      setFetchingMeals(false)
+    }
+  }, [])
+
+  const handleRangeChange = (range: DateRange) => {
+    setDateRange(range)
+    if (range.start === today && range.end === today) {
+      setClientMeals(null) // use server-rendered meals
+    } else {
+      fetchMeals(range)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    // Optimistic update
+    const base = clientMeals ?? serverMeals
+    setClientMeals(base.filter(m => m.id !== id))
+    await fetch(`/api/meals/${id}`, { method: 'DELETE' })
+  }
+
+  const rawMeals = clientMeals ?? serverMeals
+  const meals = filterLatestRevisions(rawMeals)
+  const agg = aggregateFromMeals(meals)
+
+  const g = goal ?? {
+    goal_type: 'maintenance', calories_target: 2000, protein_g: 150,
+    carbs_g: 200, fat_g: 65, fiber_g: 30, water_ml: 2500, rationale: null,
+  }
+  const days = dateRange.days
+
+  const scaledGoal = {
+    calories: (g.calories_target ?? 2000) * days,
+    protein: (g.protein_g ?? 150) * days,
+    carbs: (g.carbs_g ?? 200) * days,
+    fat: (g.fat_g ?? 65) * days,
+  }
+
+  const remaining = {
+    calories: Math.max(scaledGoal.calories - agg.calories, 0),
+    protein: Math.max(scaledGoal.protein - agg.protein, 0),
+    carbs: Math.max(scaledGoal.carbs - agg.carbs, 0),
+    fat: Math.max(scaledGoal.fat - agg.fat, 0),
+  }
+
+  return (
+    <div className="px-6 py-6 relative">
+
+      {/* Goal-switching overlay */}
+      {goalSwitching && (
+        <div className="absolute inset-0 z-50 bg-background/80 rounded-xl flex items-center justify-center">
+          <span className="w-8 h-8 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
+
+      {/* Goal + date — full width */}
+      <div className="flex flex-col gap-3 mb-6 animate-in fade-in slide-in-from-bottom-4 duration-500 md:flex-row md:items-start md:justify-between">
+        {profile ? (
+          <GoalDropdown
+            initialGoalType={(goal?.goal_type ?? 'maintenance') as GoalType}
+            profile={profile}
+            onLoadingChange={setGoalSwitching}
+            onGoalChange={(goalType, targets) =>
+              setGoal(prev => ({
+                ...prev!,
+                goal_type: goalType,
+                calories_target: targets.calories,
+                protein_g: targets.protein_g,
+                carbs_g: targets.carbs_g,
+                fat_g: targets.fat_g,
+                fiber_g: targets.fiber_g,
+                water_ml: targets.water_ml,
+              }))
+            }
+          />
+        ) : (
+          <span className="font-semibold text-base">{g.goal_type.replace(/_/g, ' ')}</span>
+        )}
+        <DateRangeSelector onChange={handleRangeChange} />
+      </div>
+
+      {/* 2-column section: rings+deficit | remaining */}
+      <div className="space-y-6 md:grid md:grid-cols-[7fr_3.5fr] md:gap-10 md:items-start md:space-y-0">
+
+        {/* Col 1: rings + deficit */}
+        <div className="space-y-6">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
+            {fetchingMeals && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-xl z-10">
+                <span className="w-5 h-5 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+            <CalorieRings
+              calories={{ current: agg.calories, target: scaledGoal.calories }}
+              protein={{ current: agg.protein, target: scaledGoal.protein }}
+              carbs={{ current: agg.carbs, target: scaledGoal.carbs }}
+            />
+          </div>
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+            <DeficitBar calories={agg.calories} target={scaledGoal.calories} goalType={g.goal_type} />
+          </div>
+        </div>
+
+        {/* Col 2: remaining today */}
+        <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+            <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
+            {days === 1 ? 'Remaining today' : `Remaining (${days} days)`}
+          </h3>
+          <div className="space-y-3">
+            <NutrientBar label="Calories" current={agg.calories} target={scaledGoal.calories} unit=" kcal" />
+            <NutrientBar label="Protein"  current={agg.protein}  target={scaledGoal.protein} />
+            <NutrientBar label="Carbs"    current={agg.carbs}    target={scaledGoal.carbs} />
+            <NutrientBar label="Fat"      current={agg.fat}      target={scaledGoal.fat} />
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>~{Math.round(remaining.calories)} kcal</span>
+            <span>~{Math.round(remaining.protein)}g protein</span>
+            <span>~{Math.round(remaining.carbs)}g carbs</span>
+            <span>~{Math.round(remaining.fat)}g fat</span>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Suggested next meal — today only */}
+      {isToday && (
+        <div className="mt-6">
+          <MealSuggestions
+            key={g.goal_type}
+            consumed={{ calories: agg.calories, protein: agg.protein, carbs: agg.carbs, fat: agg.fat }}
+            targets={{ calories: scaledGoal.calories, protein: scaledGoal.protein, carbs: scaledGoal.carbs, fat: scaledGoal.fat }}
+            goalType={g.goal_type}
+          />
+        </div>
+      )}
+
+      {/* Meal list — 3 columns on desktop */}
+      <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold text-base">
+            {days === 1 && isToday ? "Today's meals" : days === 1 ? 'Meals' : `Meals (${days} days)`}
+          </h2>
+          <Link
+            href="/meal/new"
+            className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-neutral-900 hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
+          >
+            <Plus className="w-5 h-5" />
+          </Link>
+        </div>
+        <MealTimeline
+          meals={meals}
+          showDates={!isToday || dateRange.days > 1}
+          onDelete={handleDelete}
+          multiColumn
+        />
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,187 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { ChevronLeft, ChevronRight, Sparkles, Sunrise, Sandwich, Moon, Cookie } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+
+interface Suggestion {
+  name: string
+  description: string
+  meal_type: string
+  calories: number
+  protein_g: number
+  carbs_g: number
+  fat_g: number
+}
+
+interface Props {
+  consumed: { calories: number; protein: number; carbs: number; fat: number }
+  targets: { calories: number; protein: number; carbs: number; fat: number }
+  goalType: string
+}
+
+const MEAL_ICONS: Record<string, LucideIcon> = {
+  breakfast: Sunrise,
+  lunch: Sandwich,
+  dinner: Moon,
+  snack: Cookie,
+}
+
+export default function MealSuggestions({ consumed, targets, goalType }: Props) {
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [touchStartX, setTouchStartX] = useState<number | null>(null)
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    async function getLocation(): Promise<string | undefined> {
+      if (!navigator.geolocation) return undefined
+      return new Promise(resolve => {
+        navigator.geolocation.getCurrentPosition(
+          async ({ coords }) => {
+            try {
+              const res = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}`,
+                { headers: { 'Accept-Language': 'en', 'User-Agent': 'uptake-app' } }
+              )
+              const data = await res.json()
+              const city = data.address?.city ?? data.address?.town ?? data.address?.village ?? data.address?.state
+              const country = data.address?.country
+              resolve(city && country ? `${city}, ${country}` : country)
+            } catch {
+              resolve(undefined)
+            }
+          },
+          () => resolve(undefined),
+          { timeout: 5000 }
+        )
+      })
+    }
+
+    getLocation().then(location => {
+      fetch('/api/ai/suggest-meal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ consumed, targets, goalType, hourOfDay: new Date().getHours(), location }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.suggestions?.length) setSuggestions(data.suggestions.slice(0, 3))
+          else setError(true)
+        })
+        .catch(() => setError(true))
+        .finally(() => setLoading(false))
+    })
+  }, [])
+
+  const count = loading ? 3 : suggestions.length
+  const goTo = (i: number) => setActiveIndex(Math.max(0, Math.min(count - 1, i)))
+
+  const handleTouchStart = (e: React.TouchEvent) => setTouchStartX(e.touches[0].clientX)
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return
+    const diff = touchStartX - e.changedTouches[0].clientX
+    if (Math.abs(diff) > 50) goTo(activeIndex + (diff > 0 ? 1 : -1))
+    setTouchStartX(null)
+  }
+
+  if (error) return null
+
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '280ms', animationFillMode: 'both' }}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="font-semibold text-base flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
+          Suggested next meal
+        </h2>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => goTo(activeIndex - 1)}
+            disabled={activeIndex === 0}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <div className="flex gap-1.5 px-1">
+            {Array.from({ length: count }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goTo(i)}
+                className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                  i === activeIndex ? 'bg-foreground' : 'bg-muted-foreground/30'
+                }`}
+              />
+            ))}
+          </div>
+          <button
+            onClick={() => goTo(activeIndex + 1)}
+            disabled={activeIndex >= count - 1}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Carousel */}
+      <div className="overflow-hidden">
+        {loading ? (
+          <div className="h-32 bg-muted/50 rounded-xl animate-pulse" />
+        ) : (
+          <div
+            className="flex transition-transform duration-300 ease-out"
+            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            {suggestions.map((s, i) => {
+              const Icon = MEAL_ICONS[s.meal_type] ?? Cookie
+              return (
+                <div key={i} className="flex-shrink-0 w-full">
+                  <Card>
+                    <CardContent className="pt-4 pb-4">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                            <Icon className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
+                          </div>
+                          <span className="font-semibold text-sm truncate">{s.name}</span>
+                        </div>
+                        <span className="text-sm font-semibold tabular-nums flex-shrink-0">
+                          {s.calories} kcal
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-muted-foreground mb-3 leading-relaxed line-clamp-2">
+                        {s.description}
+                      </p>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex gap-3 text-xs text-muted-foreground">
+                          <span><span className="font-medium text-foreground">{s.protein_g}g</span> protein</span>
+                          <span><span className="font-medium text-foreground">{s.carbs_g}g</span> carbs</span>
+                          <span><span className="font-medium text-foreground">{s.fat_g}g</span> fat</span>
+                        </div>
+                        <Link
+                          href={`/meal/new?description=${encodeURIComponent(s.description)}`}
+                          className="text-xs font-medium text-primary hover:underline flex-shrink-0 ml-3"
+                        >
+                          Log this →
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
