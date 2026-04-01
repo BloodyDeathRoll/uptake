@@ -222,7 +222,7 @@ export default function DateRangeSelector({ onChange }: Props) {
 
       {/* Custom calendar popover */}
       {calendarOpen && mode === 'custom' && (
-        <div className="absolute right-0 top-full mt-2 z-50 bg-white rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] p-4 w-72">
+        <div className="absolute right-0 top-full mt-2 z-50 bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] p-4 w-72">
 
           {/* Month nav */}
           <div className="flex items-center justify-between mb-3">

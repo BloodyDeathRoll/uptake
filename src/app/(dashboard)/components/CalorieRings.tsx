@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Flame, Dna, Wheat } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { nutritionColor } from '@/lib/utils/color'
 
 interface Props {
   calories: { current: number; target: number }
@@ -15,9 +16,10 @@ const STROKE = 4
 const R      = (SIZE - STROKE) / 2
 const CIRC   = 2 * Math.PI * R
 
-function Ring({ pct, icon: Icon, color }: { pct: number; icon: LucideIcon; color: string }) {
+function Ring({ pct, icon: Icon }: { pct: number; icon: LucideIcon }) {
+  const color = nutritionColor(pct)
   const targetOffset = CIRC * (1 - Math.min(pct, 1))
-  const [offset, setOffset] = useState(CIRC) // start empty
+  const [offset, setOffset] = useState(CIRC)
 
   useEffect(() => {
     const id = setTimeout(() => setOffset(targetOffset), 50)
@@ -27,12 +29,7 @@ function Ring({ pct, icon: Icon, color }: { pct: number; icon: LucideIcon; color
   return (
     <div className="relative" style={{ width: SIZE, height: SIZE }}>
       <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}>
-        {/* Track */}
-        <circle
-          cx={SIZE / 2} cy={SIZE / 2} r={R}
-          fill="none" stroke="#E5E4DF" strokeWidth={STROKE}
-        />
-        {/* Fill */}
+        <circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={STROKE} />
         <circle
           cx={SIZE / 2} cy={SIZE / 2} r={R}
           fill="none"
@@ -52,13 +49,12 @@ function Ring({ pct, icon: Icon, color }: { pct: number; icon: LucideIcon; color
   )
 }
 
-function RingBlock({ label, pct, value, sub, icon, color }: {
-  label: string; pct: number; value: string; sub: string
-  icon: LucideIcon; color: string
+function RingBlock({ label, pct, value, sub, icon }: {
+  label: string; pct: number; value: string; sub: string; icon: LucideIcon
 }) {
   return (
     <div className="flex flex-col items-center gap-2">
-      <Ring pct={pct} icon={icon} color={color} />
+      <Ring pct={pct} icon={icon} />
       <div className="text-center">
         <div className="text-xs text-muted-foreground">{label}</div>
         <div className="text-sm font-semibold tabular-nums">
@@ -75,9 +71,9 @@ export default function CalorieRings({ calories, protein, carbs }: Props) {
 
   return (
     <div className="flex justify-around py-2">
-      <RingBlock icon={Flame} label="Calories" color="#5a49f5" pct={pct(calories)} value={String(Math.round(calories.current))} sub={String(calories.target)} />
-      <RingBlock icon={Dna}   label="Protein"  color="#F2790F" pct={pct(protein)}  value={`${Math.round(protein.current)}g`}  sub={`${protein.target}g`} />
-      <RingBlock icon={Wheat} label="Carbs"    color="#FEC543" pct={pct(carbs)}    value={`${Math.round(carbs.current)}g`}    sub={`${carbs.target}g`} />
+      <RingBlock icon={Flame} label="Calories" pct={pct(calories)} value={String(Math.round(calories.current))} sub={String(calories.target)} />
+      <RingBlock icon={Dna}   label="Protein"  pct={pct(protein)}  value={`${Math.round(protein.current)}g`}  sub={`${protein.target}g`} />
+      <RingBlock icon={Wheat} label="Carbs"    pct={pct(carbs)}    value={`${Math.round(carbs.current)}g`}    sub={`${carbs.target}g`} />
     </div>
   )
 }

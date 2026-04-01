@@ -159,26 +159,24 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
       <div className="space-y-6 md:grid md:grid-cols-[7fr_3.5fr] md:gap-10 md:items-start md:space-y-0">
 
         {/* Col 1: rings + deficit */}
-        <div className="space-y-6">
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
-            {fetchingMeals && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-xl z-10">
-                <span className="w-5 h-5 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
-            <CalorieRings
-              calories={{ current: agg.calories, target: scaledGoal.calories }}
-              protein={{ current: agg.protein, target: scaledGoal.protein }}
-              carbs={{ current: agg.carbs, target: scaledGoal.carbs }}
-            />
-          </div>
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] p-4 space-y-4">
+          {fetchingMeals && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-xl z-10">
+              <span className="w-5 h-5 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+          <CalorieRings
+            calories={{ current: agg.calories, target: scaledGoal.calories }}
+            protein={{ current: agg.protein, target: scaledGoal.protein }}
+            carbs={{ current: agg.carbs, target: scaledGoal.carbs }}
+          />
+          <div style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
             <DeficitBar calories={agg.calories} target={scaledGoal.calories} goalType={g.goal_type} />
           </div>
         </div>
 
         {/* Col 2: remaining today */}
-        <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+        <div className="bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] p-4 space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
             <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
             {days === 1 ? 'Remaining today' : `Remaining (${days} days)`}
