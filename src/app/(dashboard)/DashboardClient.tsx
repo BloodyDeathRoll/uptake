@@ -216,7 +216,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
           </h2>
           <Link
             href="/meal/new"
-            className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-neutral-900 hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
+            className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/80 hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
           >
             <Plus className="w-5 h-5" />
           </Link>

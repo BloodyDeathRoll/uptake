@@ -96,7 +96,7 @@ export default function Step3Goal({ onNext, onBack }: Props) {
                 key={`${goal}-${i}`}
                 onClick={() => setSelectedGoal(goal)}
                 className={`relative snap-start shrink-0 w-full flex flex-col justify-end rounded-2xl cursor-pointer select-none px-8 pb-6 pt-10 transition-colors ${
-                  isSelected ? 'bg-neutral-200' : 'bg-neutral-100'
+                  isSelected ? 'bg-muted' : 'bg-card'
                 }`}
               >
                 {isSelected && (
@@ -120,14 +120,14 @@ export default function Step3Goal({ onNext, onBack }: Props) {
         <button
           type="button"
           onClick={handlePrev}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 hover:bg-white shadow-sm transition-colors"
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-muted/80 hover:bg-muted shadow-sm transition-colors"
         >
           <ChevronLeft className="w-4 h-4 text-foreground" />
         </button>
         <button
           type="button"
           onClick={handleNext}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 hover:bg-white shadow-sm transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-muted/80 hover:bg-muted shadow-sm transition-colors"
         >
           <ChevronRight className="w-4 h-4 text-foreground" />
         </button>
@@ -138,7 +138,7 @@ export default function Step3Goal({ onNext, onBack }: Props) {
           <div
             key={i}
             className={`h-1.5 rounded-full transition-all duration-300 ${
-              i === realIndex ? 'w-4 bg-foreground' : 'w-1.5 bg-neutral-300'
+              i === realIndex ? 'w-4 bg-foreground' : 'w-1.5 bg-muted-foreground/30'
             }`}
           />
         ))}
