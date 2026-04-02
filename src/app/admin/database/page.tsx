@@ -31,7 +31,8 @@ export default async function AdminDatabasePage() {
   )
 
   // Try to get table sizes via RPC (may fail if function not defined — graceful fallback)
-  const { data: sizesRaw } = await admin.rpc('get_table_sizes').catch(() => ({ data: null }))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: sizesRaw } = await (admin as any).rpc('get_table_sizes').catch(() => ({ data: null }))
   const sizeMap = new Map<string, number>(
     (sizesRaw as { table_name: string; total_bytes: number }[] | null)?.map(r => [r.table_name, r.total_bytes]) ?? []
   )
