@@ -18,25 +18,45 @@ function formatBytes(bytes: number): string {
 }
 
 export default async function AdminDatabasePage() {
-  const admin = createAdminClient()
+  let counts: { table: string; count: number; error?: string }[] = []
+  let sizeMap = new Map<string, number>()
+  let fatalError: string | undefined
 
-  const counts = await Promise.all(
-    TABLES.map(async table => {
-      try {
-        const { count, error } = await admin.from(table).select('*', { count: 'exact', head: true })
-        return { table, count: count ?? 0, error: error?.message }
-      } catch (e) {
-        return { table, count: 0, error: String(e) }
-      }
-    })
-  )
+  try {
+    const admin = createAdminClient()
 
-  // Try to get table sizes via RPC (may fail if function not defined — graceful fallback)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: sizesRaw } = await (admin as any).rpc('get_table_sizes').catch(() => ({ data: null }))
-  const sizeMap = new Map<string, number>(
-    (sizesRaw as { table_name: string; total_bytes: number }[] | null)?.map(r => [r.table_name, r.total_bytes]) ?? []
-  )
+    counts = await Promise.all(
+      TABLES.map(async table => {
+        try {
+          const { count, error } = await admin.from(table).select('*', { count: 'exact', head: true })
+          return { table, count: count ?? 0, error: error?.message }
+        } catch (e) {
+          return { table, count: 0, error: String(e) }
+        }
+      })
+    )
+
+    // Try to get table sizes via RPC (may fail if function not defined — graceful fallback)
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: sizesRaw } = await (admin as any).rpc('get_table_sizes')
+      sizeMap = new Map<string, number>(
+        (sizesRaw as { table_name: string; total_bytes: number }[] | null)?.map(r => [r.table_name, r.total_bytes]) ?? []
+      )
+    } catch {
+      // graceful fallback — sizes just won't be shown
+    }
+  } catch (e) {
+    fatalError = String(e)
+  }
+
+  if (fatalError) {
+    return (
+      <div className="bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 py-8 text-center text-destructive text-sm">
+        Failed to load database stats: {fatalError}
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
