@@ -117,7 +117,7 @@ export default function DayAnalysis({ consumed, targets, goalType, days }: Props
 
                 {/* Left — headline + body state + macro breakdown */}
                 <div className="space-y-5">
-                  <p className="font-semibold text-base leading-snug">{analysis.headline}</p>
+                  <p className="font-normal text-base leading-snug">{analysis.headline}</p>
 
                   <div className="p-4 rounded-xl bg-muted/50 text-sm text-muted-foreground leading-relaxed">
                     {analysis.body_state}

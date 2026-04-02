@@ -70,25 +70,34 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background md:justify-center">
-      <div className="flex flex-col flex-1 md:flex-none w-full max-w-lg mx-auto px-6 md:px-4 py-8">
-        <div className="mb-8 shrink-0">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Step {step} of {TOTAL_STEPS}</span>
-            <span className="text-sm font-medium">Uptake</span>
-            <button onClick={() => router.back()} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Cancel
-            </button>
-          </div>
-          <Progress value={(step / TOTAL_STEPS) * 100} className="h-2" />
-        </div>
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* Full-width top bar: logo left, cancel right */}
+      <div className="w-full flex items-center justify-between px-6 py-4">
+        <span className="text-sm font-semibold">Uptake</span>
+        <button
+          onClick={() => router.back()}
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
 
-        <div className="flex flex-col flex-1 md:flex-none md:h-[600px]">
-          {step === 1 && <Step1AboutYou onNext={next} />}
-          {step === 2 && <Step2Lifestyle onNext={next} onBack={back} />}
-          {step === 3 && (
-            <Step5Review data={data as OnboardingData} onComplete={handleComplete} onBack={back} saving={saving} />
-          )}
+      {/* Centered content */}
+      <div className="flex flex-col flex-1 items-center justify-center px-6">
+        <div className="w-full max-w-lg">
+          {/* Progress */}
+          <div className="mb-8">
+            <p className="text-sm text-muted-foreground mb-2">Step {step} of {TOTAL_STEPS}</p>
+            <Progress value={(step / TOTAL_STEPS) * 100} className="h-2" />
+          </div>
+
+          <div className="flex flex-col md:h-[600px]">
+            {step === 1 && <Step1AboutYou onNext={next} />}
+            {step === 2 && <Step2Lifestyle onNext={next} onBack={back} />}
+            {step === 3 && (
+              <Step5Review data={data as OnboardingData} onComplete={handleComplete} onBack={back} saving={saving} />
+            )}
+          </div>
         </div>
       </div>
     </div>
