@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       model: MODEL,
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.4,
-      max_tokens: 1024,
+      max_tokens: 2048,
     })
 
     const content = completion.choices[0]?.message?.content ?? ''

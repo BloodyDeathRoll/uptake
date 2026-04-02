@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { Sparkles, TrendingDown, TrendingUp, Minus, ChevronRight, Zap } from 'lucide-react'
 import {
-  Sheet, SheetContent, SheetHeader, SheetTitle,
-} from '@/components/ui/sheet'
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog'
 
 interface MacroResult {
   name: string
@@ -79,23 +79,23 @@ export default function DayAnalysis({ consumed, targets, goalType, days }: Props
     <>
       <button
         onClick={handleOpen}
-        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg bg-muted hover:bg-muted/80 border border-border transition-colors"
         aria-label="Analyze today's nutrition"
       >
-        <Sparkles className="w-3.5 h-3.5" />
+        <Sparkles className="w-3 h-3" />
         Analysis
       </button>
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[85dvh] overflow-y-auto pb-safe">
-          <SheetHeader className="pb-2">
-            <SheetTitle className="flex items-center gap-2">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-none w-[min(92vw,80rem)] max-h-[88dvh] overflow-y-auto p-0">
+          <DialogHeader className="px-6 pt-5 pb-3 md:px-10">
+            <DialogTitle className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-primary" />
               Nutrition Analysis
-            </SheetTitle>
-          </SheetHeader>
+            </DialogTitle>
+          </DialogHeader>
 
-          <div className="max-w-7xl mx-auto px-6 md:px-10 pb-10">
+          <div className="px-6 md:px-10 pb-8">
             {loading && (
               <div className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
                 <span className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -170,8 +170,8 @@ export default function DayAnalysis({ consumed, targets, goalType, days }: Props
               </div>
             )}
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
