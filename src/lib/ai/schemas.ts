@@ -21,6 +21,7 @@ export const nutritionResponseSchema = z.object({
   total_calories: z.number().min(0),
   notes: z.string().optional(),
   suggested_description: z.string().optional(),
+  image_type: z.enum(['meal', 'ingredient_list']).optional(),
 })
 
 export type ValidatedNutritionItem = z.infer<typeof nutritionItemSchema>

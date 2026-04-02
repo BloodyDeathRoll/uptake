@@ -1,3 +1,5 @@
+import type { PrioritySignal } from '@/lib/nutrition/priority'
+
 export function buildDietaryBlock(preferences: string[], allergies: string[]): string {
   const lines: string[] = []
 
@@ -35,8 +37,9 @@ export function buildSuggestMealPrompt(params: {
   dietaryPreferences: string[]
   allergies: string[]
   location?: string
+  priority: PrioritySignal
 }): string {
-  const { consumed, targets, goalType, hourOfDay, dietaryPreferences, allergies, location } = params
+  const { consumed, targets, goalType, hourOfDay, dietaryPreferences, allergies, location, priority } = params
   const remaining = {
     calories: Math.max(targets.calories - consumed.calories, 0),
     protein: Math.max(targets.protein - consumed.protein, 0),
@@ -53,8 +56,13 @@ export function buildSuggestMealPrompt(params: {
   const dietaryBlock = buildDietaryBlock(dietaryPreferences, allergies)
   const locationLine = location ? `User location: ${location} — suggest meals that are culturally relevant and locally available there.\n` : ''
 
+  const directionWord = priority.direction === 'under' ? `high-${priority.nutrient}` : `low-${priority.nutrient}`
+  const priorityBlock = `
+⚡ TOP PRIORITY: "${priority.label}" is the most critical nutritional issue for this user's goal right now (currently at ${priority.pct}% of target, ${priority.direction}).
+All 3 suggestions MUST be optimized for ${directionWord} content. If other macros conflict (e.g. carbs are over but protein is severely under), ${priority.label.toLowerCase()} takes precedence — suggest meals that fix the priority gap first, and keep other macros as reasonable as possible within that constraint.`
+
   return `You are a nutrition coach. Suggest 3 specific next meal options for a user.
-${dietaryBlock}
+${dietaryBlock}${priorityBlock}
 ${locationLine}User's goal: ${goalType.replace(/_/g, ' ')}
 Time of day: ~${hourOfDay}:00 — suggest ${mealTimeHint}
 

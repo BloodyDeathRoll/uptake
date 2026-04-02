@@ -76,6 +76,9 @@ export default function OnboardingPage() {
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-muted-foreground">Step {step} of {TOTAL_STEPS}</span>
             <span className="text-sm font-medium">Uptake</span>
+            <button onClick={() => router.back()} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Cancel
+            </button>
           </div>
           <Progress value={(step / TOTAL_STEPS) * 100} className="h-2" />
         </div>

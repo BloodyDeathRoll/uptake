@@ -46,6 +46,7 @@ function NewMealPageInner() {
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [pendingImage, setPendingImage] = useState<{ base64: string; mimeType: string } | null>(null)
   const [items, setItems] = useState<MealItem[] | null>(null)
+  const [imageType, setImageType] = useState<'meal' | 'ingredient_list' | null>(null)
   const [analyzeCount, setAnalyzeCount] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -109,6 +110,7 @@ function NewMealPageInner() {
         const json = await res.json()
         if (json.error) { setError(json.error); setLoading(false); return }
         setItems(mapItems(json.data.items, 'ai_vision'))
+        setImageType(json.data.image_type ?? 'meal')
         setAnalyzeCount(c => c + 1)
         // Pre-fill description with AI suggestion only if user hasn't typed anything yet
         const suggested = json.data.suggested_description as string | undefined
@@ -127,6 +129,7 @@ function NewMealPageInner() {
   const clearImage = () => {
     setImagePreview(null)
     setPendingImage(null)
+    setImageType(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
@@ -288,13 +291,20 @@ function NewMealPageInner() {
 
         {/* Verification card — appears below, not instead of the input */}
         {items !== null && (
-          <VerificationCard
-            key={analyzeCount}
-            initialItems={items}
-            onSave={handleSave}
-            onReset={() => setItems(null)}
-            saving={saving}
-          />
+          <>
+            {imageType === 'ingredient_list' && (
+              <div className="px-3 py-2.5 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 text-sm">
+                Looks like an ingredient list. Each item defaults to 100g — update the amounts to what you actually ate.
+              </div>
+            )}
+            <VerificationCard
+              key={analyzeCount}
+              initialItems={items}
+              onSave={handleSave}
+              onReset={() => { setItems(null); setImageType(null) }}
+              saving={saving}
+            />
+          </>
         )}
       </div>
     </div>

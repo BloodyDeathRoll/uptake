@@ -10,6 +10,8 @@ import MealSuggestions from './components/MealSuggestions'
 import GoalDropdown from './components/GoalDropdown'
 import DateRangeSelector, { type DateRange } from './components/DateRangeSelector'
 import NutrientBar from '@/components/shared/NutrientBar'
+import DayAnalysis from './components/DayAnalysis'
+import { rankMacrosByGoal } from '@/lib/nutrition/priority'
 import type { Meal } from '@/hooks/useMeals'
 import type { GoalType } from '@/lib/utils/constants'
 import type { GoalProfile } from './components/GoalSwitcher'
@@ -165,6 +167,14 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
               <span className="w-5 h-5 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
+          <div className="flex justify-end">
+            <DayAnalysis
+              consumed={{ calories: agg.calories, protein: agg.protein, carbs: agg.carbs, fat: agg.fat }}
+              targets={{ calories: scaledGoal.calories, protein: scaledGoal.protein, carbs: scaledGoal.carbs, fat: scaledGoal.fat }}
+              goalType={g.goal_type}
+              days={days}
+            />
+          </div>
           <CalorieRings
             calories={{ current: agg.calories, target: scaledGoal.calories }}
             protein={{ current: agg.protein, target: scaledGoal.protein }}
@@ -180,18 +190,31 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             {days === 1 ? 'Remaining today' : `Remaining (${days} days)`}
           </h3>
-          <div className="space-y-3">
-            <NutrientBar label="Calories" current={agg.calories} target={scaledGoal.calories} unit=" kcal" />
-            <NutrientBar label="Protein"  current={agg.protein}  target={scaledGoal.protein} />
-            <NutrientBar label="Carbs"    current={agg.carbs}    target={scaledGoal.carbs} />
-            <NutrientBar label="Fat"      current={agg.fat}      target={scaledGoal.fat} />
-          </div>
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>~{Math.round(remaining.calories)} kcal</span>
-            <span>~{Math.round(remaining.protein)}g protein</span>
-            <span>~{Math.round(remaining.carbs)}g carbs</span>
-            <span>~{Math.round(remaining.fat)}g fat</span>
-          </div>
+          {(() => {
+            const nutrientConfig = {
+              calories: { label: 'Calories', current: agg.calories,  target: scaledGoal.calories, unit: ' kcal',  remaining: remaining.calories, suffix: 'kcal' },
+              protein:  { label: 'Protein',  current: agg.protein,   target: scaledGoal.protein,  unit: undefined, remaining: remaining.protein,  suffix: 'g protein' },
+              carbs:    { label: 'Carbs',    current: agg.carbs,     target: scaledGoal.carbs,    unit: undefined, remaining: remaining.carbs,    suffix: 'g carbs' },
+              fat:      { label: 'Fat',      current: agg.fat,       target: scaledGoal.fat,      unit: undefined, remaining: remaining.fat,      suffix: 'g fat' },
+            }
+            const ranked = rankMacrosByGoal(g.goal_type)
+            return (
+              <>
+                <div className="space-y-3">
+                  {ranked.map(n => {
+                    const c = nutrientConfig[n]
+                    return <NutrientBar key={n} label={c.label} current={c.current} target={c.target} unit={c.unit} />
+                  })}
+                </div>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  {ranked.map(n => {
+                    const c = nutrientConfig[n]
+                    return <span key={n}>~{Math.round(c.remaining)} {c.suffix}</span>
+                  })}
+                </div>
+              </>
+            )
+          })()}
         </div>
 
       </div>
