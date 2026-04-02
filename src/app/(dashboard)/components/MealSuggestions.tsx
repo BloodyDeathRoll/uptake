@@ -29,8 +29,28 @@ const MEAL_ICONS: Record<string, LucideIcon> = {
   snack: Cookie,
 }
 
+const LOCATION_CACHE_KEY = 'uptake_location_cache'
+const LOCATION_CACHE_TTL = 86400000 // 24 hours
+
+interface LocationCache {
+  location: string | null // null = denied
+  timestamp: number
+}
+
 async function getLocation(): Promise<string | undefined> {
+  // Check cache first
+  try {
+    const raw = localStorage.getItem(LOCATION_CACHE_KEY)
+    if (raw) {
+      const cached: LocationCache = JSON.parse(raw)
+      if (Date.now() - cached.timestamp < LOCATION_CACHE_TTL) {
+        return cached.location ?? undefined
+      }
+    }
+  } catch { /* ignore */ }
+
   if (!navigator.geolocation) return undefined
+
   return new Promise(resolve => {
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
@@ -42,10 +62,17 @@ async function getLocation(): Promise<string | undefined> {
           const data = await res.json()
           const city = data.address?.city ?? data.address?.town ?? data.address?.village ?? data.address?.state
           const country = data.address?.country
-          resolve(city && country ? `${city}, ${country}` : country)
-        } catch { resolve(undefined) }
+          const location = city && country ? `${city}, ${country}` : (country ?? null)
+          try { localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify({ location, timestamp: Date.now() })) } catch { /* ignore */ }
+          resolve(location ?? undefined)
+        } catch {
+          resolve(undefined)
+        }
       },
-      () => resolve(undefined),
+      () => {
+        try { localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify({ location: null, timestamp: Date.now() })) } catch { /* ignore */ }
+        resolve(undefined)
+      },
       { timeout: 5000 }
     )
   })
