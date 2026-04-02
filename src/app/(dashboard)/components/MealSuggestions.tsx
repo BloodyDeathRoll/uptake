@@ -210,7 +210,7 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
                         </div>
                         <Link
                           href={`/meal/new?description=${encodeURIComponent(s.description)}`}
-                          className="text-xs font-medium text-primary hover:underline flex-shrink-0 ml-3"
+                          className="text-xs font-medium text-accent hover:underline flex-shrink-0 ml-3"
                         >
                           Log this →
                         </Link>

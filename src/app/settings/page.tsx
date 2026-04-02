@@ -31,7 +31,7 @@ export default async function SettingsPage() {
               </>
             )}
           </div>
-          <Link href="/onboarding" className="text-sm text-primary underline underline-offset-4">Update profile</Link>
+          <Link href="/onboarding" className="text-sm text-accent underline underline-offset-4">Update profile</Link>
         </CardContent>
       </Card>
 

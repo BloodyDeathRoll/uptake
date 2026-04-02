@@ -44,7 +44,7 @@ export default async function MealDetailPage({ params }: { params: Promise<{ id:
         <span className="font-semibold capitalize">
           {MEAL_TYPE_LABELS[meal.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? meal.meal_type}
         </span>
-        <Link href={`/meal/new?revisionOf=${meal.id}`} className="text-primary text-sm">Edit</Link>
+        <Link href={`/meal/new?revisionOf=${meal.id}`} className="text-accent text-sm">Edit</Link>
       </div>
 
       <div className="px-4 py-6 max-w-lg mx-auto space-y-6">

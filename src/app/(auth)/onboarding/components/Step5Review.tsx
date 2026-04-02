@@ -82,7 +82,7 @@ export default function Step5Review({ data, onComplete, onBack, saving }: Props)
           {rows.map(({ label, value, primary }) => (
             <div key={label} className="flex justify-between items-center py-3">
               <span className={primary ? 'font-semibold' : 'text-sm text-muted-foreground'}>{label}</span>
-              <span className={primary ? 'text-primary font-bold text-lg' : 'font-medium'}>{value}</span>
+              <span className={primary ? 'text-foreground font-bold text-lg' : 'font-medium'}>{value}</span>
             </div>
           ))}
         </CardContent>
