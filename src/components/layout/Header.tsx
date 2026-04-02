@@ -4,15 +4,29 @@ import Link from 'next/link'
 import { Settings } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
+function isAdminEmail(email: string | undefined | null): boolean {
+  const list = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
+  return !!email && list.includes(email)
+}
+
 export default function Header() {
   const { user, signOut } = useAuth()
 
   const initials = user?.email?.slice(0, 2).toUpperCase() ?? 'U'
+  const admin = isAdminEmail(user?.email)
 
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 h-14 flex items-center justify-between">
       <span className="font-bold text-lg tracking-tight">Uptake</span>
       <div className="flex items-center gap-2">
+        {admin && (
+          <Link
+            href="/admin"
+            className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent/20 text-accent hover:bg-accent/30 transition-colors"
+          >
+            Admin
+          </Link>
+        )}
         <Link
           href="/settings"
           className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
