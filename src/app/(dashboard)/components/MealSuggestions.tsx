@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Sparkles, Sunrise, Sandwich, Moon, Cookie } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Sparkles, Sunrise, Sandwich, Moon, Cookie, RotateCcw } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -29,6 +29,28 @@ const MEAL_ICONS: Record<string, LucideIcon> = {
   snack: Cookie,
 }
 
+async function getLocation(): Promise<string | undefined> {
+  if (!navigator.geolocation) return undefined
+  return new Promise(resolve => {
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}`,
+            { headers: { 'Accept-Language': 'en', 'User-Agent': 'uptake-app' } }
+          )
+          const data = await res.json()
+          const city = data.address?.city ?? data.address?.town ?? data.address?.village ?? data.address?.state
+          const country = data.address?.country
+          resolve(city && country ? `${city}, ${country}` : country)
+        } catch { resolve(undefined) }
+      },
+      () => resolve(undefined),
+      { timeout: 5000 }
+    )
+  })
+}
+
 export default function MealSuggestions({ consumed, targets, goalType }: Props) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,47 +58,29 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
   const [activeIndex, setActiveIndex] = useState(0)
   const [touchStartX, setTouchStartX] = useState<number | null>(null)
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    async function getLocation(): Promise<string | undefined> {
-      if (!navigator.geolocation) return undefined
-      return new Promise(resolve => {
-        navigator.geolocation.getCurrentPosition(
-          async ({ coords }) => {
-            try {
-              const res = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}`,
-                { headers: { 'Accept-Language': 'en', 'User-Agent': 'uptake-app' } }
-              )
-              const data = await res.json()
-              const city = data.address?.city ?? data.address?.town ?? data.address?.village ?? data.address?.state
-              const country = data.address?.country
-              resolve(city && country ? `${city}, ${country}` : country)
-            } catch {
-              resolve(undefined)
-            }
-          },
-          () => resolve(undefined),
-          { timeout: 5000 }
-        )
-      })
-    }
-
-    getLocation().then(location => {
-      fetch('/api/ai/suggest-meal', {
+  const fetchSuggestions = useCallback(async () => {
+    setLoading(true)
+    setError(false)
+    setActiveIndex(0)
+    const location = await getLocation()
+    try {
+      const res = await fetch('/api/ai/suggest-meal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ consumed, targets, goalType, hourOfDay: new Date().getHours(), location }),
       })
-        .then(r => r.json())
-        .then(data => {
-          if (data.suggestions?.length) setSuggestions(data.suggestions.slice(0, 3))
-          else setError(true)
-        })
-        .catch(() => setError(true))
-        .finally(() => setLoading(false))
-    })
-  }, [])
+      const data = await res.json()
+      if (data.suggestions?.length) setSuggestions(data.suggestions.slice(0, 3))
+      else setError(true)
+    } catch {
+      setError(true)
+    } finally {
+      setLoading(false)
+    }
+  }, [consumed, targets, goalType])
+
+  // Fetch on mount
+  useState(() => { fetchSuggestions() })
 
   const count = loading ? 3 : suggestions.length
   const goTo = (i: number) => setActiveIndex(Math.max(0, Math.min(count - 1, i)))
@@ -89,8 +93,6 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
     setTouchStartX(null)
   }
 
-  if (error) return null
-
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '280ms', animationFillMode: 'both' }}>
       {/* Header */}
@@ -100,38 +102,56 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
           Suggested next meal
         </h2>
         <div className="flex items-center gap-1">
-          <button
-            onClick={() => goTo(activeIndex - 1)}
-            disabled={activeIndex === 0}
-            className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <div className="flex gap-1.5 px-1">
-            {Array.from({ length: count }).map((_, i) => (
+          {!loading && (
+            <button
+              onClick={fetchSuggestions}
+              className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              title="Refresh suggestions"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {!loading && !error && (
+            <>
               <button
-                key={i}
-                onClick={() => goTo(i)}
-                className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                  i === activeIndex ? 'bg-foreground' : 'bg-muted-foreground/30'
-                }`}
-              />
-            ))}
-          </div>
-          <button
-            onClick={() => goTo(activeIndex + 1)}
-            disabled={activeIndex >= count - 1}
-            className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
+                onClick={() => goTo(activeIndex - 1)}
+                disabled={activeIndex === 0}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <div className="flex gap-1.5 px-1">
+                {Array.from({ length: count }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => goTo(i)}
+                    className={`w-1.5 h-1.5 rounded-full transition-colors ${i === activeIndex ? 'bg-foreground' : 'bg-muted-foreground/30'}`}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={() => goTo(activeIndex + 1)}
+                disabled={activeIndex >= count - 1}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </>
+          )}
         </div>
       </div>
 
       {/* Carousel */}
       <div className="overflow-hidden">
         {loading ? (
-          <div className="h-32 bg-muted/50 rounded-xl animate-pulse" />
+          <div className="h-32 bg-muted/50 rounded-xl flex items-center justify-center">
+            <span className="w-5 h-5 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : error ? (
+          <div className="h-32 bg-muted/50 rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground text-sm">
+            <span>Could not load suggestions</span>
+            <button onClick={fetchSuggestions} className="text-xs underline hover:text-foreground transition-colors">Try again</button>
+          </div>
         ) : (
           <div
             className="flex transition-transform duration-300 ease-out"
@@ -152,15 +172,9 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
                           </div>
                           <span className="font-semibold text-sm truncate">{s.name}</span>
                         </div>
-                        <span className="text-sm font-semibold tabular-nums flex-shrink-0">
-                          {s.calories} kcal
-                        </span>
+                        <span className="text-sm font-semibold tabular-nums flex-shrink-0">{s.calories} kcal</span>
                       </div>
-
-                      <p className="text-xs text-muted-foreground mb-3 leading-relaxed line-clamp-2">
-                        {s.description}
-                      </p>
-
+                      <p className="text-xs text-muted-foreground mb-3 leading-relaxed line-clamp-2">{s.description}</p>
                       <div className="flex items-center justify-between">
                         <div className="flex gap-3 text-xs text-muted-foreground">
                           <span><span className="font-medium text-foreground">{s.protein_g}g</span> protein</span>

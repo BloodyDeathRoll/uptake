@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Plus, CalendarDays } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useState, useCallback } from 'react'
 import CalorieRings from './components/CalorieRings'
 import DeficitBar from './components/DeficitBar'
@@ -177,8 +177,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
 
         {/* Col 2: remaining today */}
         <div className="bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] p-4 space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-            <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             {days === 1 ? 'Remaining today' : `Remaining (${days} days)`}
           </h3>
           <div className="space-y-3">

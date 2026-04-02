@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import DashboardClient from './DashboardClient'
 
 export default async function DashboardPage() {
@@ -8,7 +9,9 @@ export default async function DashboardPage() {
 
   if (!user) redirect('/login')
 
-  const today = new Date().toISOString().slice(0, 10)
+  const cookieStore = await cookies()
+  const tz = cookieStore.get('tz')?.value ?? 'UTC'
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date())
 
   const [{ data: snapshot }, { data: goal }, { data: meals }, { data: profile }] = await Promise.all([
     supabase.from('daily_snapshots').select('*').eq('user_id', user.id).eq('date', today).single(),
