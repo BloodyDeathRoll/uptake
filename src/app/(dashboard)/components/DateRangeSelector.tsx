@@ -228,15 +228,15 @@ export default function DateRangeSelector({ onChange }: Props) {
           <div className="flex items-center justify-between mb-3">
             <button
               onClick={() => setCalendarMonth(prevYearMonth)}
-              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors text-neutral-500 hover:text-neutral-900"
+              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-sm font-medium text-neutral-900">{monthLabel}</span>
+            <span className="text-sm font-medium text-foreground">{monthLabel}</span>
             <button
               onClick={() => setCalendarMonth(nextYearMonth)}
               disabled={calendarMonth >= getYearMonth(today)}
-              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors text-neutral-500 hover:text-neutral-900 disabled:opacity-30 disabled:cursor-default"
+              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-default"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -262,11 +262,11 @@ export default function DateRangeSelector({ onChange }: Props) {
                   onClick={() => !inactive && handleDayClick(date)}
                   className={[
                     'h-8 w-full text-xs font-medium rounded-lg transition-colors',
-                    inactive ? 'text-neutral-300 cursor-default' : 'cursor-pointer',
-                    isEdge ? 'bg-neutral-900 text-white' : '',
-                    inRange && !isEdge ? 'bg-neutral-100 rounded-none' : '',
-                    !isEdge && !inRange && !inactive ? 'hover:bg-neutral-100' : '',
-                    isToday && !isEdge ? 'font-bold text-neutral-900' : '',
+                    inactive ? 'text-muted-foreground/30 cursor-default' : 'cursor-pointer',
+                    isEdge ? 'bg-primary text-primary-foreground' : '',
+                    inRange && !isEdge ? 'bg-muted rounded-none' : '',
+                    !isEdge && !inRange && !inactive ? 'hover:bg-muted' : '',
+                    isToday && !isEdge ? 'font-bold text-foreground' : '',
                   ].filter(Boolean).join(' ')}
                 >
                   {dd}
@@ -276,7 +276,7 @@ export default function DateRangeSelector({ onChange }: Props) {
           </div>
 
           {pendingStart && (
-            <p className="text-[10px] text-neutral-400 text-center mt-3">Now select an end date</p>
+            <p className="text-[10px] text-muted-foreground text-center mt-3">Now select an end date</p>
           )}
         </div>
       )}

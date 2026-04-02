@@ -42,7 +42,7 @@ export default function Step4Preferences({ onNext, onBack, initialData }: Props)
         <div className="flex flex-wrap gap-2">
           {DIETARY_PREFERENCE_OPTIONS.map(pref => (
             <button key={pref} type="button" onClick={() => toggle(pref)}
-              className={`px-3 py-1.5 text-xs rounded-full border font-medium transition-colors ${preferences.includes(pref) ? 'bg-neutral-100 text-foreground border-transparent' : 'border-border text-muted-foreground hover:bg-neutral-50 hover:border-border'}`}>
+              className={`px-3 py-1.5 text-xs rounded-full border font-medium transition-colors ${preferences.includes(pref) ? 'bg-primary text-primary-foreground border-transparent' : 'border-border text-muted-foreground hover:bg-muted hover:border-border'}`}>
               {pref}
             </button>
           ))}

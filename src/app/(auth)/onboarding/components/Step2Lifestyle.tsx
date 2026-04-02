@@ -24,7 +24,7 @@ function CarouselDots({ count, activeIndex }: { count: number; activeIndex: numb
   return (
     <div className="flex justify-center items-center gap-1.5 shrink-0 py-[10px]">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === activeIndex ? 'w-3 bg-foreground' : 'w-1 bg-neutral-300'}`} />
+        <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === activeIndex ? 'w-3 bg-foreground' : 'w-1 bg-muted-foreground/30'}`} />
       ))}
     </div>
   )
@@ -53,7 +53,7 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
 
       {/* Activity carousel */}
       <div className="flex flex-col flex-1 min-h-0 gap-1.5">
-        <p className="text-sm font-[550] text-neutral-800 shrink-0">Activity level</p>
+        <p className="text-sm font-[550] text-foreground shrink-0">Activity level</p>
         <div className="relative flex-1 min-h-0">
           <div
             ref={activity.scrollRef}
@@ -67,7 +67,7 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
                 <div
                   key={`${level}-${i}`}
                   onClick={() => setSelectedLevel(level as ActivityLevel)}
-                  className={`relative snap-start shrink-0 w-full h-full flex flex-col justify-end rounded-2xl cursor-pointer select-none px-6 pb-5 pt-8 transition-colors shadow-[0px_0px_3px_0px_rgba(0,0,0,0.2)] ${isSelected ? 'bg-neutral-200' : 'bg-neutral-50'}`}
+                  className={`relative snap-start shrink-0 w-full h-full flex flex-col justify-end rounded-2xl cursor-pointer select-none px-6 pb-5 pt-8 transition-colors shadow-[0px_0px_3px_0px_rgba(0,0,0,0.2)] ${isSelected ? 'bg-muted' : 'bg-card'}`}
                 >
                   {isSelected && (
                     <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
@@ -84,11 +84,11 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
             })}
           </div>
           <button type="button" onClick={activity.handlePrev}
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm transition-colors">
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-muted/80 hover:bg-muted shadow-sm transition-colors">
             <ChevronLeft className="w-3.5 h-3.5 text-foreground" />
           </button>
           <button type="button" onClick={activity.handleNext}
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm transition-colors">
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-muted/80 hover:bg-muted shadow-sm transition-colors">
             <ChevronRight className="w-3.5 h-3.5 text-foreground" />
           </button>
         </div>
@@ -97,7 +97,7 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
 
       {/* Goal carousel */}
       <div className="flex flex-col flex-1 min-h-0 gap-1.5">
-        <p className="text-sm font-[550] text-neutral-800 shrink-0">Goal</p>
+        <p className="text-sm font-[550] text-foreground shrink-0">Goal</p>
         <div className="relative flex-1 min-h-0">
           <div
             ref={goal.scrollRef}
@@ -111,7 +111,7 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
                 <div
                   key={`${g}-${i}`}
                   onClick={() => setSelectedGoal(g as GoalType)}
-                  className={`relative snap-start shrink-0 w-full h-full flex flex-col justify-end rounded-2xl cursor-pointer select-none px-6 pb-5 pt-8 transition-colors shadow-[0px_0px_3px_0px_rgba(0,0,0,0.2)] ${isSelected ? 'bg-neutral-200' : 'bg-neutral-50'}`}
+                  className={`relative snap-start shrink-0 w-full h-full flex flex-col justify-end rounded-2xl cursor-pointer select-none px-6 pb-5 pt-8 transition-colors shadow-[0px_0px_3px_0px_rgba(0,0,0,0.2)] ${isSelected ? 'bg-muted' : 'bg-card'}`}
                 >
                   {isSelected && (
                     <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
@@ -129,11 +129,11 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
             })}
           </div>
           <button type="button" onClick={goal.handlePrev}
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm transition-colors">
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-muted/80 hover:bg-muted shadow-sm transition-colors">
             <ChevronLeft className="w-3.5 h-3.5 text-foreground" />
           </button>
           <button type="button" onClick={goal.handleNext}
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm transition-colors">
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-muted/80 hover:bg-muted shadow-sm transition-colors">
             <ChevronRight className="w-3.5 h-3.5 text-foreground" />
           </button>
         </div>

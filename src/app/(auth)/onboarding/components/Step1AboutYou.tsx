@@ -17,7 +17,7 @@ const UnitToggle = ({ options, value, onChange }: { options: [string, string]; v
   <div className="flex gap-1">
     {options.map(opt => (
       <button key={opt} type="button" onClick={() => onChange(opt)}
-        className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${value === opt ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'}`}>
+        className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${value === opt ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
         {opt}
       </button>
     ))}
@@ -119,7 +119,7 @@ export default function Step1AboutYou({ onNext }: Props) {
             <div className="flex gap-2">
               {(['male', 'female'] as const).map(s => (
                 <button key={s} type="button" onClick={() => setSex(prev => prev === s ? '' : s)}
-                  className={`flex-1 py-2.5 text-sm rounded-xl border font-medium capitalize transition-all ${sex === s ? 'bg-foreground text-background border-transparent' : 'border-border text-muted-foreground hover:bg-muted hover:border-border'}`}>
+                  className={`flex-1 py-2.5 text-sm rounded-xl border font-medium capitalize transition-all ${sex === s ? 'bg-primary text-primary-foreground border-transparent' : 'border-border text-muted-foreground hover:bg-muted hover:border-border'}`}>
                   {s}
                 </button>
               ))}
@@ -131,7 +131,7 @@ export default function Step1AboutYou({ onNext }: Props) {
             <div className="flex flex-wrap gap-2">
               {DIETARY_PREFERENCE_OPTIONS.map(pref => (
                 <button key={pref} type="button" onClick={() => togglePref(pref)}
-                  className={`px-3 py-1.5 text-xs rounded-full border font-medium transition-colors ${preferences.includes(pref) ? 'bg-foreground text-background border-transparent' : 'border-border text-muted-foreground hover:bg-muted hover:border-border'}`}>
+                  className={`px-3 py-1.5 text-xs rounded-full border font-medium transition-colors ${preferences.includes(pref) ? 'bg-primary text-primary-foreground border-transparent' : 'border-border text-muted-foreground hover:bg-muted hover:border-border'}`}>
                   {pref}
                 </button>
               ))}

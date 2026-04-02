@@ -46,7 +46,7 @@ export default function Step1Biometrics({ onNext }: Props) {
     <div className="flex gap-1">
       {options.map(opt => (
         <button key={opt} type="button" onClick={() => onChange(opt)}
-          className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${value === opt ? 'bg-neutral-200 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+          className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${value === opt ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
           {opt}
         </button>
       ))}
@@ -96,7 +96,7 @@ export default function Step1Biometrics({ onNext }: Props) {
         <div className="flex gap-2">
           {(['male', 'female'] as const).map(s => (
             <button key={s} type="button" onClick={() => setSex(prev => prev === s ? '' : s)}
-              className={`flex-1 py-2.5 text-sm rounded-xl border font-medium capitalize transition-all ${sex === s ? 'bg-neutral-200 text-foreground border-transparent' : 'border-border text-muted-foreground hover:bg-neutral-50 hover:border-border'}`}>
+              className={`flex-1 py-2.5 text-sm rounded-xl border font-medium capitalize transition-all ${sex === s ? 'bg-primary text-primary-foreground border-transparent' : 'border-border text-muted-foreground hover:bg-muted hover:border-border'}`}>
               {s}
             </button>
           ))}
