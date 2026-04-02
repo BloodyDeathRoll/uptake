@@ -21,13 +21,14 @@ export default async function AdminDatabasePage() {
   const admin = createAdminClient()
 
   const counts = await Promise.all(
-    TABLES.map(table =>
-      admin.from(table).select('*', { count: 'exact', head: true }).then(({ count, error }) => ({
-        table,
-        count: count ?? 0,
-        error: error?.message,
-      }))
-    )
+    TABLES.map(async table => {
+      try {
+        const { count, error } = await admin.from(table).select('*', { count: 'exact', head: true })
+        return { table, count: count ?? 0, error: error?.message }
+      } catch (e) {
+        return { table, count: 0, error: String(e) }
+      }
+    })
   )
 
   // Try to get table sizes via RPC (may fail if function not defined — graceful fallback)
