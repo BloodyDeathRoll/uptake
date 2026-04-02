@@ -5,7 +5,7 @@ import { buildAnalyzeDayPrompt } from '@/lib/ai/prompts/analyze-day'
 import { GOAL_LABELS } from '@/lib/utils/constants'
 import { computePriority } from '@/lib/nutrition/priority'
 
-const MODEL = 'llama-3.3-70b-versatile'
+const MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct'
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()

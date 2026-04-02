@@ -4,7 +4,7 @@ import Groq from 'groq-sdk'
 import { buildSuggestMealPrompt } from '@/lib/ai/prompts/suggest-meal'
 import { computePriority } from '@/lib/nutrition/priority'
 
-const MODEL = 'llama-3.3-70b-versatile'
+const MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct'
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -27,9 +27,10 @@ export async function POST(request: NextRequest) {
   const dietaryPreferences: string[] = profile?.dietary_preferences ?? []
   const allergies: string[] = profile?.allergies ?? []
 
+  const priority = computePriority(consumed, targets, goalType)
+
   try {
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
-    const priority = computePriority(consumed, targets, goalType)
     const prompt = buildSuggestMealPrompt({ consumed, targets, goalType, hourOfDay, dietaryPreferences, allergies, location, priority })
 
     const completion = await client.chat.completions.create({
@@ -41,13 +42,14 @@ export async function POST(request: NextRequest) {
 
     const content = completion.choices[0]?.message?.content ?? ''
     const jsonMatch = content.match(/\[[\s\S]*\]/)
-    if (!jsonMatch) throw new Error('No JSON in response')
+    if (!jsonMatch) throw new Error(`No JSON array in response. Content: ${content.slice(0, 200)}`)
 
     const suggestions = JSON.parse(jsonMatch[0])
     if (!Array.isArray(suggestions) || suggestions.length === 0) throw new Error('Invalid format')
 
     return NextResponse.json({ suggestions: suggestions.slice(0, 3) })
-  } catch {
+  } catch (err) {
+    console.error('[suggest-meal]', err)
     return NextResponse.json({ error: 'Could not generate suggestions' }, { status: 500 })
   }
 }
