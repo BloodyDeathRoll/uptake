@@ -30,60 +30,27 @@ export function buildAnalyzeDayPrompt(input: AnalyzeDayInput): string {
     ? `User: ${profile.sex ?? 'unknown sex'}, age ${profile.age ?? '?'}, ${profile.weight_kg ?? '?'}kg, activity: ${profile.activity_level ?? 'unknown'}.`
     : ''
 
-  return `You are an expert sports nutritionist and physiology coach. Analyze a user's nutrition data and explain what is happening in their body right now.
+  const macroStatus = (p: number) => (p < 85 ? 'under' : p > 115 ? 'over' : 'on_track')
 
-Goal: "${goalLabel}" (${goalType})
+  return `You are an expert sports nutritionist and physiology coach.
+
+CONTEXT
+Goal: ${goalLabel} (${goalType})
 Period: ${period}
 ${profileLine}
 
-Intake vs targets:
-- Calories: ${consumed.calories} / ${targets.calories} kcal (${calPct}%, ${delta(consumed.calories, targets.calories)} kcal)
-- Protein:  ${consumed.protein}g / ${targets.protein}g (${proPct}%, ${delta(consumed.protein, targets.protein)}g)
-- Carbs:    ${consumed.carbs}g / ${targets.carbs}g (${carbPct}%, ${delta(consumed.carbs, targets.carbs)}g)
-- Fat:      ${consumed.fat}g / ${targets.fat}g (${fatPct}%, ${delta(consumed.fat, targets.fat)}g)
+INTAKE vs TARGETS
+Calories : ${Math.round(consumed.calories)} / ${Math.round(targets.calories)} kcal — ${calPct}% (${delta(consumed.calories, targets.calories)} kcal)
+Protein  : ${Math.round(consumed.protein)}g / ${Math.round(targets.protein)}g — ${proPct}% (${delta(consumed.protein, targets.protein)}g)
+Carbs    : ${Math.round(consumed.carbs)}g / ${Math.round(targets.carbs)}g — ${carbPct}% (${delta(consumed.carbs, targets.carbs)}g)
+Fat      : ${Math.round(consumed.fat)}g / ${Math.round(targets.fat)}g — ${fatPct}% (${delta(consumed.fat, targets.fat)}g)
 
-Priority signal (pre-computed): The single most impactful nutritional issue right now for this goal is **${priority.label}** — currently at ${priority.pct}% of target (${priority.direction}). Use this to ground the next_best_action.
+PRIORITY (pre-computed): ${priority.label} is the most critical gap for this goal right now (${priority.pct}% of target, ${priority.direction}).
 
-Write a concise, honest, physiologically accurate analysis. Be direct and specific — don't soften reality, but stay constructive. Use plain language, avoid jargon where possible.
+TASK
+Write a concise, physiologically accurate analysis. Be direct — don't soften reality, stay constructive. Plain language, minimal jargon.
 
-Return ONLY valid JSON (no markdown, no explanation):
-{
-  "headline": "One punchy sentence summarizing the overall picture, e.g. 'Serious protein gap is undermining your Athlete Cut'",
-  "next_best_action": {
-    "nutrient": "${priority.nutrient}",
-    "label": "One sentence explaining WHY this nutrient takes precedence over others right now, given the goal and the full picture — e.g. 'Despite being over on carbs, your protein deficit is far more damaging for Athlete Cut — muscle catabolism can't be undone by cutting carbs later.'"
-  },
-  "body_state": "2–3 sentences describing what is actually happening in the body given this intake pattern and goal. Be specific about muscle protein synthesis, glycogen, fat oxidation, hormonal effects, etc. as relevant.",
-  "macros": [
-    {
-      "name": "Calories",
-      "pct": ${calPct},
-      "status": "${calPct < 85 ? 'under' : calPct > 115 ? 'over' : 'on_track'}",
-      "impact": "One sentence on the specific effect of this deficit/surplus/balance on the goal."
-    },
-    {
-      "name": "Protein",
-      "pct": ${proPct},
-      "status": "${proPct < 85 ? 'under' : proPct > 115 ? 'over' : 'on_track'}",
-      "impact": "One sentence on the specific effect."
-    },
-    {
-      "name": "Carbs",
-      "pct": ${carbPct},
-      "status": "${carbPct < 85 ? 'under' : carbPct > 115 ? 'over' : 'on_track'}",
-      "impact": "One sentence on the specific effect."
-    },
-    {
-      "name": "Fat",
-      "pct": ${fatPct},
-      "status": "${fatPct < 85 ? 'under' : fatPct > 115 ? 'over' : 'on_track'}",
-      "impact": "One sentence on the specific effect."
-    }
-  ],
-  "recommendations": [
-    "Specific, actionable suggestion 1",
-    "Specific, actionable suggestion 2",
-    "Specific, actionable suggestion 3"
-  ]
-}`
+Respond with ONLY a raw JSON object — no markdown, no code fences, no extra text:
+
+{"headline":"<one punchy sentence summarising the overall picture>","next_best_action":{"nutrient":"${priority.nutrient}","label":"<one sentence: why this nutrient takes precedence over all others given this goal and the full picture>"},"body_state":"<2-3 sentences on what is physiologically happening in the body right now — touch on muscle protein synthesis, glycogen, fat oxidation or hormonal effects as relevant>","macros":[{"name":"Calories","pct":${calPct},"status":"${macroStatus(calPct)}","impact":"<one sentence on the specific effect of this calorie level on the goal>"},{"name":"Protein","pct":${proPct},"status":"${macroStatus(proPct)}","impact":"<one sentence>"},{"name":"Carbs","pct":${carbPct},"status":"${macroStatus(carbPct)}","impact":"<one sentence>"},{"name":"Fat","pct":${fatPct},"status":"${macroStatus(fatPct)}","impact":"<one sentence>"}],"recommendations":["<specific actionable suggestion 1>","<specific actionable suggestion 2>","<specific actionable suggestion 3>"]}`
 }

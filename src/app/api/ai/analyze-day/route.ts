@@ -39,12 +39,15 @@ export async function POST(request: NextRequest) {
     })
 
     const content = completion.choices[0]?.message?.content ?? ''
-    const jsonMatch = content.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('No JSON in response')
+    // Strip markdown fences then extract the outermost JSON object
+    const cleaned = content.replace(/```(?:json)?\s*/gi, '').replace(/```/g, '').trim()
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) throw new Error(`No JSON in response. Content: ${content.slice(0, 200)}`)
 
     const analysis = JSON.parse(jsonMatch[0])
     return NextResponse.json({ analysis })
-  } catch {
+  } catch (err) {
+    console.error('[analyze-day]', err)
     return NextResponse.json({ error: 'Could not generate analysis' }, { status: 500 })
   }
 }
