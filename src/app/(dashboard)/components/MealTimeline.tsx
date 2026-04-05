@@ -54,7 +54,7 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
   return (
     <button
       onClick={handle}
-      className="p-1.5 rounded-lg transition-colors flex-shrink-0 text-muted-foreground hover:text-destructive"
+      className="p-1.5 rounded-lg transition-colors flex-shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
     >
       <Trash2 className="w-3.5 h-3.5" />
     </button>
@@ -74,54 +74,54 @@ function MealRow({ meal, onDelete }: { meal: Meal; onDelete?: (id: string) => vo
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <div
-        className="relative flex items-center gap-3 p-3 rounded-xl bg-card hover:shadow-sm transition-all duration-200 cursor-pointer flex-1 min-w-0"
-        onClick={handleClick}
-      >
-        {navigating && (
-          <div className="absolute inset-0 rounded-xl bg-background/60 flex items-center justify-center z-10">
-            <span className="w-4 h-4 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
-          </div>
-        )}
-        {meal.image_url ? (
-          <img src={meal.image_url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-        ) : (
-          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-            <Icon className="w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
-          </div>
-        )}
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-sm">
-              {MEAL_TYPE_LABELS[meal.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? meal.meal_type}
-            </span>
-            <span className="text-xs text-muted-foreground">{formatTime(meal.logged_at)}</span>
-          </div>
-          <div className="text-xs text-muted-foreground truncate mt-0.5">
-            {meal.human_description ?? meal.meal_items.map(i => i.ingredient_name).join(', ')}
-          </div>
+    <div
+      className="relative flex items-center gap-3 p-3 rounded-xl bg-card hover:shadow-sm transition-all duration-200 cursor-pointer"
+      onClick={handleClick}
+    >
+      {navigating && (
+        <div className="absolute inset-0 rounded-xl bg-background/60 flex items-center justify-center z-10">
+          <span className="w-4 h-4 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
         </div>
+      )}
 
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <div className="text-right mr-1">
-            <div className="text-sm font-semibold tabular-nums">{Math.round(totalCalories(meal))}</div>
-            <div className="text-[10px] text-muted-foreground">kcal</div>
-          </div>
-          <Link
-            href={`/meal/new?revisionOf=${meal.id}&returnDate=${mealDate}`}
-            onClick={e => e.stopPropagation()}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-          </Link>
+      {meal.image_url ? (
+        <img src={meal.image_url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+      ) : (
+        <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+          <Icon className="w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
+        </div>
+      )}
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-sm">
+            {MEAL_TYPE_LABELS[meal.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? meal.meal_type}
+          </span>
+          <span className="text-xs text-muted-foreground">{formatTime(meal.logged_at)}</span>
+        </div>
+        <div className="text-xs text-muted-foreground truncate mt-0.5">
+          {meal.human_description ?? meal.meal_items.map(i => i.ingredient_name).join(', ')}
         </div>
       </div>
 
-      {onDelete && (
-        <DeleteButton onDelete={() => onDelete(meal.id)} />
-      )}
+      <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="text-right mr-1">
+          <div className="text-sm font-semibold tabular-nums">{Math.round(totalCalories(meal))}</div>
+          <div className="text-[10px] text-muted-foreground">kcal</div>
+        </div>
+        <Link
+          href={`/meal/new?revisionOf=${meal.id}&returnDate=${mealDate}`}
+          onClick={e => e.stopPropagation()}
+          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+        >
+          <Pencil className="w-3.5 h-3.5" />
+        </Link>
+        {onDelete && (
+          <div className="ml-2 pl-2 border-l border-border flex-shrink-0">
+            <DeleteButton onDelete={() => onDelete(meal.id)} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
