@@ -204,7 +204,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
 
         {/* Col 2: remaining today */}
         <div className="bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] p-4 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 pb-1">
             {days === 1 ? 'Remaining today' : `Remaining (${days} days)`}
           </h3>
           {(() => {
@@ -217,13 +217,13 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
             const ranked = rankMacrosByGoal(g.goal_type)
             return (
               <>
-                <div className="flex-1 flex flex-col justify-between">
+                <div className="flex-1 flex flex-col gap-3 justify-evenly">
                   {ranked.map(n => {
                     const c = nutrientConfig[n]
                     return <NutrientBar key={n} label={c.label} current={c.current} target={c.target} unit={c.unit} />
                   })}
                 </div>
-                <div className="flex justify-between text-xs text-muted-foreground mt-3">
+                <div className="flex justify-between text-xs text-muted-foreground mt-3 pt-1">
                   {ranked.map(n => {
                     const c = nutrientConfig[n]
                     return <span key={n}>~{Math.round(c.remaining)} {c.suffix}</span>
