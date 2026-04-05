@@ -31,7 +31,7 @@ export default function LandingPage() {
             Nutrition goal tracking
           </h1>
           <p className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">AI powered</p>
-          <p className="text-muted-foreground text-lg leading-relaxed">
+          <p className="text-muted-foreground text-sm leading-relaxed">
             Snap a picture of your meals and get ingredients &amp; nutritional values. Get advanced analytics and recommendations to reach your target.
           </p>
         </div>
