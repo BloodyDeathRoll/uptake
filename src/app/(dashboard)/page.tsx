@@ -3,12 +3,13 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import DashboardClient from './DashboardClient'
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
 
+  const { date: initialDate } = await searchParams
   const cookieStore = await cookies()
   const tz = cookieStore.get('tz')?.value ?? 'UTC'
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date())
@@ -22,5 +23,5 @@ export default async function DashboardPage() {
     supabase.from('profiles').select('weight_kg, height_cm, age, sex, activity_level, dietary_preferences').eq('id', user.id).single(),
   ])
 
-  return <DashboardClient snapshot={snapshot} goal={goal} meals={(meals ?? []) as import('@/hooks/useMeals').Meal[]} profile={profile} />
+  return <DashboardClient snapshot={snapshot} goal={goal} meals={(meals ?? []) as import('@/hooks/useMeals').Meal[]} profile={profile} initialDate={initialDate} />
 }

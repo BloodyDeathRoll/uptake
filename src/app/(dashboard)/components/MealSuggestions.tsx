@@ -51,6 +51,12 @@ async function getLocation(): Promise<string | undefined> {
 
   if (!navigator.geolocation) return undefined
 
+  // Check browser permission state — if denied, skip the prompt entirely
+  try {
+    const perm = await navigator.permissions.query({ name: 'geolocation' })
+    if (perm.state === 'denied') return undefined
+  } catch { /* permissions API not supported — proceed */ }
+
   return new Promise(resolve => {
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {

@@ -138,6 +138,16 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                 />
               </div>
               <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] text-muted-foreground">Carbs g</span>
+                <Input
+                  type="number"
+                  value={item.carbs_g ?? ''}
+                  onChange={e => update(i, 'carbs_g', e.target.value === '' ? null : Number(e.target.value))}
+                  placeholder="—"
+                  className="h-8 text-xs w-20"
+                />
+              </div>
+              <div className="flex flex-col gap-0.5">
                 <span className="text-[10px] text-muted-foreground">Fat g</span>
                 <Input
                   type="number"
@@ -166,12 +176,9 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 pt-2">
-        <Button variant="outline" onClick={() => onSave(items)} disabled={saving} className="flex-1">
-          Save as-is
-        </Button>
-        <Button onClick={() => onSave(items)} disabled={saving || items.some(i => !i.ingredient_name)} className="flex-1">
-          {saving ? 'Saving…' : 'Accept all & save'}
+      <div className="pt-2">
+        <Button onClick={() => onSave(items)} disabled={saving} className="w-full">
+          {saving ? 'Saving…' : 'Save'}
         </Button>
       </div>
     </div>

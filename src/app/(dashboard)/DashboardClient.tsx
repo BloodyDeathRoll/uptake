@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
-import { useState, useCallback } from 'react'
+import { Plus, UtensilsCrossed } from 'lucide-react'
+import { useState, useCallback, useEffect } from 'react'
 import CalorieRings from './components/CalorieRings'
 import DeficitBar from './components/DeficitBar'
 import MealTimeline from './components/MealTimeline'
@@ -32,6 +32,7 @@ interface Props {
   goal: Goal | null
   meals: Meal[]
   profile: GoalProfile | null
+  initialDate?: string
 }
 
 function localToday(): string {
@@ -58,10 +59,11 @@ function aggregateFromMeals(meals: Meal[]) {
   )
 }
 
-export default function DashboardClient({ snapshot, goal: initialGoal, meals: serverMeals, profile }: Props) {
+export default function DashboardClient({ snapshot, goal: initialGoal, meals: serverMeals, profile, initialDate }: Props) {
   const today = localToday()
+  const startDate = initialDate ?? today
   const [goal, setGoal] = useState(initialGoal)
-  const [dateRange, setDateRange] = useState<DateRange>({ start: today, end: today, days: 1 })
+  const [dateRange, setDateRange] = useState<DateRange>({ start: startDate, end: startDate, days: 1 })
   const [clientMeals, setClientMeals] = useState<Meal[] | null>(null)
   const [fetchingMeals, setFetchingMeals] = useState(false)
   const [goalSwitching, setGoalSwitching] = useState(false)
@@ -79,6 +81,14 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
     } finally {
       setFetchingMeals(false)
     }
+  }, [])
+
+  // If returning from a meal edit on a past date, fetch meals for that date
+  useEffect(() => {
+    if (initialDate && initialDate !== today) {
+      fetchMeals({ start: initialDate, end: initialDate, days: 1 })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleRangeChange = (range: DateRange) => {
@@ -122,7 +132,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
   }
 
   return (
-    <div className="px-6 py-6 relative">
+    <div className="px-4 py-6 relative">
 
       {/* Goal-switching overlay */}
       {goalSwitching && (
@@ -234,7 +244,8 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
       {/* Meal list — 3 columns on desktop */}
       <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-base">
+          <h2 className="font-semibold text-base flex items-center gap-2">
+            <UtensilsCrossed className="w-4 h-4 text-muted-foreground" />
             {days === 1 && isToday ? "Today's meals" : days === 1 ? 'Meals' : `Meals (${days} days)`}
           </h2>
           <Link

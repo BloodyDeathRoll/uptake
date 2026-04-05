@@ -76,7 +76,9 @@ export default async function AdminUsersPage({
 
               return (
                 <tr key={u.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-medium max-w-[200px] truncate">{u.email}</td>
+                  <td className="px-4 py-3 font-medium max-w-[200px]">
+                    <span className="block truncate" title={u.email}>{u.email}</span>
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground tabular-nums text-xs">
                     {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
                   </td>

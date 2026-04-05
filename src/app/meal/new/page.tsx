@@ -39,6 +39,7 @@ function NewMealPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const revisionOf = searchParams.get('revisionOf')
+  const returnDate = searchParams.get('returnDate')
   const isEdit = !!revisionOf
 
   const [mealType, setMealType] = useState<MealType>('snack')
@@ -191,7 +192,7 @@ function NewMealPageInner() {
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error)
-      router.push('/')
+      router.push(returnDate ? `/?date=${returnDate}` : '/')
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't save your meal. Your entries are preserved — tap Save to try again.")
     } finally {
@@ -204,7 +205,7 @@ function NewMealPageInner() {
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 bg-background/80 backdrop-blur-sm shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 h-14 flex items-center justify-between">
-        <button onClick={() => router.back()} className="text-muted-foreground text-sm">Cancel</button>
+        <button onClick={() => router.back()} className="text-sm text-primary underline underline-offset-2">Cancel</button>
         <span className="font-semibold">{isEdit ? 'Edit meal' : 'Log meal'}</span>
         <div className="w-12" />
       </div>

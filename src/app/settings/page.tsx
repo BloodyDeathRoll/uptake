@@ -63,6 +63,13 @@ export default async function SettingsPage() {
           <p className="text-xs text-muted-foreground">Data export (JSON/CSV) coming in Phase 3.</p>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardContent className="pt-4 pb-4 space-y-2">
+          <h2 className="font-semibold text-sm">Legal</h2>
+          <Link href="/terms" className="text-sm text-accent underline underline-offset-4">Terms &amp; Conditions</Link>
+        </CardContent>
+      </Card>
     </div>
   )
 }

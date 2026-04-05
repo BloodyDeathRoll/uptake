@@ -29,9 +29,13 @@ export default function DeficitBar({ calories, target }: Props) {
     : `${Math.round(diff)} kcal over target`
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs text-center text-muted-foreground">{label}</p>
-      <div className="relative h-3 rounded-full overflow-hidden">
+    <div className="space-y-1">
+      <div className="flex justify-between items-center text-xs text-muted-foreground">
+        <span>deficit</span>
+        <span>{label}</span>
+        <span>surplus</span>
+      </div>
+      <div className="relative h-1.5 rounded-full overflow-hidden">
         {/* Full gradient track */}
         <div className="absolute inset-0" style={{ background: GRADIENT }} />
 
@@ -50,10 +54,6 @@ export default function DeficitBar({ calories, target }: Props) {
 
         {/* Center divider */}
         <div className="absolute inset-y-0 left-1/2 w-px bg-border z-10" />
-      </div>
-      <div className="flex justify-between text-[10px] text-muted-foreground">
-        <span>deficit</span>
-        <span>surplus</span>
       </div>
     </div>
   )

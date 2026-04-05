@@ -29,10 +29,13 @@ Return ONLY valid JSON matching this exact schema (no markdown, no explanation):
 }
 
 Rules:
-- Estimate realistic portion sizes if not specified; if meal history is provided, use it to calibrate typical sizes for this user
+- ALWAYS return a best-effort estimate — never return empty items for a recognizable food description
+- If quantities are not specified, use typical serving sizes (e.g. "acai bowl" → 300g bowl with 50g granola and 100g mixed fruit)
+- If the description is vague or general (e.g. "acai bowl with granola"), fill in typical ingredients and quantities and set confidence "low"
+- If meal history is provided, use it to calibrate typical sizes for this user
 - Use standard nutritional data for all macros
-- Set confidence "low" for items where portion is ambiguous
+- Set confidence "low" for items where portion is ambiguous or inferred
 - Set confidence "high" only when quantity is explicitly stated
 - Normalize ingredient names (e.g., "chicken breast" not "Chicken Breast")
-- If no food is detected, return {"items": [], "total_calories": 0}`
+- Only return {"items": [], "total_calories": 0} if the input contains no food whatsoever (e.g. purely non-food text)`
 }

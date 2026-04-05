@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { FloatingLabelInput } from '@/components/ui/floating-label-input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Spinner from '@/components/Spinner'
+import Logo from '@/components/Logo'
 import UseAnimations from 'react-useanimations'
 import alertCircle from 'react-useanimations/lib/alertCircle'
 
@@ -69,12 +70,15 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-background">
-      <Card className="w-full max-w-sm border-0 ring-0 shadow-none animate-in fade-in slide-in-from-bottom-6 duration-500">
-        <CardHeader className="text-center pb-2">
+      <Card className="w-full max-w-sm border-0 ring-0 shadow-none bg-transparent animate-in fade-in slide-in-from-bottom-6 duration-500">
+        <CardHeader className="text-center pt-8 pb-6">
+          <div className="flex justify-center mb-0">
+            <Logo size={48} />
+          </div>
           <CardTitle className="text-2xl font-bold tracking-tight">Uptake</CardTitle>
           <CardDescription>Sign in to track your nutrition</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 pb-8">
           <Button
             variant="outline"
             className="w-full transition-transform duration-150 active:scale-[0.98]"

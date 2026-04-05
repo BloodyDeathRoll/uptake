@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Settings } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import Logo from '@/components/Logo'
 
 function isAdminEmail(email: string | undefined | null): boolean {
   const list = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
@@ -17,7 +18,10 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 h-14 flex items-center justify-between">
-      <span className="font-bold text-lg tracking-tight">Uptake</span>
+      <Link href="/" className="font-bold text-lg tracking-tight flex items-center gap-2">
+        <Logo size={24} />
+        Uptake
+      </Link>
       <div className="flex items-center gap-2">
         {admin && (
           <Link
@@ -36,7 +40,7 @@ export default function Header() {
         </Link>
         <button
           onClick={signOut}
-          className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold"
+          className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold"
           aria-label="Account"
           title={user?.email}
         >
