@@ -43,18 +43,18 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col flex-1 gap-4">
-      <div className="shrink-0">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div>
         <h1 className="text-2xl font-bold tracking-tight">Your lifestyle</h1>
         <p className="text-muted-foreground mt-1">Activity and goals</p>
       </div>
 
-      <div className="flex flex-col flex-1 min-h-0 gap-4 pb-4">
+      <div className="flex flex-col gap-4 pb-4">
 
       {/* Activity carousel */}
-      <div className="flex flex-col flex-1 min-h-0 gap-1.5">
+      <div className="flex flex-col gap-1.5">
         <p className="text-sm font-[550] text-foreground shrink-0">Activity level</p>
-        <div className="relative flex-1 min-h-0">
+        <div className="relative h-36">
           <div
             ref={activity.scrollRef}
             onScroll={activity.handleScroll}
@@ -96,9 +96,9 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
       </div>
 
       {/* Goal carousel */}
-      <div className="flex flex-col flex-1 min-h-0 gap-1.5">
+      <div className="flex flex-col gap-1.5">
         <p className="text-sm font-[550] text-foreground shrink-0">Goal</p>
-        <div className="relative flex-1 min-h-0">
+        <div className="relative h-36">
           <div
             ref={goal.scrollRef}
             onScroll={goal.handleScroll}
