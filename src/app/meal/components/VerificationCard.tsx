@@ -7,6 +7,13 @@ import { Plus, Trash2, RotateCcw } from 'lucide-react'
 import ConfidenceBadge from '@/components/shared/ConfidenceBadge'
 import type { MealItem } from '@/hooks/useMeals'
 
+const LIQUID_KEYWORDS = ['milk', 'juice', 'water', 'drink', 'beverage', 'oil', 'sauce', 'soup', 'broth', 'stock', 'coffee', 'tea', 'smoothie', 'shake', 'beer', 'wine', 'soda', 'cola', 'kefir', 'syrup', 'vinegar']
+
+function defaultUnit(name: string): 'ml' | 'g' {
+  const lower = name.toLowerCase()
+  return LIQUID_KEYWORDS.some(k => lower.includes(k)) ? 'ml' : 'g'
+}
+
 interface Props {
   initialItems: MealItem[]
   onSave: (items: MealItem[]) => void
@@ -38,6 +45,48 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
   const [items, setItems] = useState<MealItem[]>(
     initialItems.length > 0 ? initialItems : [blankItem()]
   )
+  const [loadingQty, setLoadingQty] = useState<Record<number, boolean>>({})
+
+  const handleQty = async (index: number, name: string) => {
+    const unit = defaultUnit(name)
+    const qty = 100
+
+    // Set quantity + unit immediately so it feels responsive
+    setItems(prev => prev.map((item, i) =>
+      i === index ? { ...item, quantity: qty, unit } : item
+    ))
+    setLoadingQty(prev => ({ ...prev, [index]: true }))
+
+    try {
+      const res = await fetch('/api/ai/estimate-nutrition', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ingredients: [{ name, quantity: qty, unit }] }),
+      })
+      const json = await res.json()
+      const est = json.data?.items?.[0]
+      if (est) {
+        setItems(prev => prev.map((item, i) =>
+          i === index ? {
+            ...item,
+            quantity: qty,
+            unit,
+            calories:    est.calories    ?? null,
+            protein_g:   est.protein_g   ?? null,
+            carbs_g:     est.carbs_g     ?? null,
+            fat_g:       est.fat_g       ?? null,
+            fiber_g:     est.fiber_g     ?? null,
+            food_group:  est.food_group  ?? null,
+            confidence:  est.confidence  ?? 'low',
+          } : item
+        ))
+      }
+    } catch {
+      // silently leave quantity set, user can fill macros manually
+    } finally {
+      setLoadingQty(prev => ({ ...prev, [index]: false }))
+    }
+  }
 
   const update = (index: number, field: keyof MealItem, value: unknown) => {
     setItems(prev => prev.map((item, i) => {
@@ -101,6 +150,18 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                 placeholder="Ingredient name"
                 className="flex-1 h-8 text-sm"
               />
+              {item.ingredient_name.trim() && !item.quantity && (
+                <button
+                  type="button"
+                  onClick={() => handleQty(i, item.ingredient_name)}
+                  disabled={loadingQty[i]}
+                  className="h-8 px-2 rounded-md bg-muted text-xs font-medium text-muted-foreground hover:text-foreground transition-colors shrink-0 disabled:opacity-50 flex items-center gap-1"
+                >
+                  {loadingQty[i]
+                    ? <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                    : `QTY`}
+                </button>
+              )}
               <ConfidenceBadge confidence={item.confidence} />
               <button onClick={() => remove(i)} className="text-muted-foreground hover:text-destructive transition-colors">
                 <Trash2 className="w-4 h-4" />
