@@ -171,7 +171,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
         ) : (
           <span className="font-semibold text-base">{g.goal_type.replace(/_/g, ' ')}</span>
         )}
-        <DateRangeSelector onChange={handleRangeChange} />
+        <DateRangeSelector onChange={handleRangeChange} initialDate={startDate !== today ? startDate : undefined} />
       </div>
 
       {/* 2-column section: rings+deficit | remaining */}

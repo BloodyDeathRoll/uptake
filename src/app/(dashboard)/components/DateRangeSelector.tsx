@@ -71,6 +71,7 @@ function getMonthDays(ym: string): { date: string; isCurrentMonth: boolean }[] {
 
 interface Props {
   onChange: (range: DateRange) => void
+  initialDate?: string
 }
 
 const TABS: { key: Mode; label: string }[] = [
@@ -82,10 +83,10 @@ const TABS: { key: Mode; label: string }[] = [
 
 const DOW = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
-export default function DateRangeSelector({ onChange }: Props) {
+export default function DateRangeSelector({ onChange, initialDate }: Props) {
   const today = localToday()
   const [mode, setMode] = useState<Mode>('day')
-  const [dayDate, setDayDate] = useState(today)
+  const [dayDate, setDayDate] = useState(initialDate ?? today)
   const [customStart, setCustomStart] = useState(addDays(today, -6))
   const [customEnd, setCustomEnd] = useState(today)
   const [calendarOpen, setCalendarOpen] = useState(false)
