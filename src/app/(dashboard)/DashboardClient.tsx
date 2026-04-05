@@ -97,12 +97,12 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
     setDateRange(range)
     if (range.start === today && range.end === today) {
       setClientMeals(null)
-      router.replace('/', { scroll: false })
+      router.replace('/dashboard', { scroll: false })
     } else {
       fetchMeals(range)
       const param = range.days === 1
-        ? `?date=${range.start}`
-        : `?date=${range.start}&endDate=${range.end}`
+        ? `/dashboard?date=${range.start}`
+        : `/dashboard?date=${range.start}&endDate=${range.end}`
       router.replace(param, { scroll: false })
     }
   }

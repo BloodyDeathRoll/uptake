@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
-import DashboardClient from './DashboardClient'
+import DashboardClient from '../DashboardClient'
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
   const supabase = await createClient()

@@ -19,7 +19,7 @@ export default async function SettingsPage() {
   return (
     <div className="px-4 py-6 space-y-6 max-w-lg mx-auto">
       <div className="flex items-center gap-3">
-        <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">
+        <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <h1 className="text-xl font-bold">Settings</h1>

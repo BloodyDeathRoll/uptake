@@ -47,7 +47,7 @@ export default async function MealDetailPage({
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="sticky top-0 bg-background/80 backdrop-blur-sm shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 h-14 flex items-center justify-between">
-        <Link href={returnDate ? `/?date=${returnDate}` : '/'} className="text-muted-foreground text-sm">← Back</Link>
+        <Link href={returnDate ? `/dashboard?date=${returnDate}` : '/dashboard'} className="text-muted-foreground text-sm">← Back</Link>
         <span className="font-semibold capitalize">
           {MEAL_TYPE_LABELS[meal.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? meal.meal_type}
         </span>

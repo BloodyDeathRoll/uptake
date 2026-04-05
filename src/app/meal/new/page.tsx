@@ -192,7 +192,7 @@ function NewMealPageInner() {
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error)
-      router.push(returnDate ? `/?date=${returnDate}` : '/')
+      router.push(returnDate ? `/dashboard?date=${returnDate}` : '/dashboard')
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't save your meal. Your entries are preserved — tap Save to try again.")
     } finally {

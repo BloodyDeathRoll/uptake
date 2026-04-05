@@ -53,7 +53,7 @@ function LoginForm() {
       .select('id')
       .single()
 
-    router.push(profile ? '/' : '/onboarding')
+    router.push(profile ? '/dashboard' : '/onboarding')
   }
 
   const handleOAuth = async () => {
