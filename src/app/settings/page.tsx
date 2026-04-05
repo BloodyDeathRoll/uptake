@@ -67,7 +67,10 @@ export default async function SettingsPage() {
       <Card>
         <CardContent className="pt-4 pb-4 space-y-2">
           <h2 className="font-semibold text-sm">Legal</h2>
-          <Link href="/terms" className="text-sm text-accent underline underline-offset-4">Terms &amp; Conditions</Link>
+          <div className="flex flex-col gap-2">
+            <Link href="/terms" className="text-sm text-accent underline underline-offset-4">Terms &amp; Conditions</Link>
+            <Link href="/privacy" className="text-sm text-accent underline underline-offset-4">Privacy Policy</Link>
+          </div>
         </CardContent>
       </Card>
     </div>
