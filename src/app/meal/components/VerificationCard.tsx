@@ -58,10 +58,6 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
     const unit = defaultUnit(name)
     const qty = 100
 
-    // Set quantity + unit immediately so it feels responsive
-    setItems(prev => prev.map((item, i) =>
-      i === index ? { ...item, quantity: qty, unit } : item
-    ))
     setLoadingQty(prev => ({ ...prev, [index]: true }))
 
     try {
@@ -164,16 +160,13 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                 placeholder="Ingredient name"
                 className="flex-1 h-8 text-sm"
               />
-              {item.ingredient_name.trim() && !item.quantity && (
+              {item.ingredient_name.trim() && !item.quantity && !loadingQty[i] && (
                 <button
                   type="button"
                   onClick={() => handleQty(i, item.ingredient_name)}
-                  disabled={loadingQty[i]}
-                  className="h-8 px-2 rounded-md bg-muted text-xs font-medium text-muted-foreground hover:text-foreground transition-colors shrink-0 disabled:opacity-50 flex items-center gap-1"
+                  className="h-8 px-2 rounded-md bg-muted text-xs font-medium text-muted-foreground hover:text-foreground transition-colors shrink-0 flex items-center gap-1"
                 >
-                  {loadingQty[i]
-                    ? <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                    : `QTY`}
+                  QTY
                 </button>
               )}
               <ConfidenceBadge confidence={item.confidence} />
@@ -181,58 +174,65 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex gap-2">
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] text-muted-foreground">Amount {item.unit}</span>
-                <Input
-                  type="number"
-                  value={item.quantity || ''}
-                  onChange={e => update(i, 'quantity', Number(e.target.value))}
-                  placeholder="0"
-                  className="w-20 h-8 text-sm"
-                />
+            {loadingQty[i] ? (
+              <div className="flex items-center gap-2 h-8 text-xs text-muted-foreground">
+                <span className="w-3.5 h-3.5 border border-current border-t-transparent rounded-full animate-spin shrink-0" />
+                Estimating nutrition…
               </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] text-muted-foreground">kcal</span>
-                <Input
-                  type="number"
-                  value={item.calories ?? ''}
-                  onChange={e => update(i, 'calories', e.target.value === '' ? null : Number(e.target.value))}
-                  placeholder="—"
-                  className="h-8 text-xs w-20"
-                />
+            ) : (
+              <div className="flex gap-2">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] text-muted-foreground">Amount {item.unit}</span>
+                  <Input
+                    type="number"
+                    value={item.quantity || ''}
+                    onChange={e => update(i, 'quantity', Number(e.target.value))}
+                    placeholder="0"
+                    className="w-20 h-8 text-sm"
+                  />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] text-muted-foreground">kcal</span>
+                  <Input
+                    type="number"
+                    value={item.calories ?? ''}
+                    onChange={e => update(i, 'calories', e.target.value === '' ? null : Number(e.target.value))}
+                    placeholder="—"
+                    className="h-8 text-xs w-20"
+                  />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] text-muted-foreground">Protein g</span>
+                  <Input
+                    type="number"
+                    value={item.protein_g ?? ''}
+                    onChange={e => update(i, 'protein_g', e.target.value === '' ? null : Number(e.target.value))}
+                    placeholder="—"
+                    className="h-8 text-xs w-20"
+                  />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] text-muted-foreground">Carbs g</span>
+                  <Input
+                    type="number"
+                    value={item.carbs_g ?? ''}
+                    onChange={e => update(i, 'carbs_g', e.target.value === '' ? null : Number(e.target.value))}
+                    placeholder="—"
+                    className="h-8 text-xs w-20"
+                  />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] text-muted-foreground">Fat g</span>
+                  <Input
+                    type="number"
+                    value={item.fat_g ?? ''}
+                    onChange={e => update(i, 'fat_g', e.target.value === '' ? null : Number(e.target.value))}
+                    placeholder="—"
+                    className="h-8 text-xs w-20"
+                  />
+                </div>
               </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] text-muted-foreground">Protein g</span>
-                <Input
-                  type="number"
-                  value={item.protein_g ?? ''}
-                  onChange={e => update(i, 'protein_g', e.target.value === '' ? null : Number(e.target.value))}
-                  placeholder="—"
-                  className="h-8 text-xs w-20"
-                />
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] text-muted-foreground">Carbs g</span>
-                <Input
-                  type="number"
-                  value={item.carbs_g ?? ''}
-                  onChange={e => update(i, 'carbs_g', e.target.value === '' ? null : Number(e.target.value))}
-                  placeholder="—"
-                  className="h-8 text-xs w-20"
-                />
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] text-muted-foreground">Fat g</span>
-                <Input
-                  type="number"
-                  value={item.fat_g ?? ''}
-                  onChange={e => update(i, 'fat_g', e.target.value === '' ? null : Number(e.target.value))}
-                  placeholder="—"
-                  className="h-8 text-xs w-20"
-                />
-              </div>
-            </div>
+            )}
           </div>
         ))}
       </div>
