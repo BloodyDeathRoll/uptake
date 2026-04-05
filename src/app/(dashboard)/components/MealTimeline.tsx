@@ -45,18 +45,25 @@ function groupByDate(meals: Meal[]): { dateKey: string; label: string; meals: Me
 }
 
 function DeleteButton({ onDelete }: { onDelete: () => void }) {
+  const [deleting, setDeleting] = useState(false)
+
   const handle = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+    if (deleting) return
+    setDeleting(true)
     onDelete()
   }
 
   return (
     <button
       onClick={handle}
-      className="p-1.5 rounded-lg transition-colors flex-shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+      disabled={deleting}
+      className="p-1.5 rounded-lg transition-colors flex-shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-50"
     >
-      <Trash2 className="w-3.5 h-3.5" />
+      {deleting
+        ? <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin block" />
+        : <Trash2 className="w-3.5 h-3.5" />}
     </button>
   )
 }
