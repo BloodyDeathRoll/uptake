@@ -53,6 +53,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
     }))
   )
   const [loadingQty, setLoadingQty] = useState<Record<number, boolean>>({})
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const handleQty = async (index: number, name: string) => {
     const unit = defaultUnit(name)
@@ -87,6 +88,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
           filled._ver = (item._ver ?? 0) + 1
           return filled
         }))
+        setSaveError(null)
       }
     } catch {
       // silently leave quantity set, user can fill macros manually
@@ -96,6 +98,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
   }
 
   const update = (index: number, field: keyof MealItem, value: unknown) => {
+    if (field === 'quantity' && Number(value) > 0) setSaveError(null)
     setItems(prev => prev.map((item, i) => {
       if (i !== index) return item
       const wasAI = item.source === 'ai_text' || item.source === 'ai_vision'
@@ -169,7 +172,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                   QTY
                 </button>
               )}
-              <ConfidenceBadge confidence={item.confidence} />
+              {item.quantity > 0 && <ConfidenceBadge confidence={item.confidence} />}
               <button onClick={() => remove(i)} className="text-muted-foreground hover:text-destructive transition-colors">
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -179,7 +182,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                 <span className="w-3.5 h-3.5 border border-current border-t-transparent rounded-full animate-spin shrink-0" />
                 Estimating nutrition…
               </div>
-            ) : (
+            ) : item.quantity > 0 ? (
               <div className="flex gap-2">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[10px] text-muted-foreground">Amount {item.unit}</span>
@@ -232,7 +235,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                   />
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         ))}
       </div>
@@ -251,8 +254,20 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
       </div>
 
       {/* Actions */}
-      <div className="pt-2">
-        <Button onClick={() => onSave(items.map(({ _perUnit: _p, _ver: _v, ...rest }) => rest))} disabled={saving} className="w-full">
+      <div className="pt-2 space-y-2">
+        {saveError && (
+          <p className="text-xs text-destructive text-center">{saveError}</p>
+        )}
+        <Button
+          onClick={() => {
+            const missing = items.some(it => it.quantity === 0)
+            if (missing) { setSaveError('Must fill out quantity of item'); return }
+            setSaveError(null)
+            onSave(items.map(({ _perUnit: _p, _ver: _v, ...rest }) => rest))
+          }}
+          disabled={saving}
+          className="w-full"
+        >
           {saving ? 'Saving…' : 'Save'}
         </Button>
       </div>
