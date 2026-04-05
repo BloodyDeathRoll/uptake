@@ -175,10 +175,10 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
       </div>
 
       {/* 2-column section: rings+deficit | remaining */}
-      <div className="space-y-6 md:grid md:grid-cols-[7fr_3.5fr] md:gap-10 md:items-start md:space-y-0">
+      <div className="space-y-6 md:grid md:grid-cols-[7fr_3.5fr] md:gap-10 md:items-stretch md:space-y-0">
 
         {/* Col 1: rings + deficit */}
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] p-4 space-y-4">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] p-4 space-y-4 flex flex-col">
           {fetchingMeals && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-xl z-10">
               <span className="w-5 h-5 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
@@ -197,14 +197,14 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
             protein={{ current: agg.protein, target: scaledGoal.protein }}
             carbs={{ current: agg.carbs, target: scaledGoal.carbs }}
           />
-          <div style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+          <div className="mt-auto">
             <DeficitBar calories={agg.calories} target={scaledGoal.calories} goalType={g.goal_type} />
           </div>
         </div>
 
         {/* Col 2: remaining today */}
-        <div className="bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] p-4 space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+        <div className="bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] p-4 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
             {days === 1 ? 'Remaining today' : `Remaining (${days} days)`}
           </h3>
           {(() => {
@@ -217,13 +217,13 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
             const ranked = rankMacrosByGoal(g.goal_type)
             return (
               <>
-                <div className="space-y-3">
+                <div className="flex-1 flex flex-col justify-between">
                   {ranked.map(n => {
                     const c = nutrientConfig[n]
                     return <NutrientBar key={n} label={c.label} current={c.current} target={c.target} unit={c.unit} />
                   })}
                 </div>
-                <div className="flex justify-between text-xs text-muted-foreground">
+                <div className="flex justify-between text-xs text-muted-foreground mt-3">
                   {ranked.map(n => {
                     const c = nutrientConfig[n]
                     return <span key={n}>~{Math.round(c.remaining)} {c.suffix}</span>
