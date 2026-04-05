@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Plus, Trash2, RotateCcw } from 'lucide-react'
 import ConfidenceBadge from '@/components/shared/ConfidenceBadge'
 import type { MealItem } from '@/hooks/useMeals'
+import { scaleMacros } from '@/lib/nutrition/scaling'
 
 const LIQUID_KEYWORDS = ['milk', 'juice', 'water', 'drink', 'beverage', 'oil', 'sauce', 'soup', 'broth', 'stock', 'coffee', 'tea', 'smoothie', 'shake', 'beer', 'wine', 'soda', 'cola', 'kefir', 'syrup', 'vinegar']
 
@@ -97,19 +98,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
 
       // When quantity changes, scale all macros proportionally
       if (field === 'quantity') {
-        const newQty = Number(value)
-        const oldQty = item.quantity
-        if (oldQty > 0 && newQty > 0 && newQty !== oldQty) {
-          const r = newQty / oldQty
-          patch = {
-            ...patch,
-            calories:         item.calories         !== null ? Math.round(item.calories * r)              : null,
-            protein_g:        item.protein_g         !== null ? Math.round(item.protein_g * r * 10) / 10  : null,
-            carbs_g:          item.carbs_g           !== null ? Math.round(item.carbs_g * r * 10) / 10    : null,
-            fat_g:            item.fat_g             !== null ? Math.round(item.fat_g * r * 10) / 10      : null,
-            fiber_g:          item.fiber_g           !== null ? Math.round(item.fiber_g * r * 10) / 10    : null,
-          }
-        }
+        patch = scaleMacros(item, Number(value))
       }
 
       return {
