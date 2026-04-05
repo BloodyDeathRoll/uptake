@@ -8,11 +8,13 @@ interface AnalyzeDayInput {
   days: number
   priority: PrioritySignal
   hourOfDay: number
+  adherenceTrend?: string
+  foodGroupContext?: string
   profile?: { weight_kg?: number | null; age?: number | null; sex?: string | null; activity_level?: string | null } | null
 }
 
 export function buildAnalyzeDayPrompt(input: AnalyzeDayInput): string {
-  const { goalType, goalLabel, consumed, targets, days, priority, hourOfDay, profile } = input
+  const { goalType, goalLabel, consumed, targets, days, priority, hourOfDay, adherenceTrend, foodGroupContext, profile } = input
 
   const pct = (c: number, t: number) => (t > 0 ? Math.round((c / t) * 100) : 0)
   const remaining = (c: number, t: number) => Math.max(t - c, 0)
@@ -72,7 +74,7 @@ Fat      : ~${Math.round(remaining(consumed.fat,      targets.fat))}g`
 
 GOAL: ${goalLabel} (${goalType})
 ${profileLine}
-${periodLine}
+${periodLine}${adherenceTrend ?? ''}${foodGroupContext ?? ''}
 
 INTAKE SO FAR vs DAILY TARGETS:
 Calories : ${Math.round(consumed.calories)} / ${Math.round(targets.calories)} kcal — ${calPct}%

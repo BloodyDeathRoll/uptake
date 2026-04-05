@@ -4,6 +4,7 @@ import Groq from 'groq-sdk'
 import { buildAnalyzeDayPrompt } from '@/lib/ai/prompts/analyze-day'
 import { GOAL_LABELS } from '@/lib/utils/constants'
 import { computePriority } from '@/lib/nutrition/priority'
+import { buildAdherenceTrend, buildFoodGroupContext } from '@/lib/ai/prompts/user-context'
 
 const MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct'
 
@@ -18,18 +19,30 @@ export async function POST(request: NextRequest) {
   const body = await request.json()
   const { consumed, targets, goalType, days, hourOfDay } = body
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('weight_kg, age, sex, activity_level')
-    .eq('id', user.id)
-    .single()
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10)
+
+  const [{ data: profile }, { data: snapshots }, { data: recentItems }] = await Promise.all([
+    supabase.from('profiles').select('weight_kg, age, sex, activity_level').eq('id', user.id).single(),
+    supabase.from('daily_snapshots')
+      .select('total_calories, total_protein_g, total_carbs_g, total_fat_g')
+      .eq('user_id', user.id)
+      .gte('date', sevenDaysAgo)
+      .order('date', { ascending: false }),
+    supabase.from('meal_items')
+      .select('food_group, meal_id, meals!inner(user_id)')
+      .eq('meals.user_id', user.id)
+      .not('food_group', 'is', null)
+      .limit(80),
+  ])
 
   const goalLabel = GOAL_LABELS[goalType as keyof typeof GOAL_LABELS] ?? goalType
   const priority = computePriority(consumed, targets, goalType)
+  const adherenceTrend = buildAdherenceTrend(snapshots ?? [], targets)
+  const foodGroupContext = buildFoodGroupContext((recentItems ?? []) as { food_group: string | null }[])
 
   try {
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
-    const prompt = buildAnalyzeDayPrompt({ goalType, goalLabel, consumed, targets, days: days ?? 1, priority, profile, hourOfDay: hourOfDay ?? new Date().getHours() })
+    const prompt = buildAnalyzeDayPrompt({ goalType, goalLabel, consumed, targets, days: days ?? 1, priority, profile, hourOfDay: hourOfDay ?? new Date().getHours(), adherenceTrend, foodGroupContext })
 
     const completion = await client.chat.completions.create({
       model: MODEL,

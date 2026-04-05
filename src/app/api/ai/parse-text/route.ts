@@ -6,6 +6,7 @@ import { execute } from '@/lib/ai/rate-limiter'
 import { parseNutritionResponse, AIParseError, RateLimitExhaustedError } from '@/lib/ai/provider'
 import { validateNutritionResponse } from '@/lib/ai/schemas'
 import { buildMealHistoryContext } from '@/lib/ai/prompts/meal-context'
+import { buildPortionPriorsContext } from '@/lib/ai/prompts/user-context'
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -30,17 +31,25 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Fetch recent meal history to use as calibration context
-  const { data: recentMeals } = await supabase
-    .from('meals')
-    .select('human_description, meal_items(ingredient_name, quantity, unit, calories, protein_g, carbs_g, fat_g, was_corrected)')
-    .eq('user_id', user.id)
-    .order('logged_at', { ascending: false })
-    .limit(15)
+  // Fetch recent meal history + portion priors in parallel
+  const [{ data: recentMeals }, { data: portionPriors }] = await Promise.all([
+    supabase
+      .from('meals')
+      .select('human_description, meal_items(ingredient_name, quantity, unit, calories, protein_g, carbs_g, fat_g, was_corrected)')
+      .eq('user_id', user.id)
+      .order('logged_at', { ascending: false })
+      .limit(15),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from('portion_priors') as any)
+      .select('ingredient_name, avg_quantity, avg_unit, sample_count')
+      .eq('user_id', user.id)
+      .order('sample_count', { ascending: false })
+      .limit(20),
+  ])
 
-  const mealHistory = buildMealHistoryContext(
-    (recentMeals ?? []) as Parameters<typeof buildMealHistoryContext>[0]
-  )
+  const mealHistory =
+    buildMealHistoryContext((recentMeals ?? []) as Parameters<typeof buildMealHistoryContext>[0]) +
+    buildPortionPriorsContext(portionPriors ?? [])
 
   // Try parse with retry once on failure
   for (let attempt = 0; attempt < 2; attempt++) {

@@ -38,8 +38,10 @@ export function buildSuggestMealPrompt(params: {
   allergies: string[]
   location?: string
   priority: PrioritySignal
+  mealTimingContext?: string
+  foodGroupContext?: string
 }): string {
-  const { consumed, targets, goalType, hourOfDay, dietaryPreferences, allergies, location, priority } = params
+  const { consumed, targets, goalType, hourOfDay, dietaryPreferences, allergies, location, priority, mealTimingContext, foodGroupContext } = params
   const remaining = {
     calories: Math.max(targets.calories - consumed.calories, 0),
     protein: Math.max(targets.protein - consumed.protein, 0),
@@ -62,7 +64,7 @@ export function buildSuggestMealPrompt(params: {
 All 3 suggestions MUST be optimized for ${directionWord} content. If other macros conflict (e.g. carbs are over but protein is severely under), ${priority.label.toLowerCase()} takes precedence — suggest meals that fix the priority gap first, and keep other macros as reasonable as possible within that constraint.`
 
   return `You are a nutrition coach. Your job is to suggest the 3 best next meals that will make the most meaningful progress towards the user's goal given what they've eaten so far today.
-${dietaryBlock}${priorityBlock}
+${dietaryBlock}${priorityBlock}${mealTimingContext ?? ''}${foodGroupContext ?? ''}
 ${locationLine}User's goal: ${goalType.replace(/_/g, ' ')}
 Time of day: ~${hourOfDay}:00 — suggest ${mealTimeHint}
 

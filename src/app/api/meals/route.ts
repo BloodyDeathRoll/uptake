@@ -1,6 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+// Upsert weighted-average portion priors for items the user explicitly corrected.
+// Runs fire-and-forget — does not affect the meal save response time.
+async function updatePortionPriors(userId: string, items: Record<string, unknown>[]) {
+  const corrected = items.filter(i => i.was_corrected && typeof i.quantity === 'number' && i.quantity > 0 && i.unit)
+  if (corrected.length === 0) return
+
+  const supabase = await createClient()
+  const names = corrected.map(i => i.ingredient_name as string)
+
+  const { data: existing } = await supabase
+    .from('portion_priors')
+    .select('ingredient_name, avg_quantity, avg_unit, sample_count')
+    .eq('user_id', userId)
+    .in('ingredient_name', names)
+
+  const existingMap = new Map((existing ?? []).map(p => [p.ingredient_name, p]))
+
+  const upserts = corrected.map(item => {
+    const name  = item.ingredient_name as string
+    const qty   = item.quantity as number
+    const unit  = item.unit as string
+    const prior = existingMap.get(name)
+
+    if (prior && prior.avg_unit === unit) {
+      // Weighted average, capped at 50 samples to limit drift over time
+      const n      = Math.min(prior.sample_count, 50)
+      const newQty = (prior.avg_quantity * n + qty) / (n + 1)
+      return { user_id: userId, ingredient_name: name, avg_quantity: Math.round(newQty * 10) / 10, avg_unit: unit, sample_count: n + 1, updated_at: new Date().toISOString() }
+    }
+    // New ingredient or unit changed — reset
+    return { user_id: userId, ingredient_name: name, avg_quantity: qty, avg_unit: unit, sample_count: 1, updated_at: new Date().toISOString() }
+  })
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase.from('portion_priors') as any).upsert(upserts, { onConflict: 'user_id,ingredient_name' })
+}
+
 // IMMUTABLE: This route only does INSERT — never UPDATE meals
 // Corrections create new meals with revision_of pointing to the original
 
@@ -85,6 +122,9 @@ export async function POST(request: NextRequest) {
     headers: { 'Content-Type': 'application/json', 'x-internal-request': '1' },
     body: JSON.stringify({ userId: user.id, date }),
   }).catch(() => {/* silent — snapshot will be rebuilt by cron */})
+
+  // Update portion priors from corrected items (fire and forget)
+  updatePortionPriors(user.id, mealItems).catch(() => {})
 
   return NextResponse.json({ data: { ...meal, items: mealItems } }, { status: 201 })
 }
