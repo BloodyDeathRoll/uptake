@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import Header from '@/components/layout/Header'
 import { Card, CardContent } from '@/components/ui/card'
 import { GOAL_LABELS, ACTIVITY_LABELS } from '@/lib/utils/constants'
 import { formatCalories, formatGrams } from '@/lib/utils/format'
@@ -17,13 +17,10 @@ export default async function SettingsPage() {
   ])
 
   return (
-    <div className="px-4 py-6 space-y-6 max-w-lg mx-auto">
-      <div className="flex items-center gap-3">
-        <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <h1 className="text-xl font-bold">Settings</h1>
-      </div>
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header />
+      <div className="px-4 py-6 space-y-6 max-w-lg mx-auto w-full">
+      <h1 className="text-xl font-bold">Settings</h1>
 
       <Card>
         <CardContent className="pt-4 pb-4 space-y-3">
@@ -52,7 +49,7 @@ export default async function SettingsPage() {
               <div>Calories: {formatCalories(goal.calories_target)}</div>
               <div>Protein: {formatGrams(goal.protein_g)} · Carbs: {formatGrams(goal.carbs_g)} · Fat: {formatGrams(goal.fat_g)}</div>
             </div>
-            {goal.rationale && <p className="text-xs text-muted-foreground italic">{goal.rationale}</p>}
+            {goal.rationale && goal.rationale.length < 200 && <p className="text-xs text-muted-foreground italic">{goal.rationale}</p>}
           </CardContent>
         </Card>
       )}
@@ -73,6 +70,7 @@ export default async function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

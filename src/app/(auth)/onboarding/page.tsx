@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Progress } from '@/components/ui/progress'
 import { createClient } from '@/lib/supabase/client'
+import Header from '@/components/layout/Header'
 import Step1AboutYou from './components/Step1AboutYou'
 import Step2Lifestyle from './components/Step2Lifestyle'
 import Step5Review from './components/Step5Review'
@@ -71,27 +72,25 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Full-width top bar: logo left, cancel right */}
-      <div className="w-full flex items-center justify-between px-6 py-4">
-        <span className="text-sm font-semibold">Uptake</span>
-        <button
-          onClick={() => router.back()}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Cancel
-        </button>
-      </div>
+      <Header />
 
-      {/* Centered content */}
-      <div className="flex flex-col flex-1 items-center justify-center px-6">
+      <div className="flex flex-col flex-1 items-center px-6 pt-8">
         <div className="w-full max-w-lg">
-          {/* Progress */}
+          {/* Progress + cancel */}
           <div className="mb-8">
-            <p className="text-sm text-muted-foreground mb-2">Step {step} of {TOTAL_STEPS}</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-muted-foreground">Step {step} of {TOTAL_STEPS}</p>
+              <button
+                onClick={() => router.back()}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
             <Progress value={(step / TOTAL_STEPS) * 100} className="h-2" />
           </div>
 
-          <div className="flex flex-col md:h-[600px]">
+          <div className="flex flex-col">
             {step === 1 && <Step1AboutYou onNext={next} />}
             {step === 2 && <Step2Lifestyle onNext={next} onBack={back} />}
             {step === 3 && (
