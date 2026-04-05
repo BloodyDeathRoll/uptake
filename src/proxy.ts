@@ -28,7 +28,7 @@ export async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
 
-  const protectedPaths = ['/', '/weekly', '/monthly', '/meal', '/settings']
+  const protectedPaths = ['/dashboard', '/weekly', '/monthly', '/meal', '/settings']
   const isProtected = protectedPaths.some(p =>
     pathname === p || pathname.startsWith(p + '/')
   )
@@ -41,7 +41,7 @@ export async function proxy(request: NextRequest) {
 
   if (user && (pathname === '/login' || pathname === '/signup')) {
     const url = request.nextUrl.clone()
-    url.pathname = '/'
+    url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 
