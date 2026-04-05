@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Plus, UtensilsCrossed } from 'lucide-react'
 import { useState, useCallback, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import CalorieRings from './components/CalorieRings'
 import DeficitBar from './components/DeficitBar'
 import MealTimeline from './components/MealTimeline'
@@ -61,6 +62,7 @@ function aggregateFromMeals(meals: Meal[]) {
 
 export default function DashboardClient({ snapshot, goal: initialGoal, meals: serverMeals, profile, initialDate }: Props) {
   const today = localToday()
+  const router = useRouter()
   const startDate = initialDate ?? today
   const [goal, setGoal] = useState(initialGoal)
   const [dateRange, setDateRange] = useState<DateRange>({ start: startDate, end: startDate, days: 1 })
@@ -94,9 +96,14 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
   const handleRangeChange = (range: DateRange) => {
     setDateRange(range)
     if (range.start === today && range.end === today) {
-      setClientMeals(null) // use server-rendered meals
+      setClientMeals(null)
+      router.replace('/', { scroll: false })
     } else {
       fetchMeals(range)
+      const param = range.days === 1
+        ? `?date=${range.start}`
+        : `?date=${range.start}&endDate=${range.end}`
+      router.replace(param, { scroll: false })
     }
   }
 
@@ -245,7 +252,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
       <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-base flex items-center gap-2">
-            <UtensilsCrossed className="w-4 h-4 text-muted-foreground" />
+            <UtensilsCrossed className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
             {days === 1 && isToday ? "Today's meals" : days === 1 ? 'Meals' : `Meals (${days} days)`}
           </h2>
           <Link

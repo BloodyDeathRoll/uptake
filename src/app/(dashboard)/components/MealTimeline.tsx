@@ -66,9 +66,11 @@ function MealRow({ meal, onDelete }: { meal: Meal; onDelete?: (id: string) => vo
   const Icon = MEAL_ICON[meal.meal_type] ?? Utensils
   const [navigating, setNavigating] = useState(false)
 
+  const mealDate = new Date(meal.logged_at).toLocaleDateString('en-CA')
+
   const handleClick = () => {
     setNavigating(true)
-    router.push(`/meal/${meal.id}`)
+    router.push(`/meal/${meal.id}?returnDate=${mealDate}`)
   }
 
   return (
@@ -108,7 +110,7 @@ function MealRow({ meal, onDelete }: { meal: Meal; onDelete?: (id: string) => vo
             <div className="text-[10px] text-muted-foreground">kcal</div>
           </div>
           <Link
-            href={`/meal/new?revisionOf=${meal.id}&returnDate=${new Date(meal.logged_at).toLocaleDateString('en-CA')}`}
+            href={`/meal/new?revisionOf=${meal.id}&returnDate=${mealDate}`}
             onClick={e => e.stopPropagation()}
             className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
           >

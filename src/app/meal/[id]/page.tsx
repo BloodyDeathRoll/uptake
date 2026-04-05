@@ -6,8 +6,15 @@ import { MEAL_TYPE_LABELS } from '@/lib/utils/constants'
 import ConfidenceBadge from '@/components/shared/ConfidenceBadge'
 import { Badge } from '@/components/ui/badge'
 
-export default async function MealDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function MealDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ returnDate?: string }>
+}) {
   const { id } = await params
+  const { returnDate } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -40,11 +47,11 @@ export default async function MealDetailPage({ params }: { params: Promise<{ id:
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="sticky top-0 bg-background/80 backdrop-blur-sm shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 h-14 flex items-center justify-between">
-        <Link href="/" className="text-muted-foreground text-sm">← Back</Link>
+        <Link href={returnDate ? `/?date=${returnDate}` : '/'} className="text-muted-foreground text-sm">← Back</Link>
         <span className="font-semibold capitalize">
           {MEAL_TYPE_LABELS[meal.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? meal.meal_type}
         </span>
-        <Link href={`/meal/new?revisionOf=${meal.id}`} className="text-accent text-sm">Edit</Link>
+        <Link href={`/meal/new?revisionOf=${meal.id}${returnDate ? `&returnDate=${returnDate}` : ''}`} className="text-accent text-sm">Edit</Link>
       </div>
 
       <div className="px-4 py-6 max-w-lg mx-auto space-y-6">
