@@ -27,14 +27,12 @@ export default function LandingPage() {
       {/* Hero */}
       <main className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-8 py-20">
         <div className="space-y-3 max-w-xl">
-          <p className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">AI powered</p>
           <h1 className="text-4xl font-bold tracking-tight leading-tight">
             Nutrition goal tracking
           </h1>
+          <p className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">AI powered</p>
           <p className="text-muted-foreground text-lg leading-relaxed">
-            Snap a photo or describe your meal in plain English. Uptake instantly
-            breaks down calories, protein, carbs, and fat — and keeps you on track
-            toward your personal health goals.
+            Snap a picture of your meals and get ingredients &amp; nutritional values. Get advanced analytics and recommendations to reach your target.
           </p>
         </div>
 
