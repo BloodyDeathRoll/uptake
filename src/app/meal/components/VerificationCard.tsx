@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input'
 import { Plus, Trash2, RotateCcw } from 'lucide-react'
 import ConfidenceBadge from '@/components/shared/ConfidenceBadge'
 import type { MealItem } from '@/hooks/useMeals'
-import { scaleMacros } from '@/lib/nutrition/scaling'
+import { scaleMacros, computePerUnit, applyPerUnit, type PerUnit } from '@/lib/nutrition/scaling'
+
+type LocalItem = MealItem & { _perUnit?: PerUnit; _ver?: number }
 
 const LIQUID_KEYWORDS = ['milk', 'juice', 'water', 'drink', 'beverage', 'oil', 'sauce', 'soup', 'broth', 'stock', 'coffee', 'tea', 'smoothie', 'shake', 'beer', 'wine', 'soda', 'cola', 'kefir', 'syrup', 'vinegar']
 
@@ -43,8 +45,12 @@ function blankItem(): MealItem {
 }
 
 export default function VerificationCard({ initialItems, onSave, onReset, saving }: Props) {
-  const [items, setItems] = useState<MealItem[]>(
-    initialItems.length > 0 ? initialItems : [blankItem()]
+  const [items, setItems] = useState<LocalItem[]>(
+    (initialItems.length > 0 ? initialItems : [blankItem()]).map(item => ({
+      ...item,
+      _perUnit: computePerUnit(item),
+      _ver: 0,
+    }))
   )
   const [loadingQty, setLoadingQty] = useState<Record<number, boolean>>({})
 
@@ -67,20 +73,24 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
       const json = await res.json()
       const est = json.data?.items?.[0]
       if (est) {
-        setItems(prev => prev.map((item, i) =>
-          i === index ? {
+        setItems(prev => prev.map((item, i) => {
+          if (i !== index) return item
+          const filled: LocalItem = {
             ...item,
-            quantity: qty,
+            quantity:   qty,
             unit,
-            calories:    est.calories    ?? null,
-            protein_g:   est.protein_g   ?? null,
-            carbs_g:     est.carbs_g     ?? null,
-            fat_g:       est.fat_g       ?? null,
-            fiber_g:     est.fiber_g     ?? null,
-            food_group:  est.food_group  ?? null,
-            confidence:  est.confidence  ?? 'low',
-          } : item
-        ))
+            calories:   est.calories   ?? null,
+            protein_g:  est.protein_g  ?? null,
+            carbs_g:    est.carbs_g    ?? null,
+            fat_g:      est.fat_g      ?? null,
+            fiber_g:    est.fiber_g    ?? null,
+            food_group: est.food_group ?? null,
+            confidence: est.confidence ?? 'low',
+          }
+          filled._perUnit = computePerUnit(filled)
+          filled._ver = (item._ver ?? 0) + 1
+          return filled
+        }))
       }
     } catch {
       // silently leave quantity set, user can fill macros manually
@@ -94,11 +104,26 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
       if (i !== index) return item
       const wasAI = item.source === 'ai_text' || item.source === 'ai_vision'
 
-      let patch: Partial<MealItem> = { [field]: value }
+      let patch: Partial<LocalItem> = { [field]: value }
 
-      // When quantity changes, scale all macros proportionally
       if (field === 'quantity') {
-        patch = scaleMacros(item, Number(value))
+        const newQty = Number(value)
+        if (item._perUnit) {
+          patch = applyPerUnit(item._perUnit, newQty)
+        } else {
+          patch = scaleMacros(item, newQty)
+        }
+      } else if (['calories', 'protein_g', 'carbs_g', 'fat_g', 'fiber_g'].includes(field as string)) {
+        // Keep per-unit anchor in sync when user manually edits a macro
+        const numVal = value === null || value === '' ? null : Number(value)
+        const newQty = item.quantity > 0 ? item.quantity : 1
+        patch = {
+          [field]: numVal,
+          _perUnit: {
+            ...(item._perUnit ?? { calories: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null }),
+            [field]: numVal !== null ? numVal / newQty : null,
+          },
+        }
       }
 
       return {
@@ -112,7 +137,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
 
   const remove = (index: number) => setItems(prev => prev.filter((_, i) => i !== index))
 
-  const add = () => setItems(prev => [...prev, blankItem()])
+  const add = () => setItems(prev => [...prev, { ...blankItem(), _perUnit: undefined, _ver: 0 }])
 
   const totalCalories = items.reduce((sum, item) => sum + (item.calories ?? 0), 0)
   const totalProtein = items.reduce((sum, item) => sum + (item.protein_g ?? 0), 0)
@@ -131,7 +156,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
       {/* Items list */}
       <div className="space-y-3">
         {items.map((item, i) => (
-          <div key={i} className="p-3 rounded-xl bg-card space-y-2">
+          <div key={`${i}-${item._ver ?? 0}`} className="p-3 rounded-xl bg-card space-y-2">
             <div className="flex items-center gap-2">
               <Input
                 value={item.ingredient_name}
@@ -227,7 +252,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
 
       {/* Actions */}
       <div className="pt-2">
-        <Button onClick={() => onSave(items)} disabled={saving} className="w-full">
+        <Button onClick={() => onSave(items.map(({ _perUnit: _p, _ver: _v, ...rest }) => rest))} disabled={saving} className="w-full">
           {saving ? 'Saving…' : 'Save'}
         </Button>
       </div>

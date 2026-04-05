@@ -1,4 +1,4 @@
-import { scaleMacros, type ScalableMacros } from '@/lib/nutrition/scaling'
+import { scaleMacros, computePerUnit, applyPerUnit, type ScalableMacros } from '@/lib/nutrition/scaling'
 
 function item(overrides: Partial<ScalableMacros> = {}): ScalableMacros {
   return {
@@ -215,6 +215,102 @@ describe('scaleMacros: realistic examples', () => {
     expect(result.carbs_g).toBe(50.4)
     expect(result.fat_g).toBe(5.6)
     expect(result.fiber_g).toBe(8)
+  })
+})
+
+// ─── computePerUnit ───────────────────────────────────────────────────────────
+
+describe('computePerUnit', () => {
+  test('divides each macro by quantity', () => {
+    const pu = computePerUnit(item({ quantity: 100, calories: 200, protein_g: 20, carbs_g: 15, fat_g: 8, fiber_g: 3 }))
+    expect(pu).toBeDefined()
+    expect(pu!.calories).toBeCloseTo(2)
+    expect(pu!.protein_g).toBeCloseTo(0.2)
+    expect(pu!.carbs_g).toBeCloseTo(0.15)
+    expect(pu!.fat_g).toBeCloseTo(0.08)
+    expect(pu!.fiber_g).toBeCloseTo(0.03)
+  })
+
+  test('returns undefined when quantity is 0', () => {
+    expect(computePerUnit(item({ quantity: 0 }))).toBeUndefined()
+  })
+
+  test('null macros stay null in per-unit', () => {
+    const pu = computePerUnit(item({ quantity: 100, protein_g: null, fat_g: null }))
+    expect(pu!.protein_g).toBeNull()
+    expect(pu!.fat_g).toBeNull()
+  })
+})
+
+// ─── applyPerUnit ─────────────────────────────────────────────────────────────
+
+describe('applyPerUnit', () => {
+  const pu = { calories: 2, protein_g: 0.2, carbs_g: 0.15, fat_g: 0.08, fiber_g: 0.03 }
+
+  test('scales correctly to a new quantity', () => {
+    const result = applyPerUnit(pu, 150)
+    expect(result.calories).toBe(300)
+    expect(result.protein_g).toBe(30)
+    expect(result.carbs_g).toBe(22.5)
+    expect(result.fat_g).toBe(12)
+    expect(result.fiber_g).toBe(4.5)
+    expect(result.quantity).toBe(150)
+  })
+
+  test('calories rounded to integer', () => {
+    const result = applyPerUnit({ calories: 1.123, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null }, 33)
+    expect(Number.isInteger(result.calories)).toBe(true)
+  })
+
+  test('null per-unit stays null', () => {
+    const result = applyPerUnit({ calories: 2, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null }, 200)
+    expect(result.protein_g).toBeNull()
+    expect(result.carbs_g).toBeNull()
+  })
+})
+
+// ─── Spinner scenario (per-unit anchor prevents drift) ────────────────────────
+
+describe('applyPerUnit: spinner scenario', () => {
+  test('100 increments of +1g from 100g→200g gives same result as direct scale', () => {
+    // This is the bug scenario: ratio-based scaling rounds 1.3g × 0.01 = 0.013 → 0 per step
+    // applyPerUnit anchors to per-unit rates and avoids this
+    const base = item({ quantity: 100, calories: 89, protein_g: 1.3, carbs_g: 22.4, fat_g: 0.3 })
+    const pu = computePerUnit(base)!
+
+    // Simulate 100 spinner increments (+1g each)
+    let currentQty = 100
+    for (let step = 0; step < 100; step++) {
+      currentQty += 1
+    }
+    const result = applyPerUnit(pu, currentQty)
+
+    // Direct scale result for comparison
+    const direct = applyPerUnit(pu, 200)
+
+    expect(result.calories).toBe(direct.calories)
+    expect(result.protein_g).toBe(direct.protein_g)
+    expect(result.carbs_g).toBe(direct.carbs_g)
+    expect(result.fat_g).toBe(direct.fat_g)
+  })
+
+  test('low-density macros (fat 0.3g/100g) scale correctly at 200g', () => {
+    const pu = computePerUnit(item({ quantity: 100, fat_g: 0.3 }))!
+    const result = applyPerUnit(pu, 200)
+    expect(result.fat_g).toBe(0.6)
+  })
+
+  test('round-trip: anchor computed at 100g, applied at 200g, then back to 100g is exact', () => {
+    const base = item({ quantity: 100, calories: 89, protein_g: 1.3, carbs_g: 22.4, fat_g: 0.3 })
+    const pu = computePerUnit(base)!
+    const at200 = applyPerUnit(pu, 200)
+    const backTo100 = applyPerUnit(pu, 100)
+    expect(backTo100.calories).toBe(base.calories)
+    expect(backTo100.protein_g).toBe(base.protein_g)
+    expect(backTo100.carbs_g).toBe(base.carbs_g)
+    expect(backTo100.fat_g).toBe(base.fat_g)
+    // Suppress unused warning
+    expect(at200.quantity).toBe(200)
   })
 })
 
