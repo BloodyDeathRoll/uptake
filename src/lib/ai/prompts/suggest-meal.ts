@@ -61,7 +61,7 @@ export function buildSuggestMealPrompt(params: {
 ⚡ TOP PRIORITY: "${priority.label}" is the most critical nutritional issue for this user's goal right now (currently at ${priority.pct}% of target, ${priority.direction}).
 All 3 suggestions MUST be optimized for ${directionWord} content. If other macros conflict (e.g. carbs are over but protein is severely under), ${priority.label.toLowerCase()} takes precedence — suggest meals that fix the priority gap first, and keep other macros as reasonable as possible within that constraint.`
 
-  return `You are a nutrition coach. Suggest 3 specific next meal options for a user.
+  return `You are a nutrition coach. Your job is to suggest the 3 best next meals that will make the most meaningful progress towards the user's goal given what they've eaten so far today.
 ${dietaryBlock}${priorityBlock}
 ${locationLine}User's goal: ${goalType.replace(/_/g, ' ')}
 Time of day: ~${hourOfDay}:00 — suggest ${mealTimeHint}
@@ -72,11 +72,13 @@ Consumed today:
 - Carbs: ${Math.round(consumed.carbs)} / ${Math.round(targets.carbs)}g
 - Fat: ${Math.round(consumed.fat)} / ${Math.round(targets.fat)}g
 
-Remaining budget:
+Remaining budget (what will bring the user closest to their daily targets):
 - Calories: ~${Math.round(remaining.calories)} kcal
 - Protein: ~${Math.round(remaining.protein)}g
 - Carbs: ~${Math.round(remaining.carbs)}g
 - Fat: ~${Math.round(remaining.fat)}g
+
+Each suggestion should be chosen because it specifically addresses the priority gap above. The description should be specific enough for the user to log it immediately.
 
 Return ONLY a JSON array of exactly 3 varied meal suggestions that fit the remaining budget and all dietary constraints. Format:
 [

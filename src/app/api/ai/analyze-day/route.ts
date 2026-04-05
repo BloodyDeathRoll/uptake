@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { consumed, targets, goalType, days } = body
+  const { consumed, targets, goalType, days, hourOfDay } = body
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
-    const prompt = buildAnalyzeDayPrompt({ goalType, goalLabel, consumed, targets, days: days ?? 1, priority, profile })
+    const prompt = buildAnalyzeDayPrompt({ goalType, goalLabel, consumed, targets, days: days ?? 1, priority, profile, hourOfDay: hourOfDay ?? new Date().getHours() })
 
     const completion = await client.chat.completions.create({
       model: MODEL,

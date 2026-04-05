@@ -58,7 +58,7 @@ export default function DayAnalysis({ consumed, targets, goalType, days }: Props
       const res = await fetch('/api/ai/analyze-day', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ consumed, targets, goalType, days }),
+        body: JSON.stringify({ consumed, targets, goalType, days, hourOfDay: new Date().getHours() }),
       })
       const json = await res.json()
       if (!res.ok || json.error) throw new Error(json.error ?? 'Failed')
