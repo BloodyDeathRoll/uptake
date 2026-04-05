@@ -26,9 +26,10 @@ export default function LandingPage() {
 
       {/* Hero */}
       <main className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-8 py-20">
-        <div className="space-y-4 max-w-xl">
+        <div className="space-y-3 max-w-xl">
+          <p className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">AI powered</p>
           <h1 className="text-4xl font-bold tracking-tight leading-tight">
-            Nutrition tracking,<br />powered by AI
+            Nutrition goal tracking
           </h1>
           <p className="text-muted-foreground text-lg leading-relaxed">
             Snap a photo or describe your meal in plain English. Uptake instantly
@@ -37,34 +38,12 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Link
-            href="/login"
-            className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
-          >
-            Get started free
-          </Link>
-          <Link
-            href="/dashboard"
-            className="px-6 py-3 rounded-xl border border-border text-sm font-semibold hover:bg-muted transition-colors"
-          >
-            Open app
-          </Link>
-        </div>
-
-        {/* Feature highlights */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl w-full mt-4">
-          {[
-            { title: 'Photo & text logging', body: 'Log any meal from a photo or a quick description. AI fills in the nutrition.' },
-            { title: 'Personalised goals', body: 'Set goals for weight loss, muscle gain, endurance, and more. Targets adapt to you.' },
-            { title: 'Smart suggestions', body: 'Get AI meal suggestions based on what you\'ve eaten and your remaining targets.' },
-          ].map(({ title, body }) => (
-            <div key={title} className="p-4 rounded-xl bg-card shadow-[0_0_2px_0_rgba(0,0,0,0.1)] text-left space-y-1">
-              <div className="font-semibold text-sm">{title}</div>
-              <p className="text-xs text-muted-foreground leading-relaxed">{body}</p>
-            </div>
-          ))}
-        </div>
+        <Link
+          href="/login"
+          className="px-8 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
+        >
+          Start Here
+        </Link>
       </main>
 
       {/* Footer */}
