@@ -54,7 +54,7 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
       {/* Activity carousel */}
       <div className="flex flex-col gap-1.5">
         <p className="text-sm font-[550] text-foreground shrink-0">Activity level</p>
-        <div className="relative h-36">
+        <div className="relative h-44">
           <div
             ref={activity.scrollRef}
             onScroll={activity.handleScroll}
@@ -73,7 +73,7 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
                   {/* Illustration */}
                   <div className="w-2/5 shrink-0 flex items-center justify-center p-3">
                     <img
-                      src={`/onboarding_svgs/activity_level_${imgIndex}.svg`}
+                      src={`/onboarding_svgs/activity_level_${imgIndex}.svg?v=2`}
                       alt=""
                       width={120}
                       height={120}
@@ -112,7 +112,7 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
       {/* Goal carousel */}
       <div className="flex flex-col gap-1.5">
         <p className="text-sm font-[550] text-foreground shrink-0">Goal</p>
-        <div className="relative h-36">
+        <div className="relative h-44">
           <div
             ref={goal.scrollRef}
             onScroll={goal.handleScroll}
@@ -131,7 +131,7 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
                   {/* Illustration */}
                   <div className="w-2/5 shrink-0 flex items-center justify-center p-3">
                     <img
-                      src={`/onboarding_svgs/goals_${imgIndex}.svg`}
+                      src={`/onboarding_svgs/goals_${imgIndex}.svg?v=2`}
                       alt=""
                       width={120}
                       height={120}
