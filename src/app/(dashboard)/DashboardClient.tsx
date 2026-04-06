@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Plus, UtensilsCrossed } from 'lucide-react'
+import { Plus, UtensilsCrossed, Info } from 'lucide-react'
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import CalorieRings from './components/CalorieRings'
@@ -248,9 +248,10 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
                         key={n}
                         type="button"
                         onClick={() => setBreakdownMacro(n)}
-                        className="text-left w-full hover:opacity-70 transition-opacity"
+                        className="text-left w-full hover:opacity-70 transition-opacity relative group"
                       >
                         <NutrientBar label={c.label} current={c.current} target={c.target} unit={c.unit} />
+                        <Info className="absolute top-0 right-0 w-3 h-3 text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors" />
                       </button>
                     )
                   })}
