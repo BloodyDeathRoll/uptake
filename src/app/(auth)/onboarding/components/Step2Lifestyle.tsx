@@ -63,22 +63,34 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
           >
             {activity.extended.map((level, i) => {
               const isSelected = selectedLevel === level
+              const imgIndex = LEVELS.indexOf(level as ActivityLevel) + 1
               return (
                 <div
                   key={`${level}-${i}`}
                   onClick={() => setSelectedLevel(level as ActivityLevel)}
-                  className={`relative snap-start shrink-0 w-full h-full flex flex-col justify-end rounded-2xl cursor-pointer select-none px-6 pb-5 pt-8 transition-colors shadow-[0px_0px_3px_0px_rgba(0,0,0,0.2)] ${isSelected ? 'bg-muted' : 'bg-card'}`}
+                  className={`relative snap-start shrink-0 w-full h-full flex flex-row rounded-2xl cursor-pointer select-none overflow-hidden transition-colors shadow-[0px_0px_3px_0px_rgba(0,0,0,0.2)] ${isSelected ? 'bg-muted' : 'bg-card'}`}
                 >
-                  {isSelected && (
-                    <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
-                      <Check className="w-2.5 h-2.5 text-white" />
-                    </div>
-                  )}
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mb-1.5">
-                    {activity.displayNum(i)} / {LEVELS.length}
-                  </p>
-                  <h2 className="text-lg font-bold tracking-tight text-foreground">{ACTIVITY_LABELS[level as ActivityLevel]}</h2>
-                  <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{ACTIVITY_DESCRIPTIONS[level as ActivityLevel]}</p>
+                  {/* Illustration */}
+                  <div className="w-2/5 shrink-0 flex items-center justify-center p-3">
+                    <img
+                      src={`/onboarding_svgs/activity_level_${imgIndex}.svg`}
+                      alt=""
+                      className="h-full w-full object-contain"
+                    />
+                  </div>
+                  {/* Text — vertically centred */}
+                  <div className="flex-1 flex flex-col justify-center pr-4 py-3 min-w-0">
+                    {isSelected && (
+                      <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
+                        <Check className="w-2.5 h-2.5 text-white" />
+                      </div>
+                    )}
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mb-1">
+                      {activity.displayNum(i)} / {LEVELS.length}
+                    </p>
+                    <h2 className="text-base font-bold tracking-tight text-foreground leading-tight">{ACTIVITY_LABELS[level as ActivityLevel]}</h2>
+                    <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{ACTIVITY_DESCRIPTIONS[level as ActivityLevel]}</p>
+                  </div>
                 </div>
               )
             })}
@@ -107,23 +119,35 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
           >
             {goal.extended.map((g, i) => {
               const isSelected = selectedGoal === g
+              const imgIndex = GOALS.indexOf(g as GoalType) + 1
               return (
                 <div
                   key={`${g}-${i}`}
                   onClick={() => setSelectedGoal(g as GoalType)}
-                  className={`relative snap-start shrink-0 w-full h-full flex flex-col justify-end rounded-2xl cursor-pointer select-none px-6 pb-5 pt-8 transition-colors shadow-[0px_0px_3px_0px_rgba(0,0,0,0.2)] ${isSelected ? 'bg-muted' : 'bg-card'}`}
+                  className={`relative snap-start shrink-0 w-full h-full flex flex-row rounded-2xl cursor-pointer select-none overflow-hidden transition-colors shadow-[0px_0px_3px_0px_rgba(0,0,0,0.2)] ${isSelected ? 'bg-muted' : 'bg-card'}`}
                 >
-                  {isSelected && (
-                    <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
-                      <Check className="w-2.5 h-2.5 text-white" />
-                    </div>
-                  )}
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mb-1.5">
-                    {goal.displayNum(i)} / {GOALS.length}
-                  </p>
-                  <h2 className="text-lg font-bold tracking-tight text-foreground">{GOAL_LABELS[g as GoalType]}</h2>
-                  <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{GOAL_DESCRIPTIONS[g as GoalType]}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1 font-medium">Focus: {GOAL_FOCUS_METRICS[g as GoalType]}</p>
+                  {/* Illustration */}
+                  <div className="w-2/5 shrink-0 flex items-center justify-center p-3">
+                    <img
+                      src={`/onboarding_svgs/goals_${imgIndex}.svg`}
+                      alt=""
+                      className="h-full w-full object-contain"
+                    />
+                  </div>
+                  {/* Text — vertically centred */}
+                  <div className="flex-1 flex flex-col justify-center pr-4 py-3 min-w-0">
+                    {isSelected && (
+                      <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
+                        <Check className="w-2.5 h-2.5 text-white" />
+                      </div>
+                    )}
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mb-1">
+                      {goal.displayNum(i)} / {GOALS.length}
+                    </p>
+                    <h2 className="text-base font-bold tracking-tight text-foreground leading-tight">{GOAL_LABELS[g as GoalType]}</h2>
+                    <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{GOAL_DESCRIPTIONS[g as GoalType]}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1 font-medium">Focus: {GOAL_FOCUS_METRICS[g as GoalType]}</p>
+                  </div>
                 </div>
               )
             })}
