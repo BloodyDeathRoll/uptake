@@ -95,7 +95,7 @@ export default function Step3Goal({ onNext, onBack }: Props) {
             return (
               <div
                 key={`${goal}-${i}`}
-                onClick={() => setSelectedGoal(goal)}
+                onClick={() => setSelectedGoal(prev => prev === goal ? null : goal)}
                 className="relative snap-start shrink-0 w-full h-full flex flex-col rounded-2xl cursor-pointer select-none overflow-hidden transition-all"
                 style={{ background: isSelected
                   ? 'linear-gradient(to bottom, #ffffff, #7A706B)'
@@ -103,8 +103,8 @@ export default function Step3Goal({ onNext, onBack }: Props) {
                 }}
               >
                 {isSelected && (
-                  <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary-foreground flex items-center justify-center z-10">
-                    <Check className="w-2.5 h-2.5 text-primary" />
+                  <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-stone-800 flex items-center justify-center z-10">
+                    <Check className="w-4 h-4 text-white" />
                   </div>
                 )}
                 {/* Illustration — fills all space above text */}
