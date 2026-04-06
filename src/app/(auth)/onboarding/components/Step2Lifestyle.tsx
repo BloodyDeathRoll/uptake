@@ -77,7 +77,7 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
                       alt=""
                       width={120}
                       height={120}
-                      className="h-full w-full object-contain invert"
+                      className="h-full w-full object-contain"
                     />
                   </div>
                   {/* Text — vertically centred */}
@@ -135,7 +135,7 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
                       alt=""
                       width={120}
                       height={120}
-                      className="h-full w-full object-contain invert"
+                      className="h-full w-full object-contain"
                     />
                   </div>
                   {/* Text — vertically centred */}
