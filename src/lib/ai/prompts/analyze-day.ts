@@ -30,13 +30,11 @@ export function buildAnalyzeDayPrompt(input: AnalyzeDayInput): string {
     ? `User: ${profile.sex ?? 'unknown sex'}, age ${profile.age ?? '?'}, ${profile.weight_kg ?? '?'}kg, activity: ${profile.activity_level ?? 'unknown'}.`
     : ''
 
-  // Time-of-day framing
-  // Assume waking day spans 6am–11pm (17 hours). Cap at that range for pace calc.
   const WAKE_HOUR  = 6
   const SLEEP_HOUR = 23
   const dayLengthH = SLEEP_HOUR - WAKE_HOUR
   const elapsedH   = Math.max(0, Math.min(hourOfDay - WAKE_HOUR, dayLengthH))
-  const dayPct     = Math.round((elapsedH / dayLengthH) * 100) // % of waking day elapsed
+  const dayPct     = Math.round((elapsedH / dayLengthH) * 100)
   const remainingH = Math.max(0, SLEEP_HOUR - hourOfDay)
 
   const timeLabel =
@@ -46,13 +44,11 @@ export function buildAnalyzeDayPrompt(input: AnalyzeDayInput): string {
     : hourOfDay < 20 ? 'evening'
     : 'night'
 
-  const expectedCalPct = dayPct // rough pacing: spread evenly through day
-  const calPace = calPct - expectedCalPct // positive = ahead, negative = behind
-
+  const calPace = calPct - dayPct
   const paceDesc =
     Math.abs(calPace) < 10 ? 'on pace'
-    : calPace > 0 ? `${Math.abs(calPace)} percentage points ahead of pace`
-    : `${Math.abs(calPace)} percentage points behind pace`
+    : calPace > 0 ? `${Math.abs(calPace)}pp ahead of pace`
+    : `${Math.abs(calPace)}pp behind pace`
 
   const isMultiDay = days > 1
   const periodLine = isMultiDay
@@ -60,7 +56,7 @@ export function buildAnalyzeDayPrompt(input: AnalyzeDayInput): string {
     : `Time: ${hourOfDay}:00 (${timeLabel}) — ${dayPct}% through the waking day, ~${remainingH}h remaining. Calorie pace: ${paceDesc}.`
 
   const remainingBlock = isMultiDay ? '' : `
-REMAINING BUDGET (what's still available today):
+REMAINING BUDGET:
 Calories : ~${Math.round(remaining(consumed.calories, targets.calories))} kcal
 Protein  : ~${Math.round(remaining(consumed.protein,  targets.protein))}g
 Carbs    : ~${Math.round(remaining(consumed.carbs,    targets.carbs))}g
@@ -68,31 +64,51 @@ Fat      : ~${Math.round(remaining(consumed.fat,      targets.fat))}g`
 
   const taskLine = isMultiDay
     ? `Write a concise analysis of this ${days}-day period. Be direct and constructive.`
-    : `You are a forward-looking nutrition coach, NOT a judge at the end of the day. The user still has ~${remainingH} hours left — your job is to identify the single most impactful next step and frame the whole analysis as actionable guidance for the remainder of today. Do not just describe what was eaten. Focus on what to do next.`
+    : `Act as a forward-looking nutrition coach. The user still has ~${remainingH}h left today — focus on what to do next, not what was already eaten.`
 
-  return `You are an expert sports nutritionist and physiology coach.
+  // Pre-fill the numeric/enum fields so the model only needs to write text
+  const macroSchema = [
+    { name: 'Calories', pct: calPct,  status: macroStatus(calPct) },
+    { name: 'Protein',  pct: proPct,  status: macroStatus(proPct) },
+    { name: 'Carbs',    pct: carbPct, status: macroStatus(carbPct) },
+    { name: 'Fat',      pct: fatPct,  status: macroStatus(fatPct) },
+  ]
+
+  return `You are an expert sports nutritionist and physiology coach. Respond with a single JSON object — no extra text, no markdown.
 
 GOAL: ${goalLabel} (${goalType})
 ${profileLine}
 ${periodLine}${adherenceTrend ?? ''}${foodGroupContext ?? ''}
 
-INTAKE SO FAR vs DAILY TARGETS:
-Calories : ${Math.round(consumed.calories)} / ${Math.round(targets.calories)} kcal — ${calPct}%
-Protein  : ${Math.round(consumed.protein)}g / ${Math.round(targets.protein)}g — ${proPct}%
-Carbs    : ${Math.round(consumed.carbs)}g / ${Math.round(targets.carbs)}g — ${carbPct}%
-Fat      : ${Math.round(consumed.fat)}g / ${Math.round(targets.fat)}g — ${fatPct}%
+INTAKE vs TARGETS:
+Calories : ${Math.round(consumed.calories)} / ${Math.round(targets.calories)} kcal (${calPct}%)
+Protein  : ${Math.round(consumed.protein)}g / ${Math.round(targets.protein)}g (${proPct}%)
+Carbs    : ${Math.round(consumed.carbs)}g / ${Math.round(targets.carbs)}g (${carbPct}%)
+Fat      : ${Math.round(consumed.fat)}g / ${Math.round(targets.fat)}g (${fatPct}%)
 ${remainingBlock}
-PRIORITY (pre-computed): ${priority.label} is the most critical gap for this goal right now (${priority.pct}% of target, ${priority.direction}).
+PRIORITY: ${priority.label} is the most critical gap right now (${priority.pct}% of target, ${priority.direction}).
 
 ${taskLine}
 
-Rules:
-- Headline must reflect the current moment ("You're on track heading into the afternoon" not "You consumed X").
-- body_state: 2–3 sentences on what is physiologically happening right now — muscle protein synthesis, glycogen, fat oxidation or hormonal state as relevant to the goal.
-- recommendations: 3 specific, forward-looking actions for the remainder of the day — e.g. what to eat next, timing, quantities. Not generic advice.
-- next_best_action: the single highest-leverage move the user can make right now given their goal, progress, and time of day.
+Output a JSON object with exactly these fields. Write only the string values — the numbers and status values are already set:
 
-Respond with ONLY a raw JSON object — no markdown, no code fences, no extra text:
-
-{"headline":"<one sentence reflecting current progress and what's still ahead>","next_best_action":{"nutrient":"${priority.nutrient}","label":"<one sentence: the single most impactful thing to do right now and why it matters for this goal>"},"body_state":"<2-3 sentences on current physiological state>","macros":[{"name":"Calories","pct":${calPct},"status":"${macroStatus(calPct)}","impact":"<one forward-looking sentence — effect of this level on the goal if the day ends here, or what to do about it>"},{"name":"Protein","pct":${proPct},"status":"${macroStatus(proPct)}","impact":"<one sentence>"},{"name":"Carbs","pct":${carbPct},"status":"${macroStatus(carbPct)}","impact":"<one sentence>"},{"name":"Fat","pct":${fatPct},"status":"${macroStatus(fatPct)}","impact":"<one sentence>"}],"recommendations":["<specific next step 1 — what to eat or do in the next meal/hours>","<specific next step 2>","<specific next step 3>"]}`
+{
+  "headline": <one sentence: current progress + what is still ahead, time-aware, NOT a description of past intake>,
+  "next_best_action": {
+    "nutrient": "${priority.nutrient}",
+    "label": <one sentence: the single highest-leverage action right now and why it matters for this goal>
+  },
+  "body_state": <2-3 sentences: what is physiologically happening right now — protein synthesis, glycogen, fat oxidation, hormonal state — relevant to the goal>,
+  "macros": [
+    { "name": "${macroSchema[0].name}", "pct": ${macroSchema[0].pct}, "status": "${macroSchema[0].status}", "impact": <one forward-looking sentence: effect on the goal if the day ends at this level, or what to do> },
+    { "name": "${macroSchema[1].name}", "pct": ${macroSchema[1].pct}, "status": "${macroSchema[1].status}", "impact": <one sentence> },
+    { "name": "${macroSchema[2].name}", "pct": ${macroSchema[2].pct}, "status": "${macroSchema[2].status}", "impact": <one sentence> },
+    { "name": "${macroSchema[3].name}", "pct": ${macroSchema[3].pct}, "status": "${macroSchema[3].status}", "impact": <one sentence> }
+  ],
+  "recommendations": [
+    <specific next step 1: what to eat or do in the next meal, with quantities if relevant>,
+    <specific next step 2>,
+    <specific next step 3>
+  ]
+}`
 }

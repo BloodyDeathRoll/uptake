@@ -46,21 +46,26 @@ export async function POST(request: NextRequest) {
 
     const completion = await client.chat.completions.create({
       model: MODEL,
-      messages: [{ role: 'user', content: prompt }],
+      messages: [
+        { role: 'system', content: 'You are a nutrition coach. Always respond with valid JSON only — no markdown, no explanation, no code fences.' },
+        { role: 'user', content: prompt },
+      ],
       temperature: 0.4,
       max_tokens: 2048,
+      response_format: { type: 'json_object' },
     })
 
     const content = completion.choices[0]?.message?.content ?? ''
-    // Strip markdown fences then extract the outermost JSON object
+    // Strip any stray fences (belt-and-suspenders), then parse
     const cleaned = content.replace(/```(?:json)?\s*/gi, '').replace(/```/g, '').trim()
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error(`No JSON in response. Content: ${content.slice(0, 200)}`)
+    if (!jsonMatch) throw new Error(`No JSON in response: ${content.slice(0, 300)}`)
 
     const analysis = JSON.parse(jsonMatch[0])
     return NextResponse.json({ analysis })
   } catch (err) {
-    console.error('[analyze-day]', err)
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[analyze-day] error:', message)
     return NextResponse.json({ error: 'Could not generate analysis' }, { status: 500 })
   }
 }
