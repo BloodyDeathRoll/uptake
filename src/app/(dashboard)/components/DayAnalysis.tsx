@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Sparkles, TrendingDown, TrendingUp, Minus, ChevronRight, Zap } from 'lucide-react'
+import { Sparkles, TrendingDown, TrendingUp, Minus, ChevronRight, Zap, AlertTriangle, CheckCircle2, Info } from 'lucide-react'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
@@ -18,12 +18,27 @@ interface NextBestAction {
   label: string
 }
 
+interface QualitySignal {
+  label: string
+  status: 'good' | 'watch' | 'concern'
+  note: string
+  priority: 'immediate' | 'important' | 'good_to_have'
+}
+
 interface Analysis {
   headline: string
   next_best_action: NextBestAction
   body_state: string
   macros: MacroResult[]
   recommendations: string[]
+  quality_signals?: QualitySignal[]
+}
+
+interface QualityMetrics {
+  fiber_g: number
+  sugar_g: number
+  saturated_fat_g: number
+  sodium_mg: number
 }
 
 interface Props {
@@ -31,6 +46,7 @@ interface Props {
   targets: { calories: number; protein: number; carbs: number; fat: number }
   goalType: string
   days: number
+  quality?: QualityMetrics
 }
 
 function statusIcon(status: MacroResult['status']) {
@@ -45,7 +61,19 @@ function statusColor(status: MacroResult['status']) {
   return 'text-emerald-500'
 }
 
-export default function DayAnalysis({ consumed, targets, goalType, days }: Props) {
+function qualitySignalStyle(status: QualitySignal['status']) {
+  if (status === 'good')    return { color: 'text-emerald-500', bg: 'bg-emerald-500/8 border-emerald-500/20', icon: <CheckCircle2 className="w-4 h-4 shrink-0" /> }
+  if (status === 'concern') return { color: 'text-red-500',     bg: 'bg-red-500/8 border-red-500/20',         icon: <AlertTriangle  className="w-4 h-4 shrink-0" /> }
+  return                           { color: 'text-amber-500',   bg: 'bg-amber-500/8 border-amber-500/20',     icon: <Info           className="w-4 h-4 shrink-0" /> }
+}
+
+const PRIORITY_LABEL: Record<QualitySignal['priority'], string> = {
+  immediate:    'Act now',
+  important:    'Important',
+  good_to_have: 'Nice to have',
+}
+
+export default function DayAnalysis({ consumed, targets, goalType, days, quality }: Props) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
@@ -58,7 +86,7 @@ export default function DayAnalysis({ consumed, targets, goalType, days }: Props
       const res = await fetch('/api/ai/analyze-day', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ consumed, targets, goalType, days, hourOfDay: new Date().getHours() }),
+        body: JSON.stringify({ consumed, targets, goalType, days, hourOfDay: new Date().getHours(), quality }),
       })
       const json = await res.json()
       if (!res.ok || json.error) throw new Error(json.error ?? 'Failed')
@@ -165,6 +193,34 @@ export default function DayAnalysis({ consumed, targets, goalType, days }: Props
                       </div>
                     ))}
                   </div>
+
+                  {analysis.quality_signals && analysis.quality_signals.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Nutrition quality</h3>
+                      {analysis.quality_signals
+                        .sort((a, b) => {
+                          const order = { immediate: 0, important: 1, good_to_have: 2 }
+                          return order[a.priority] - order[b.priority]
+                        })
+                        .map((sig, i) => {
+                          const style = qualitySignalStyle(sig.status)
+                          return (
+                            <div key={i} className={`flex gap-3 items-start p-3 rounded-xl border ${style.bg}`}>
+                              <div className={`mt-0.5 ${style.color}`}>{style.icon}</div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-sm font-medium">{sig.label}</span>
+                                  <span className={`text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full border ${style.bg} ${style.color}`}>
+                                    {PRIORITY_LABEL[sig.priority]}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{sig.note}</p>
+                              </div>
+                            </div>
+                          )
+                        })}
+                    </div>
+                  )}
                 </div>
 
               </div>

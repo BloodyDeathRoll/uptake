@@ -8,6 +8,13 @@ interface RecentFood {
   fat: number
 }
 
+export interface QualityMetrics {
+  fiber_g: number
+  sugar_g: number
+  saturated_fat_g: number
+  sodium_mg: number
+}
+
 interface AnalyzeDayInput {
   goalType: string
   goalLabel: string
@@ -16,6 +23,7 @@ interface AnalyzeDayInput {
   days: number
   priority: PrioritySignal
   hourOfDay: number
+  quality?: QualityMetrics
   adherenceTrend?: string
   foodGroupContext?: string
   recentFoods?: RecentFood[]
@@ -24,7 +32,7 @@ interface AnalyzeDayInput {
 }
 
 export function buildAnalyzeDayPrompt(input: AnalyzeDayInput): string {
-  const { goalType, goalLabel, consumed, targets, days, priority, hourOfDay, adherenceTrend, foodGroupContext, recentFoods, dietaryBlock, profile } = input
+  const { goalType, goalLabel, consumed, targets, days, priority, hourOfDay, quality, adherenceTrend, foodGroupContext, recentFoods, dietaryBlock, profile } = input
 
   const pct = (c: number, t: number) => (t > 0 ? Math.round((c / t) * 100) : 0)
   const remaining = (c: number, t: number) => Math.max(t - c, 0)
@@ -76,6 +84,14 @@ Fat      : ~${Math.round(remaining(consumed.fat,      targets.fat))}g`
     ? `\nFOODS YOU'VE EATEN RECENTLY (use these for specific suggestions where relevant):\n${recentFoods.map(f => `- ${f.name} (${f.cal} kcal, ${f.pro}g protein, ${f.carb}g carbs, ${f.fat}g fat)`).join('\n')}`
     : ''
 
+  const qualityBlock = quality
+    ? `\nNUTRITION QUALITY (today so far):
+Fiber          : ${Math.round(quality.fiber_g)}g (goal ~${25 * days}–${38 * days}g)
+Sugar          : ${Math.round(quality.sugar_g)}g (limit ~${50 * days}g)
+Saturated fat  : ${Math.round(quality.saturated_fat_g)}g (limit ~${20 * days}g)
+Sodium         : ${Math.round(quality.sodium_mg)}mg (limit ~${2300 * days}mg)`
+    : ''
+
   const taskLine = isMultiDay
     ? `Write a concise analysis of this ${days}-day period. Be direct and constructive. Always address the person directly as "you".`
     : `You are a forward-looking, personal nutrition coach talking directly to this person. They have ~${remainingH}h left today. Focus entirely on what to do next — not what was already eaten. Address them as "you" throughout.`
@@ -99,7 +115,7 @@ Calories : ${Math.round(consumed.calories)} / ${Math.round(targets.calories)} kc
 Protein  : ${Math.round(consumed.protein)}g / ${Math.round(targets.protein)}g (${proPct}%)
 Carbs    : ${Math.round(consumed.carbs)}g / ${Math.round(targets.carbs)}g (${carbPct}%)
 Fat      : ${Math.round(consumed.fat)}g / ${Math.round(targets.fat)}g (${fatPct}%)
-${remainingBlock}
+${remainingBlock}${qualityBlock}
 PRIORITY: ${priority.label} is the most critical gap right now (${priority.pct}% of target, ${priority.direction}).
 
 ${taskLine}
@@ -110,6 +126,7 @@ Tone and content rules — follow strictly:
 - recommendations: each must name a specific food or meal (ideally from the recent foods list above if suitable), with an approximate quantity. Format like a friend texting advice, not a bullet point template. E.g. "Add a chicken breast or some seitan to your next meal — you had seitan earlier this week and it would cover most of your remaining protein."
 - next_best_action: one concrete, specific thing to eat or do right now — name the food.
 - body_state: explain what is happening in their body right now relevant to their goal. Personal and direct.
+- quality_signals: assess only nutrients where data is available (fiber, sugar, saturated_fat, sodium). For each: "good" = within healthy range, "watch" = approaching limit or goal, "concern" = over limit or significantly under goal. "priority" must be one of: "immediate" (needs action now), "important" (address today), "good_to_have" (bonus if possible). Only include signals where you have data; omit if no quality data was provided.
 
 Output a JSON object with exactly these fields (numbers and status values are pre-filled — only write the string values):
 
@@ -130,6 +147,9 @@ Output a JSON object with exactly these fields (numbers and status values are pr
     <specific food suggestion with quantity, referencing a food from their history if relevant>,
     <specific next step 2 — concrete, named food or action>,
     <specific next step 3>
+  ],
+  "quality_signals": [
+    { "label": <nutrient name, e.g. "Dietary fiber">, "status": <"good"|"watch"|"concern">, "note": <one sentence using "you", specific and actionable>, "priority": <"immediate"|"important"|"good_to_have"> }
   ]
 }`
 }

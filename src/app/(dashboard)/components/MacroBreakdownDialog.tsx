@@ -12,6 +12,21 @@ const MACRO_CONFIG: Record<MacroKey, { label: string; field: 'calories' | 'prote
   fat:      { label: 'Fat',       field: 'fat_g',      unit: 'g' },
 }
 
+function QualityBar({ label, value, total, color, description }: { label: string; value: number; total: number; color: string; description: string }) {
+  const pct = total > 0 ? Math.min((value / total) * 100, 100) : 0
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between items-center text-xs">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="font-medium tabular-nums">{Math.round(value)}g <span className="text-muted-foreground font-normal">· {description}</span></span>
+      </div>
+      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: color }} />
+      </div>
+    </div>
+  )
+}
+
 const MEAL_ORDER = ['breakfast', 'lunch', 'dinner', 'snack']
 
 function fmt(n: number, unit: string) {
@@ -40,6 +55,17 @@ export default function MacroBreakdownDialog({ macro, meals, target, onClose }: 
 
   const total = meals.reduce((sum, m) => sum + m.meal_items.reduce((s, i) => s + (i[cfg.field] ?? 0), 0), 0)
 
+  // Quality breakdown totals
+  const quality = meals.reduce((acc, m) => {
+    m.meal_items.forEach(i => {
+      acc.fiber       += i.fiber_g          ?? 0
+      acc.sugar       += i.sugar_g          ?? 0
+      acc.saturated   += i.saturated_fat_g  ?? 0
+      acc.sodium      += i.sodium_mg        ?? 0
+    })
+    return acc
+  }, { fiber: 0, sugar: 0, saturated: 0, sodium: 0 })
+
   return (
     <Dialog open={!!macro} onOpenChange={open => { if (!open) onClose() }}>
       <DialogContent className="sm:max-w-none w-[min(92vw,32rem)] max-h-[82dvh] overflow-y-auto p-0">
@@ -51,6 +77,67 @@ export default function MacroBreakdownDialog({ macro, meals, target, onClose }: 
         </DialogHeader>
 
         <div className="px-5 pb-5 space-y-4">
+          {/* Quality breakdown panel */}
+          {macro === 'carbs' && (quality.fiber > 0 || quality.sugar > 0) && (
+            <div className="rounded-xl bg-muted/50 p-3 space-y-2.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Quality breakdown</p>
+              {quality.fiber > 0 && (
+                <QualityBar label="Fiber (complex)" value={quality.fiber} total={total} color="#22c55e" description="slows digestion, feeds gut bacteria" />
+              )}
+              {quality.sugar > 0 && (
+                <QualityBar label="Sugar (simple)" value={quality.sugar} total={total} color="#f97316" description="fast-digesting, watch for spikes" />
+              )}
+              {total > 0 && quality.fiber === 0 && quality.sugar === 0 && (
+                <p className="text-xs text-muted-foreground">No fiber or sugar data for logged items.</p>
+              )}
+            </div>
+          )}
+
+          {macro === 'fat' && (quality.saturated > 0 || total > 0) && (
+            <div className="rounded-xl bg-muted/50 p-3 space-y-2.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Quality breakdown</p>
+              {quality.saturated > 0 && (
+                <QualityBar label="Saturated" value={quality.saturated} total={total} color="#f97316" description="limit — raises LDL cholesterol" />
+              )}
+              {total > 0 && (
+                <QualityBar
+                  label="Unsaturated"
+                  value={Math.max(total - quality.saturated, 0)}
+                  total={total}
+                  color="#22c55e"
+                  description="heart-healthy (mono & poly)"
+                />
+              )}
+            </div>
+          )}
+
+          {macro === 'calories' && quality.sodium > 0 && (
+            <div className="rounded-xl bg-muted/50 p-3 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sodium</p>
+                <p className="text-xs text-muted-foreground mt-0.5">daily limit ~2300mg</p>
+              </div>
+              <div className="text-right">
+                <span className={`text-sm font-semibold tabular-nums ${quality.sodium > 2300 ? 'text-red-500' : quality.sodium > 1500 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                  {Math.round(quality.sodium)} mg
+                </span>
+                <p className="text-xs text-muted-foreground">{Math.round((quality.sodium / 2300) * 100)}% of limit</p>
+              </div>
+            </div>
+          )}
+
+          {macro === 'protein' && quality.fiber > 0 && (
+            <div className="rounded-xl bg-muted/50 p-3 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Fiber (from protein foods)</p>
+                <p className="text-xs text-muted-foreground mt-0.5">goal ~25–38g/day</p>
+              </div>
+              <span className={`text-sm font-semibold tabular-nums ${quality.fiber >= 25 ? 'text-emerald-500' : quality.fiber >= 15 ? 'text-amber-500' : 'text-red-500'}`}>
+                {Math.round(quality.fiber)}g
+              </span>
+            </div>
+          )}
+
           {grouped.length === 0 && (
             <p className="text-sm text-muted-foreground py-4 text-center">No data logged yet.</p>
           )}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import Groq from 'groq-sdk'
-import { buildAnalyzeDayPrompt } from '@/lib/ai/prompts/analyze-day'
+import { buildAnalyzeDayPrompt, type QualityMetrics } from '@/lib/ai/prompts/analyze-day'
 import { GOAL_LABELS } from '@/lib/utils/constants'
 import { computePriority } from '@/lib/nutrition/priority'
 import { buildAdherenceTrend, buildFoodGroupContext } from '@/lib/ai/prompts/user-context'
@@ -18,7 +18,12 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { consumed, targets, goalType, days, hourOfDay } = body
+  const { consumed, targets, goalType, days, hourOfDay, quality } = body as {
+    consumed: { calories: number; protein: number; carbs: number; fat: number }
+    targets: { calories: number; protein: number; carbs: number; fat: number }
+    goalType: string; days: number; hourOfDay: number
+    quality?: QualityMetrics
+  }
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10)
 
@@ -71,7 +76,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
-    const prompt = buildAnalyzeDayPrompt({ goalType, goalLabel, consumed, targets, days: days ?? 1, priority, profile, hourOfDay: hourOfDay ?? new Date().getHours(), adherenceTrend, foodGroupContext, recentFoods, dietaryBlock })
+    const prompt = buildAnalyzeDayPrompt({ goalType, goalLabel, consumed, targets, days: days ?? 1, priority, profile, hourOfDay: hourOfDay ?? new Date().getHours(), quality, adherenceTrend, foodGroupContext, recentFoods, dietaryBlock })
 
     const completion = await client.chat.completions.create({
       model: MODEL,

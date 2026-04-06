@@ -62,6 +62,21 @@ function aggregateFromMeals(meals: Meal[]) {
   )
 }
 
+function aggregateQuality(meals: Meal[]) {
+  return meals.reduce(
+    (acc, meal) => {
+      meal.meal_items.forEach(item => {
+        acc.fiber_g         += item.fiber_g         ?? 0
+        acc.sugar_g         += item.sugar_g         ?? 0
+        acc.saturated_fat_g += item.saturated_fat_g ?? 0
+        acc.sodium_mg       += item.sodium_mg       ?? 0
+      })
+      return acc
+    },
+    { fiber_g: 0, sugar_g: 0, saturated_fat_g: 0, sodium_mg: 0 }
+  )
+}
+
 export default function DashboardClient({ snapshot, goal: initialGoal, meals: serverMeals, profile, initialDate }: Props) {
   const today = localToday()
   const router = useRouter()
@@ -123,6 +138,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
   const rawMeals = clientMeals ?? serverMeals
   const meals = filterLatestRevisions(rawMeals)
   const agg = aggregateFromMeals(meals)
+  const quality = aggregateQuality(meals)
 
   const g = goal ?? {
     goal_type: 'maintenance', calories_target: 2000, protein_g: 150,
@@ -196,6 +212,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
               targets={{ calories: scaledGoal.calories, protein: scaledGoal.protein, carbs: scaledGoal.carbs, fat: scaledGoal.fat }}
               goalType={g.goal_type}
               days={days}
+              quality={quality}
             />
           </div>
           <CalorieRings
