@@ -170,25 +170,25 @@ export default function DateRangeSelector({ onChange, initialDate }: Props) {
 
   return (
     <div ref={containerRef} className="relative w-full md:w-auto">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 h-8">
 
         {/* Left: date label + chevrons */}
-        <div className="flex items-center gap-0.5 min-w-0">
+        <div className="flex items-center gap-0.5 min-w-0 h-full">
           {mode === 'day' && (
             <button
               onClick={() => setDayDate(prev => addDays(prev, -1))}
-              className="w-6 h-6 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
+              className="w-7 h-full flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
           )}
-          <span className="text-xs text-muted-foreground select-none px-1 truncate">
+          <span className="text-xs text-muted-foreground select-none px-1 truncate leading-none">
             {dateLabel()}
           </span>
           {mode === 'day' && dayDate !== today && (
             <button
               onClick={() => setDayDate(prev => addDays(prev, 1))}
-              className="w-6 h-6 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
+              className="w-7 h-full flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
             >
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
@@ -196,7 +196,7 @@ export default function DateRangeSelector({ onChange, initialDate }: Props) {
           {mode === 'custom' && (
             <button
               onClick={() => { setCalendarOpen(o => !o); setPendingStart(null) }}
-              className="w-6 h-6 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
+              className="w-7 h-full flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
             >
               <ChevronRight className="w-3.5 h-3.5 rotate-90" />
             </button>
@@ -204,12 +204,12 @@ export default function DateRangeSelector({ onChange, initialDate }: Props) {
         </div>
 
         {/* Right: mode tabs */}
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="flex items-center gap-1 flex-shrink-0 h-full">
           {TABS.map(({ key, label }) => (
             <button
               key={key}
               onClick={() => selectMode(key)}
-              className={`px-2 py-1 text-xs font-medium transition-colors ${
+              className={`h-full px-2 text-xs font-medium transition-colors ${
                 mode === key
                   ? 'text-foreground font-semibold'
                   : 'text-muted-foreground hover:text-foreground'
