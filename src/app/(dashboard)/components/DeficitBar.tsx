@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 
-// Gradient: green (deficit edge) → amber → orange → coral (target) → deep red (surplus edge)
+// Gradient: red (deficit/surplus extremes) → amber → green (on target, center)
 // Center (50%) represents exactly at target
-const GRADIENT = 'linear-gradient(to right, #7EC8A0 0%, #F5B942 38%, #F07840 47%, #EF5F5F 50%, #E04040 100%)'
+const GRADIENT = 'linear-gradient(to right, #E04040 0%, #F07840 18%, #F5B942 34%, #7EC8A0 50%, #F5B942 66%, #F07840 82%, #E04040 100%)'
 const TRANSITION = 'width 0.9s cubic-bezier(0.4, 0, 0.2, 1)'
 
 interface Props {
