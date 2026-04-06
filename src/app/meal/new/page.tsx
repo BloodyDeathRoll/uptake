@@ -52,6 +52,7 @@ function NewMealPageInner() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [navigating, setNavigating] = useState(false)
   const [showPhotoChoice, setShowPhotoChoice] = useState(false)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
@@ -209,7 +210,14 @@ function NewMealPageInner() {
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 bg-background/80 backdrop-blur-sm shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 h-14 flex items-center justify-between">
-        <button onClick={() => router.back()} className="text-sm text-primary underline underline-offset-2">Cancel</button>
+        <button
+          onClick={() => { setNavigating(true); router.back() }}
+          className="text-sm text-primary underline underline-offset-2 flex items-center gap-1.5 min-w-[3.5rem]"
+        >
+          {navigating
+            ? <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            : 'Cancel'}
+        </button>
         <span className="font-semibold">{isEdit ? 'Edit meal' : 'Log meal'}</span>
         <div className="w-12" />
       </div>

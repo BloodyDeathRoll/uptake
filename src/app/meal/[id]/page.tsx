@@ -5,6 +5,7 @@ import { formatTime } from '@/lib/utils/format'
 import { MEAL_TYPE_LABELS } from '@/lib/utils/constants'
 import ConfidenceBadge from '@/components/shared/ConfidenceBadge'
 import { Badge } from '@/components/ui/badge'
+import NavBackButton from '../components/NavBackButton'
 
 export default async function MealDetailPage({
   params,
@@ -47,7 +48,7 @@ export default async function MealDetailPage({
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="sticky top-0 bg-background/80 backdrop-blur-sm shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 h-14 flex items-center justify-between">
-        <Link href={returnDate ? `/dashboard?date=${returnDate}` : '/dashboard'} className="text-muted-foreground text-sm">← Back</Link>
+        <NavBackButton href={returnDate ? `/dashboard?date=${returnDate}` : '/dashboard'} />
         <span className="font-semibold capitalize">
           {MEAL_TYPE_LABELS[meal.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? meal.meal_type}
         </span>

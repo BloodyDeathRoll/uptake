@@ -88,21 +88,27 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
   const [goalSwitching, setGoalSwitching] = useState(false)
   const [breakdownMacro, setBreakdownMacro] = useState<'calories' | 'protein' | 'carbs' | 'fat' | null>(null)
   const sequentialFetch = useRef(createSequentialFetcher())
+  const fetchGen = useRef(0)
 
   const isToday = dateRange.start === today && dateRange.end === today
 
   const fetchMeals = useCallback(async (range: DateRange) => {
+    const gen = ++fetchGen.current
     setFetchingMeals(true)
+    setClientMeals(null)
     let aborted = false
     try {
       const res = await sequentialFetch.current(`/api/meals?startDate=${range.start}&endDate=${range.end}`)
+      // Discard if a newer request has already been issued
+      if (gen !== fetchGen.current) return
       const json = await res.json()
+      if (gen !== fetchGen.current) return
       setClientMeals(json.data ?? [])
     } catch (err) {
       if ((err as Error).name === 'AbortError') { aborted = true; return }
       // keep previous data on real errors
     } finally {
-      if (!aborted) setFetchingMeals(false)
+      if (!aborted && gen === fetchGen.current) setFetchingMeals(false)
     }
   }, [])
 
@@ -117,7 +123,9 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
   const handleRangeChange = (range: DateRange) => {
     setDateRange(range)
     if (range.start === today && range.end === today) {
+      ++fetchGen.current
       setClientMeals(null)
+      setFetchingMeals(false)
       router.replace('/dashboard', { scroll: false })
     } else {
       fetchMeals(range)
