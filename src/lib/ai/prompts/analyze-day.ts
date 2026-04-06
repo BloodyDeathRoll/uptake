@@ -1,5 +1,13 @@
 import type { PrioritySignal } from '@/lib/nutrition/priority'
 
+interface RecentFood {
+  name: string
+  cal: number
+  pro: number
+  carb: number
+  fat: number
+}
+
 interface AnalyzeDayInput {
   goalType: string
   goalLabel: string
@@ -10,11 +18,12 @@ interface AnalyzeDayInput {
   hourOfDay: number
   adherenceTrend?: string
   foodGroupContext?: string
+  recentFoods?: RecentFood[]
   profile?: { weight_kg?: number | null; age?: number | null; sex?: string | null; activity_level?: string | null } | null
 }
 
 export function buildAnalyzeDayPrompt(input: AnalyzeDayInput): string {
-  const { goalType, goalLabel, consumed, targets, days, priority, hourOfDay, adherenceTrend, foodGroupContext, profile } = input
+  const { goalType, goalLabel, consumed, targets, days, priority, hourOfDay, adherenceTrend, foodGroupContext, recentFoods, profile } = input
 
   const pct = (c: number, t: number) => (t > 0 ? Math.round((c / t) * 100) : 0)
   const remaining = (c: number, t: number) => Math.max(t - c, 0)
@@ -27,7 +36,7 @@ export function buildAnalyzeDayPrompt(input: AnalyzeDayInput): string {
   const macroStatus = (p: number) => (p < 85 ? 'under' : p > 115 ? 'over' : 'on_track')
 
   const profileLine = profile
-    ? `User: ${profile.sex ?? 'unknown sex'}, age ${profile.age ?? '?'}, ${profile.weight_kg ?? '?'}kg, activity: ${profile.activity_level ?? 'unknown'}.`
+    ? `About you: ${profile.sex ?? 'unknown sex'}, age ${profile.age ?? '?'}, ${profile.weight_kg ?? '?'}kg, activity: ${profile.activity_level ?? 'unknown'}.`
     : ''
 
   const WAKE_HOUR  = 6
@@ -62,9 +71,13 @@ Protein  : ~${Math.round(remaining(consumed.protein,  targets.protein))}g
 Carbs    : ~${Math.round(remaining(consumed.carbs,    targets.carbs))}g
 Fat      : ~${Math.round(remaining(consumed.fat,      targets.fat))}g`
 
+  const recentFoodsBlock = recentFoods && recentFoods.length > 0
+    ? `\nFOODS YOU'VE EATEN RECENTLY (use these for specific suggestions where relevant):\n${recentFoods.map(f => `- ${f.name} (${f.cal} kcal, ${f.pro}g protein, ${f.carb}g carbs, ${f.fat}g fat)`).join('\n')}`
+    : ''
+
   const taskLine = isMultiDay
-    ? `Write a concise analysis of this ${days}-day period. Be direct and constructive.`
-    : `Act as a forward-looking nutrition coach. The user still has ~${remainingH}h left today — focus on what to do next, not what was already eaten.`
+    ? `Write a concise analysis of this ${days}-day period. Be direct and constructive. Always address the person directly as "you".`
+    : `You are a forward-looking, personal nutrition coach talking directly to this person. They have ~${remainingH}h left today. Focus entirely on what to do next — not what was already eaten. Address them as "you" throughout.`
 
   // Pre-fill the numeric/enum fields so the model only needs to write text
   const macroSchema = [
@@ -74,13 +87,13 @@ Fat      : ~${Math.round(remaining(consumed.fat,      targets.fat))}g`
     { name: 'Fat',      pct: fatPct,  status: macroStatus(fatPct) },
   ]
 
-  return `You are an expert sports nutritionist and physiology coach. Respond with a single JSON object — no extra text, no markdown.
+  return `You are a personal nutrition coach speaking directly to your client. Always use "you/your" — never "the user" or third person. Respond with a single JSON object, no extra text, no markdown.
 
 GOAL: ${goalLabel} (${goalType})
 ${profileLine}
-${periodLine}${adherenceTrend ?? ''}${foodGroupContext ?? ''}
+${periodLine}${adherenceTrend ?? ''}${foodGroupContext ?? ''}${recentFoodsBlock}
 
-INTAKE vs TARGETS:
+YOUR INTAKE vs DAILY TARGETS:
 Calories : ${Math.round(consumed.calories)} / ${Math.round(targets.calories)} kcal (${calPct}%)
 Protein  : ${Math.round(consumed.protein)}g / ${Math.round(targets.protein)}g (${proPct}%)
 Carbs    : ${Math.round(consumed.carbs)}g / ${Math.round(targets.carbs)}g (${carbPct}%)
@@ -90,24 +103,31 @@ PRIORITY: ${priority.label} is the most critical gap right now (${priority.pct}%
 
 ${taskLine}
 
-Output a JSON object with exactly these fields. Write only the string values — the numbers and status values are already set:
+Tone and content rules — follow strictly:
+- Always say "you've", "your", "you need" — never "the user", never third person.
+- headline: address the current moment directly ("You're 45% through your calories with 8 hours left" not a vague summary).
+- recommendations: each must name a specific food or meal (ideally from the recent foods list above if suitable), with an approximate quantity. Format like a friend texting advice, not a bullet point template. E.g. "Add a chicken breast or some seitan to your next meal — you had seitan earlier this week and it would cover most of your remaining protein."
+- next_best_action: one concrete, specific thing to eat or do right now — name the food.
+- body_state: explain what is happening in their body right now relevant to their goal. Personal and direct.
+
+Output a JSON object with exactly these fields (numbers and status values are pre-filled — only write the string values):
 
 {
-  "headline": <one sentence: current progress + what is still ahead, time-aware, NOT a description of past intake>,
+  "headline": <one direct sentence: your progress right now + what's still ahead>,
   "next_best_action": {
     "nutrient": "${priority.nutrient}",
-    "label": <one sentence: the single highest-leverage action right now and why it matters for this goal>
+    "label": <one concrete sentence: exactly what to eat or do right now, naming a specific food if possible>
   },
-  "body_state": <2-3 sentences: what is physiologically happening right now — protein synthesis, glycogen, fat oxidation, hormonal state — relevant to the goal>,
+  "body_state": <2-3 sentences: what is happening in your body right now — protein synthesis, glycogen status, fat oxidation — tied to the goal>,
   "macros": [
-    { "name": "${macroSchema[0].name}", "pct": ${macroSchema[0].pct}, "status": "${macroSchema[0].status}", "impact": <one forward-looking sentence: effect on the goal if the day ends at this level, or what to do> },
+    { "name": "${macroSchema[0].name}", "pct": ${macroSchema[0].pct}, "status": "${macroSchema[0].status}", "impact": <one forward-looking sentence using "you": effect on your goal if the day ends here, or what to do> },
     { "name": "${macroSchema[1].name}", "pct": ${macroSchema[1].pct}, "status": "${macroSchema[1].status}", "impact": <one sentence> },
     { "name": "${macroSchema[2].name}", "pct": ${macroSchema[2].pct}, "status": "${macroSchema[2].status}", "impact": <one sentence> },
     { "name": "${macroSchema[3].name}", "pct": ${macroSchema[3].pct}, "status": "${macroSchema[3].status}", "impact": <one sentence> }
   ],
   "recommendations": [
-    <specific next step 1: what to eat or do in the next meal, with quantities if relevant>,
-    <specific next step 2>,
+    <specific food suggestion with quantity, referencing a food from their history if relevant>,
+    <specific next step 2 — concrete, named food or action>,
     <specific next step 3>
   ]
 }`

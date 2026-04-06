@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10)
 
-  const [{ data: profile }, { data: snapshots }, { data: recentItems }] = await Promise.all([
+  const [{ data: profile }, { data: snapshots }, { data: recentItems }, { data: recentIngredients }] = await Promise.all([
     supabase.from('profiles').select('weight_kg, age, sex, activity_level').eq('id', user.id).single(),
     supabase.from('daily_snapshots')
       .select('total_calories, total_protein_g, total_carbs_g, total_fat_g')
@@ -33,6 +33,12 @@ export async function POST(request: NextRequest) {
       .eq('meals.user_id', user.id)
       .not('food_group', 'is', null)
       .limit(80),
+    supabase.from('meal_items')
+      .select('ingredient_name, calories, protein_g, carbs_g, fat_g, meals!inner(user_id, logged_at)')
+      .eq('meals.user_id', user.id)
+      .not('ingredient_name', 'is', null)
+      .order('meals(logged_at)', { ascending: false })
+      .limit(40),
   ])
 
   const goalLabel = GOAL_LABELS[goalType as keyof typeof GOAL_LABELS] ?? goalType
@@ -40,9 +46,27 @@ export async function POST(request: NextRequest) {
   const adherenceTrend = buildAdherenceTrend(snapshots ?? [], targets)
   const foodGroupContext = buildFoodGroupContext((recentItems ?? []) as { food_group: string | null }[])
 
+  // Deduplicate and pick top 20 distinct ingredient names for food suggestions
+  const seen = new Set<string>()
+  const recentFoods = (recentIngredients ?? [])
+    .filter(it => {
+      const name = (it.ingredient_name as string | null)?.trim().toLowerCase()
+      if (!name || seen.has(name)) return false
+      seen.add(name)
+      return true
+    })
+    .slice(0, 20)
+    .map(it => ({
+      name: it.ingredient_name as string,
+      cal: Math.round((it.calories as number | null) ?? 0),
+      pro: Math.round((it.protein_g as number | null) ?? 0),
+      carb: Math.round((it.carbs_g as number | null) ?? 0),
+      fat: Math.round((it.fat_g as number | null) ?? 0),
+    }))
+
   try {
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
-    const prompt = buildAnalyzeDayPrompt({ goalType, goalLabel, consumed, targets, days: days ?? 1, priority, profile, hourOfDay: hourOfDay ?? new Date().getHours(), adherenceTrend, foodGroupContext })
+    const prompt = buildAnalyzeDayPrompt({ goalType, goalLabel, consumed, targets, days: days ?? 1, priority, profile, hourOfDay: hourOfDay ?? new Date().getHours(), adherenceTrend, foodGroupContext, recentFoods })
 
     const completion = await client.chat.completions.create({
       model: MODEL,
