@@ -12,6 +12,7 @@ import GoalDropdown from './components/GoalDropdown'
 import DateRangeSelector, { type DateRange } from './components/DateRangeSelector'
 import NutrientBar from '@/components/shared/NutrientBar'
 import DayAnalysis from './components/DayAnalysis'
+import MacroBreakdownDialog from './components/MacroBreakdownDialog'
 import { rankMacrosByGoal } from '@/lib/nutrition/priority'
 import type { Meal } from '@/hooks/useMeals'
 import type { GoalType } from '@/lib/utils/constants'
@@ -70,6 +71,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
   const [clientMeals, setClientMeals] = useState<Meal[] | null>(null)
   const [fetchingMeals, setFetchingMeals] = useState(false)
   const [goalSwitching, setGoalSwitching] = useState(false)
+  const [breakdownMacro, setBreakdownMacro] = useState<'calories' | 'protein' | 'carbs' | 'fat' | null>(null)
   const sequentialFetch = useRef(createSequentialFetcher())
 
   const isToday = dateRange.start === today && dateRange.end === today
@@ -224,7 +226,16 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
                 <div className="flex-1 flex flex-col gap-3 justify-evenly">
                   {ranked.map(n => {
                     const c = nutrientConfig[n]
-                    return <NutrientBar key={n} label={c.label} current={c.current} target={c.target} unit={c.unit} />
+                    return (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setBreakdownMacro(n)}
+                        className="text-left w-full hover:opacity-70 transition-opacity"
+                      >
+                        <NutrientBar label={c.label} current={c.current} target={c.target} unit={c.unit} />
+                      </button>
+                    )
                   })}
                 </div>
                 <div className="flex justify-between text-xs text-muted-foreground mt-3 pt-1">
@@ -273,6 +284,13 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
           multiColumn
         />
       </div>
+
+      <MacroBreakdownDialog
+        macro={breakdownMacro}
+        meals={meals}
+        target={breakdownMacro ? scaledGoal[breakdownMacro] : 0}
+        onClose={() => setBreakdownMacro(null)}
+      />
     </div>
   )
 }
