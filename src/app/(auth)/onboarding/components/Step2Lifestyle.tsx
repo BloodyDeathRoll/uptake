@@ -75,7 +75,9 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
                     <img
                       src={`/onboarding_svgs/activity_level_${imgIndex}.svg`}
                       alt=""
-                      className="h-full w-full object-contain"
+                      width={120}
+                      height={120}
+                      className="h-full w-full object-contain dark:invert"
                     />
                   </div>
                   {/* Text — vertically centred */}
@@ -131,7 +133,9 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
                     <img
                       src={`/onboarding_svgs/goals_${imgIndex}.svg`}
                       alt=""
-                      className="h-full w-full object-contain"
+                      width={120}
+                      height={120}
+                      className="h-full w-full object-contain dark:invert"
                     />
                   </div>
                   {/* Text — vertically centred */}
