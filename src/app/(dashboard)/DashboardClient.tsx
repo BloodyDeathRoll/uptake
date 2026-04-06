@@ -220,6 +220,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
               targets={{ calories: scaledGoal.calories, protein: scaledGoal.protein, carbs: scaledGoal.carbs, fat: scaledGoal.fat }}
               goalType={g.goal_type}
               days={days}
+              isCurrentPeriod={dateRange.start <= today && dateRange.end >= today}
               quality={quality}
             />
           </div>

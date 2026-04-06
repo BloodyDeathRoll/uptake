@@ -46,6 +46,7 @@ interface Props {
   targets: { calories: number; protein: number; carbs: number; fat: number }
   goalType: string
   days: number
+  isCurrentPeriod: boolean
   quality?: QualityMetrics
 }
 
@@ -73,7 +74,7 @@ const PRIORITY_LABEL: Record<QualitySignal['priority'], string> = {
   good_to_have: 'Nice to have',
 }
 
-export default function DayAnalysis({ consumed, targets, goalType, days, quality }: Props) {
+export default function DayAnalysis({ consumed, targets, goalType, days, isCurrentPeriod, quality }: Props) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
@@ -86,7 +87,7 @@ export default function DayAnalysis({ consumed, targets, goalType, days, quality
       const res = await fetch('/api/ai/analyze-day', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ consumed, targets, goalType, days, hourOfDay: new Date().getHours(), quality }),
+        body: JSON.stringify({ consumed, targets, goalType, days, hourOfDay: new Date().getHours(), isCurrentPeriod, quality }),
       })
       const json = await res.json()
       if (!res.ok || json.error) throw new Error(json.error ?? 'Failed')
@@ -172,7 +173,7 @@ export default function DayAnalysis({ consumed, targets, goalType, days, quality
 
                 {/* Right — priority callout + recommendations */}
                 <div className="space-y-5">
-                  {analysis.next_best_action && (
+                  {isCurrentPeriod && analysis.next_best_action?.label && (
                     <div className="flex gap-3 items-start p-4 rounded-xl bg-primary/8 border border-primary/20">
                       <Zap className="w-4 h-4 shrink-0 mt-0.5 text-primary" />
                       <div>
@@ -184,15 +185,17 @@ export default function DayAnalysis({ consumed, targets, goalType, days, quality
                     </div>
                   )}
 
-                  <div className="space-y-2">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">What to do</h3>
-                    {analysis.recommendations.map((rec, i) => (
-                      <div key={i} className="flex gap-3 items-start p-3 rounded-xl bg-card">
-                        <ChevronRight className="w-4 h-4 shrink-0 mt-0.5 text-primary" />
-                        <p className="text-sm leading-relaxed">{rec}</p>
-                      </div>
-                    ))}
-                  </div>
+                  {isCurrentPeriod && analysis.recommendations.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">What to do</h3>
+                      {analysis.recommendations.map((rec, i) => (
+                        <div key={i} className="flex gap-3 items-start p-3 rounded-xl bg-card">
+                          <ChevronRight className="w-4 h-4 shrink-0 mt-0.5 text-primary" />
+                          <p className="text-sm leading-relaxed">{rec}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {analysis.quality_signals && analysis.quality_signals.length > 0 && (
                     <div className="space-y-2">

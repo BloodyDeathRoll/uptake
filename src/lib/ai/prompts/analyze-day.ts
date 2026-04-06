@@ -23,6 +23,7 @@ interface AnalyzeDayInput {
   days: number
   priority: PrioritySignal
   hourOfDay: number
+  isCurrentPeriod: boolean
   quality?: QualityMetrics
   adherenceTrend?: string
   foodGroupContext?: string
@@ -32,7 +33,7 @@ interface AnalyzeDayInput {
 }
 
 export function buildAnalyzeDayPrompt(input: AnalyzeDayInput): string {
-  const { goalType, goalLabel, consumed, targets, days, priority, hourOfDay, quality, adherenceTrend, foodGroupContext, recentFoods, dietaryBlock, profile } = input
+  const { goalType, goalLabel, consumed, targets, days, priority, hourOfDay, isCurrentPeriod, quality, adherenceTrend, foodGroupContext, recentFoods, dietaryBlock, profile } = input
 
   const pct = (c: number, t: number) => (t > 0 ? Math.round((c / t) * 100) : 0)
   const remaining = (c: number, t: number) => Math.max(t - c, 0)
@@ -69,11 +70,13 @@ export function buildAnalyzeDayPrompt(input: AnalyzeDayInput): string {
     : `${Math.abs(calPace)}pp behind pace`
 
   const isMultiDay = days > 1
-  const periodLine = isMultiDay
-    ? `Period: past ${days} days (multi-day view — treat totals as the full picture, no time-of-day pacing).`
-    : `Time: ${hourOfDay}:00 (${timeLabel}) — ${dayPct}% through the waking day, ~${remainingH}h remaining. Calorie pace: ${paceDesc}.`
+  const periodLine = !isCurrentPeriod
+    ? `Period: past ${days > 1 ? `${days} days` : 'day'} (historical view — this period has already ended, do NOT make forward-looking recommendations).`
+    : isMultiDay
+      ? `Period: past ${days} days (multi-day view — treat totals as the full picture, no time-of-day pacing).`
+      : `Time: ${hourOfDay}:00 (${timeLabel}) — ${dayPct}% through the waking day, ~${remainingH}h remaining. Calorie pace: ${paceDesc}.`
 
-  const remainingBlock = isMultiDay ? '' : `
+  const remainingBlock = (!isCurrentPeriod || isMultiDay) ? '' : `
 REMAINING BUDGET:
 Calories : ~${Math.round(remaining(consumed.calories, targets.calories))} kcal
 Protein  : ~${Math.round(remaining(consumed.protein,  targets.protein))}g
@@ -92,9 +95,11 @@ Saturated fat  : ${Math.round(quality.saturated_fat_g)}g (limit ~${20 * days}g)
 Sodium         : ${Math.round(quality.sodium_mg)}mg (limit ~${2300 * days}mg)`
     : ''
 
-  const taskLine = isMultiDay
-    ? `Write a concise analysis of this ${days}-day period. Be direct and constructive. Always address the person directly as "you".`
-    : `You are a forward-looking, personal nutrition coach talking directly to this person. They have ~${remainingH}h left today. Focus entirely on what to do next — not what was already eaten. Address them as "you" throughout.`
+  const taskLine = !isCurrentPeriod
+    ? `Write a concise retrospective analysis of this completed period. Review what happened, draw conclusions, and identify patterns — but do NOT give any forward-looking recommendations or suggest what to eat next. Always address the person directly as "you".`
+    : isMultiDay
+      ? `Write a concise analysis of this ${days}-day period. Be direct and constructive. Always address the person directly as "you".`
+      : `You are a forward-looking, personal nutrition coach talking directly to this person. They have ~${remainingH}h left today. Focus entirely on what to do next — not what was already eaten. Address them as "you" throughout.`
 
   // Pre-fill the numeric/enum fields so the model only needs to write text
   const macroSchema = [
@@ -122,34 +127,37 @@ ${taskLine}
 
 Tone and content rules — follow strictly:
 - Always say "you've", "your", "you need" — never "the user", never third person.
-- headline: address the current moment directly ("You're 45% through your calories with 8 hours left" not a vague summary).
-- recommendations: each must name a specific food or meal (ideally from the recent foods list above if suitable), with an approximate quantity. Format like a friend texting advice, not a bullet point template. E.g. "Add a chicken breast or some seitan to your next meal — you had seitan earlier this week and it would cover most of your remaining protein."
-- next_best_action: one concrete, specific thing to eat or do right now — name the food.
-- body_state: explain what is happening in their body right now relevant to their goal. Personal and direct.
-- quality_signals: assess only nutrients where data is available (fiber, sugar, saturated_fat, sodium). For each: "good" = within healthy range, "watch" = approaching limit or goal, "concern" = over limit or significantly under goal. "priority" must be one of: "immediate" (needs action now), "important" (address today), "good_to_have" (bonus if possible). Only include signals where you have data; omit if no quality data was provided.
+- headline: ${isCurrentPeriod ? 'address the current moment directly ("You\'re 45% through your calories with 8 hours left" not a vague summary).' : 'summarise what happened during this period in one direct sentence.'}
+- body_state: ${isCurrentPeriod ? 'explain what is happening in their body right now relevant to their goal. Personal and direct.' : 'explain what likely happened in their body during this period based on the data. Retrospective and direct.'}
+- macros: one sentence per macro — ${isCurrentPeriod ? 'forward-looking: effect on your goal if the day ends here, or what to do.' : 'retrospective: what the number tells us about the period.'}
+- quality_signals: assess only nutrients where data is available (fiber, sugar, saturated_fat, sodium). For each: "good" = within healthy range, "watch" = approaching limit or goal, "concern" = over limit or significantly under goal. "priority" must be one of: "immediate", "important", "good_to_have". Omit if no quality data provided.${isCurrentPeriod ? `
+- recommendations: each must name a specific food or meal (ideally from the recent foods list above if suitable), with an approximate quantity. Format like a friend texting advice, not a bullet point template.
+- next_best_action: one concrete, specific thing to eat or do right now — name the food.` : `
+- recommendations: return an empty array []. Do NOT suggest foods or actions — this is a past period.
+- next_best_action: set label to "" (empty string). Do NOT suggest anything forward-looking.`}
 
 Output a JSON object with exactly these fields (numbers and status values are pre-filled — only write the string values):
 
 {
-  "headline": <one direct sentence: your progress right now + what's still ahead>,
+  "headline": <one direct sentence>,
   "next_best_action": {
     "nutrient": "${priority.nutrient}",
-    "label": <one concrete sentence: exactly what to eat or do right now, naming a specific food if possible>
+    "label": ${isCurrentPeriod ? '<one concrete sentence: exactly what to eat or do right now, naming a specific food if possible>' : '""'}
   },
-  "body_state": <2-3 sentences: what is happening in your body right now — protein synthesis, glycogen status, fat oxidation — tied to the goal>,
+  "body_state": <2-3 sentences>,
   "macros": [
-    { "name": "${macroSchema[0].name}", "pct": ${macroSchema[0].pct}, "status": "${macroSchema[0].status}", "impact": <one forward-looking sentence using "you": effect on your goal if the day ends here, or what to do> },
+    { "name": "${macroSchema[0].name}", "pct": ${macroSchema[0].pct}, "status": "${macroSchema[0].status}", "impact": <one sentence> },
     { "name": "${macroSchema[1].name}", "pct": ${macroSchema[1].pct}, "status": "${macroSchema[1].status}", "impact": <one sentence> },
     { "name": "${macroSchema[2].name}", "pct": ${macroSchema[2].pct}, "status": "${macroSchema[2].status}", "impact": <one sentence> },
     { "name": "${macroSchema[3].name}", "pct": ${macroSchema[3].pct}, "status": "${macroSchema[3].status}", "impact": <one sentence> }
   ],
-  "recommendations": [
-    <specific food suggestion with quantity, referencing a food from their history if relevant>,
-    <specific next step 2 — concrete, named food or action>,
+  "recommendations": ${isCurrentPeriod ? `[
+    <specific food suggestion with quantity>,
+    <specific next step 2>,
     <specific next step 3>
-  ],
+  ]` : '[]'},
   "quality_signals": [
-    { "label": <nutrient name, e.g. "Dietary fiber">, "status": <"good"|"watch"|"concern">, "note": <one sentence using "you", specific and actionable>, "priority": <"immediate"|"important"|"good_to_have"> }
+    { "label": <nutrient name>, "status": <"good"|"watch"|"concern">, "note": <one sentence using "you">, "priority": <"immediate"|"important"|"good_to_have"> }
   ]
 }`
 }
