@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Plus, UtensilsCrossed } from 'lucide-react'
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import CalorieRings from './components/CalorieRings'
 import DeficitBar from './components/DeficitBar'
@@ -16,6 +16,7 @@ import { rankMacrosByGoal } from '@/lib/nutrition/priority'
 import type { Meal } from '@/hooks/useMeals'
 import type { GoalType } from '@/lib/utils/constants'
 import type { GoalProfile } from './components/GoalSwitcher'
+import { createSequentialFetcher } from '@/lib/utils/sequential-fetch'
 
 interface Snapshot {
   total_calories: number | null; total_protein_g: number | null; total_carbs_g: number | null
@@ -69,19 +70,22 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
   const [clientMeals, setClientMeals] = useState<Meal[] | null>(null)
   const [fetchingMeals, setFetchingMeals] = useState(false)
   const [goalSwitching, setGoalSwitching] = useState(false)
+  const sequentialFetch = useRef(createSequentialFetcher())
 
   const isToday = dateRange.start === today && dateRange.end === today
 
   const fetchMeals = useCallback(async (range: DateRange) => {
     setFetchingMeals(true)
+    let aborted = false
     try {
-      const res = await fetch(`/api/meals?startDate=${range.start}&endDate=${range.end}`)
+      const res = await sequentialFetch.current(`/api/meals?startDate=${range.start}&endDate=${range.end}`)
       const json = await res.json()
       setClientMeals(json.data ?? [])
-    } catch {
-      // keep previous data
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') { aborted = true; return }
+      // keep previous data on real errors
     } finally {
-      setFetchingMeals(false)
+      if (!aborted) setFetchingMeals(false)
     }
   }, [])
 
