@@ -88,14 +88,6 @@ export default function Step5Review({ data, onComplete, onBack, saving }: Props)
         </CardContent>
       </Card>
 
-      {rationale && (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="pt-4 pb-4">
-            <p className="text-sm leading-relaxed text-muted-foreground">{rationale}</p>
-          </CardContent>
-        </Card>
-      )}
-
       <div className="flex gap-3 mt-auto">
         <Button type="button" variant="outline" onClick={onBack} className="flex-1" disabled={saving}>Back</Button>
         <Button onClick={() => onComplete(targets as unknown as Record<string, number>, rationale)} className="flex-1" disabled={saving}>
