@@ -19,11 +19,12 @@ interface AnalyzeDayInput {
   adherenceTrend?: string
   foodGroupContext?: string
   recentFoods?: RecentFood[]
+  dietaryBlock?: string
   profile?: { weight_kg?: number | null; age?: number | null; sex?: string | null; activity_level?: string | null } | null
 }
 
 export function buildAnalyzeDayPrompt(input: AnalyzeDayInput): string {
-  const { goalType, goalLabel, consumed, targets, days, priority, hourOfDay, adherenceTrend, foodGroupContext, recentFoods, profile } = input
+  const { goalType, goalLabel, consumed, targets, days, priority, hourOfDay, adherenceTrend, foodGroupContext, recentFoods, dietaryBlock, profile } = input
 
   const pct = (c: number, t: number) => (t > 0 ? Math.round((c / t) * 100) : 0)
   const remaining = (c: number, t: number) => Math.max(t - c, 0)
@@ -88,7 +89,7 @@ Fat      : ~${Math.round(remaining(consumed.fat,      targets.fat))}g`
   ]
 
   return `You are a personal nutrition coach speaking directly to your client. Always use "you/your" — never "the user" or third person. Respond with a single JSON object, no extra text, no markdown.
-
+${dietaryBlock ?? ''}
 GOAL: ${goalLabel} (${goalType})
 ${profileLine}
 ${periodLine}${adherenceTrend ?? ''}${foodGroupContext ?? ''}${recentFoodsBlock}
