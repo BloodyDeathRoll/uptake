@@ -96,11 +96,9 @@ export default function Step3Goal({ onNext, onBack }: Props) {
               <div
                 key={`${goal}-${i}`}
                 onClick={() => setSelectedGoal(prev => prev === goal ? null : goal)}
-                className="relative snap-start shrink-0 w-full h-full flex flex-col rounded-2xl cursor-pointer select-none overflow-hidden transition-all"
-                style={{ background: isSelected
-                  ? 'linear-gradient(to bottom, #ffffff, #7A706B)'
-                  : 'linear-gradient(to bottom, #ffffff, #4A4540)'
-                }}
+                className={`relative snap-start shrink-0 w-full h-full flex flex-col rounded-2xl cursor-pointer select-none overflow-hidden transition-colors ${
+                  isSelected ? 'bg-[#6A6560]' : 'bg-[#4A4540]'
+                }`}
               >
                 {isSelected && (
                   <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-stone-800 flex items-center justify-center z-10">
