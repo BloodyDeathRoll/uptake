@@ -93,11 +93,11 @@ export default function Step2Activity({ onNext, onBack }: Props) {
                 key={`${level}-${i}`}
                 onClick={() => setSelectedLevel(prev => prev === level ? null : level)}
                 className={`relative snap-start shrink-0 w-full h-full flex flex-col rounded-2xl cursor-pointer select-none overflow-hidden transition-colors ${
-                  isSelected ? 'bg-[#6A6560]' : 'bg-[#4A4540]'
+                  isSelected ? 'bg-[#c8b49e]' : 'bg-[#e1ceba]'
                 }`}
               >
                 {isSelected && (
-                  <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-stone-800 flex items-center justify-center z-10">
+                  <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/20 flex items-center justify-center z-10">
                     <Check className="w-4 h-4 text-white" />
                   </div>
                 )}
@@ -111,11 +111,11 @@ export default function Step2Activity({ onNext, onBack }: Props) {
                 </div>
                 {/* Text — pinned to bottom */}
                 <div className="shrink-0 px-6 pb-6">
-                  <p className="text-[10px] font-medium text-primary-foreground/60 uppercase tracking-widest mb-1">
+                  <p className="text-[10px] font-medium text-black/60 uppercase tracking-widest mb-1">
                     {displayNum(i)} / {LEVELS.length}
                   </p>
-                  <h2 className="text-base font-bold tracking-tight text-primary-foreground leading-tight">{ACTIVITY_LABELS[level]}</h2>
-                  <p className="text-primary-foreground/70 mt-1 text-sm leading-relaxed">{ACTIVITY_DESCRIPTIONS[level]}</p>
+                  <h2 className="text-base font-bold tracking-tight text-black leading-tight">{ACTIVITY_LABELS[level]}</h2>
+                  <p className="text-black/70 mt-1 text-sm leading-relaxed">{ACTIVITY_DESCRIPTIONS[level]}</p>
                 </div>
               </div>
             )
