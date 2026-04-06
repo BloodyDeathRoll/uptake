@@ -92,30 +92,30 @@ export default function Step2Activity({ onNext, onBack }: Props) {
               <div
                 key={`${level}-${i}`}
                 onClick={() => setSelectedLevel(level)}
-                className={`relative snap-start shrink-0 w-full h-full flex flex-row rounded-2xl cursor-pointer select-none overflow-hidden transition-colors ${
+                className={`relative snap-start shrink-0 w-full h-full flex flex-col rounded-2xl cursor-pointer select-none overflow-hidden transition-colors ${
                   isSelected ? 'bg-stone-200' : 'bg-stone-100'
                 }`}
               >
-                {/* Illustration */}
-                <div className="w-2/5 shrink-0 flex items-center justify-center p-6">
+                {isSelected && (
+                  <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-stone-800 flex items-center justify-center z-10">
+                    <Check className="w-2.5 h-2.5 text-white" />
+                  </div>
+                )}
+                {/* Illustration — fills all space above text */}
+                <div className="flex-1 flex items-center justify-center p-6 min-h-0">
                   <img
                     src={`/onboarding_svgs/activity_level_${imgIndex}.svg?v=3`}
                     alt=""
-                    className="h-full w-full object-contain"
+                    className="max-h-full max-w-full object-contain"
                   />
                 </div>
-                {/* Text */}
-                <div className="flex-1 flex flex-col justify-center pr-5 py-5 min-w-0">
-                  {isSelected && (
-                    <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-stone-800 flex items-center justify-center">
-                      <Check className="w-2.5 h-2.5 text-white" />
-                    </div>
-                  )}
+                {/* Text — pinned to bottom */}
+                <div className="shrink-0 px-6 pb-6">
                   <p className="text-[10px] font-medium text-stone-500 uppercase tracking-widest mb-1">
                     {displayNum(i)} / {LEVELS.length}
                   </p>
                   <h2 className="text-base font-bold tracking-tight text-stone-900 leading-tight">{ACTIVITY_LABELS[level]}</h2>
-                  <p className="text-stone-600 mt-1.5 text-sm leading-relaxed">{ACTIVITY_DESCRIPTIONS[level]}</p>
+                  <p className="text-stone-600 mt-1 text-sm leading-relaxed">{ACTIVITY_DESCRIPTIONS[level]}</p>
                 </div>
               </div>
             )
