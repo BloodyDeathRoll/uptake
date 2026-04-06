@@ -22,6 +22,17 @@ function GoogleIcon() {
   )
 }
 
+function MicrosoftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-4 h-4" aria-hidden="true">
+      <path d="M11.4 2H2v9.4h9.4V2z" fill="#F25022"/>
+      <path d="M22 2h-9.4v9.4H22V2z" fill="#7FBA00"/>
+      <path d="M11.4 12.6H2V22h9.4v-9.4z" fill="#00A4EF"/>
+      <path d="M22 12.6h-9.4V22H22v-9.4z" fill="#FFB900"/>
+    </svg>
+  )
+}
+
 export default function SignupPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -29,7 +40,7 @@ export default function SignupPage() {
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [oauthLoading, setOauthLoading] = useState(false)
+  const [oauthLoading, setOauthLoading] = useState<'google' | 'microsoft' | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,14 +54,15 @@ export default function SignupPage() {
     router.push('/onboarding')
   }
 
-  const handleOAuth = async () => {
+  const handleOAuth = async (provider: 'google' | 'azure') => {
     setError(null)
-    setOauthLoading(true)
+    setOauthLoading(provider === 'google' ? 'google' : 'microsoft')
     const supabase = createClient()
     await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider,
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
+        ...(provider === 'azure' ? { scopes: 'email profile' } : {}),
       },
     })
   }
@@ -66,11 +78,21 @@ export default function SignupPage() {
           <Button
             variant="outline"
             className="w-full transition-transform duration-150 active:scale-[0.98]"
-            onClick={handleOAuth}
-            disabled={oauthLoading}
+            onClick={() => handleOAuth('google')}
+            disabled={!!oauthLoading}
           >
-            {oauthLoading ? <Spinner size={16} /> : <GoogleIcon />}
-            <span className="ml-2">{oauthLoading ? 'Redirecting…' : 'Continue with Google'}</span>
+            {oauthLoading === 'google' ? <Spinner size={16} /> : <GoogleIcon />}
+            <span className="ml-2">{oauthLoading === 'google' ? 'Redirecting…' : 'Continue with Google'}</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            className="w-full transition-transform duration-150 active:scale-[0.98]"
+            onClick={() => handleOAuth('azure')}
+            disabled={!!oauthLoading}
+          >
+            {oauthLoading === 'microsoft' ? <Spinner size={16} /> : <MicrosoftIcon />}
+            <span className="ml-2">{oauthLoading === 'microsoft' ? 'Redirecting…' : 'Continue with Microsoft'}</span>
           </Button>
 
           <div className="relative">
@@ -122,7 +144,7 @@ export default function SignupPage() {
             <Button
               type="submit"
               className="w-full transition-transform duration-150 active:scale-[0.98]"
-              disabled={loading || oauthLoading}
+              disabled={loading || !!oauthLoading}
             >
               {loading ? <><Spinner size={16} strokeColor="currentColor" /><span className="ml-2">Creating account…</span></> : 'Create account'}
             </Button>
