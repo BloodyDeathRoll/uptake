@@ -110,7 +110,7 @@ export default function Step3Goal({ onNext, onBack }: Props) {
                   <img
                     src={`/onboarding_svgs/goals_${imgIndex}.svg?v=3`}
                     alt=""
-                    className="max-h-full max-w-full object-contain invert opacity-90"
+                    className="max-h-full max-w-full object-contain"
                   />
                 </div>
                 {/* Text — pinned to bottom */}

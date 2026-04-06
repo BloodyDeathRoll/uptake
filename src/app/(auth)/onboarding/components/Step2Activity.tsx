@@ -106,7 +106,7 @@ export default function Step2Activity({ onNext, onBack }: Props) {
                   <img
                     src={`/onboarding_svgs/activity_level_${imgIndex}.svg?v=3`}
                     alt=""
-                    className="max-h-full max-w-full object-contain invert opacity-90"
+                    className="max-h-full max-w-full object-contain"
                   />
                 </div>
                 {/* Text — pinned to bottom */}
