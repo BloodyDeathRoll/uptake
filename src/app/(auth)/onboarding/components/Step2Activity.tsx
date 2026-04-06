@@ -82,7 +82,7 @@ export default function Step2Activity({ onNext, onBack }: Props) {
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex h-full gap-3 overflow-x-auto snap-x snap-mandatory"
+          className="absolute inset-0 flex gap-3 overflow-x-auto snap-x snap-mandatory"
           style={{ scrollbarWidth: 'none' }}
         >
           {EXTENDED.map((level, i) => {
