@@ -97,7 +97,7 @@ export default function Step3Goal({ onNext, onBack }: Props) {
                 key={`${goal}-${i}`}
                 onClick={() => setSelectedGoal(prev => prev === goal ? null : goal)}
                 className={`relative snap-start shrink-0 w-full h-full flex flex-col rounded-2xl cursor-pointer select-none overflow-hidden transition-colors ${
-                  isSelected ? 'bg-[#c8b49e]' : 'bg-[#e1ceba]'
+                  isSelected ? 'bg-[#e1ceba]' : 'bg-[#c8b49e]'
                 }`}
               >
                 {isSelected && (
