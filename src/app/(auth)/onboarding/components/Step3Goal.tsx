@@ -97,12 +97,12 @@ export default function Step3Goal({ onNext, onBack }: Props) {
                 key={`${goal}-${i}`}
                 onClick={() => setSelectedGoal(goal)}
                 className={`relative snap-start shrink-0 w-full h-full flex flex-col rounded-2xl cursor-pointer select-none overflow-hidden transition-colors ${
-                  isSelected ? 'bg-stone-200' : 'bg-stone-100'
+                  isSelected ? 'bg-primary/80' : 'bg-primary'
                 }`}
               >
                 {isSelected && (
-                  <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-stone-800 flex items-center justify-center z-10">
-                    <Check className="w-2.5 h-2.5 text-white" />
+                  <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary-foreground flex items-center justify-center z-10">
+                    <Check className="w-2.5 h-2.5 text-primary" />
                   </div>
                 )}
                 {/* Illustration — fills all space above text */}
@@ -110,17 +110,17 @@ export default function Step3Goal({ onNext, onBack }: Props) {
                   <img
                     src={`/onboarding_svgs/goals_${imgIndex}.svg?v=3`}
                     alt=""
-                    className="max-h-full max-w-full object-contain"
+                    className="max-h-full max-w-full object-contain invert opacity-90"
                   />
                 </div>
                 {/* Text — pinned to bottom */}
                 <div className="shrink-0 px-6 pb-6">
-                  <p className="text-[10px] font-medium text-stone-500 uppercase tracking-widest mb-1">
+                  <p className="text-[10px] font-medium text-primary-foreground/60 uppercase tracking-widest mb-1">
                     {displayNum(i)} / {GOALS.length}
                   </p>
-                  <h2 className="text-base font-bold tracking-tight text-stone-900 leading-tight">{GOAL_LABELS[goal]}</h2>
-                  <p className="text-stone-600 mt-1 text-sm leading-relaxed">{GOAL_DESCRIPTIONS[goal]}</p>
-                  <p className="text-[10px] text-stone-500 mt-1 font-medium">Focus: {GOAL_FOCUS_METRICS[goal]}</p>
+                  <h2 className="text-base font-bold tracking-tight text-primary-foreground leading-tight">{GOAL_LABELS[goal]}</h2>
+                  <p className="text-primary-foreground/70 mt-1 text-sm leading-relaxed">{GOAL_DESCRIPTIONS[goal]}</p>
+                  <p className="text-[10px] text-primary-foreground/60 mt-1 font-medium">Focus: {GOAL_FOCUS_METRICS[goal]}</p>
                 </div>
               </div>
             )
@@ -130,16 +130,16 @@ export default function Step3Goal({ onNext, onBack }: Props) {
         <button
           type="button"
           onClick={handlePrev}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-stone-300/80 hover:bg-stone-300 shadow-sm transition-colors"
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-black/20 hover:bg-black/30 shadow-sm transition-colors"
         >
-          <ChevronLeft className="w-3.5 h-3.5 text-stone-700" />
+          <ChevronLeft className="w-3.5 h-3.5 text-primary-foreground" />
         </button>
         <button
           type="button"
           onClick={handleNext}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-stone-300/80 hover:bg-stone-300 shadow-sm transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-black/20 hover:bg-black/30 shadow-sm transition-colors"
         >
-          <ChevronRight className="w-3.5 h-3.5 text-stone-700" />
+          <ChevronRight className="w-3.5 h-3.5 text-primary-foreground" />
         </button>
       </div>
 
