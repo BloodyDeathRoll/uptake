@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Plus, Trash2, RotateCcw } from 'lucide-react'
+import { Plus, Trash2, RotateCcw, Camera, ImageIcon, ScanLine } from 'lucide-react'
 import ConfidenceBadge from '@/components/shared/ConfidenceBadge'
 import type { MealItem } from '@/hooks/useMeals'
 import { scaleMacros, computePerUnit, applyPerUnit, type PerUnit } from '@/lib/nutrition/scaling'
@@ -54,6 +54,11 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
   )
   const [loadingQty, setLoadingQty] = useState<Record<number, boolean>>({})
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [showScanChoice, setShowScanChoice] = useState<number | null>(null)
+  const [scanningIngredient, setScanningIngredient] = useState<number | null>(null)
+  const scanCameraRef = useRef<HTMLInputElement>(null)
+  const scanGalleryRef = useRef<HTMLInputElement>(null)
+  const scanTargetRef = useRef<number | null>(null)
 
   const handleQty = async (index: number, name: string) => {
     const unit = defaultUnit(name)
@@ -95,6 +100,62 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
     } finally {
       setLoadingQty(prev => ({ ...prev, [index]: false }))
     }
+  }
+
+  const triggerScan = (index: number, mode: 'camera' | 'gallery') => {
+    scanTargetRef.current = index
+    setShowScanChoice(null)
+    if (mode === 'camera') scanCameraRef.current?.click()
+    else scanGalleryRef.current?.click()
+  }
+
+  const handleIngredientScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    const index = scanTargetRef.current
+    if (!file || index === null) return
+    e.target.value = '' // reset so same file can trigger again
+    setScanningIngredient(index)
+    const reader = new FileReader()
+    reader.onload = async () => {
+      const dataUrl = reader.result as string
+      const base64 = dataUrl.split(',')[1]
+      try {
+        const res = await fetch('/api/ai/parse-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: base64, mimeType: file.type, description: 'ingredient nutrition label' }),
+        })
+        const json = await res.json()
+        const est = json.data?.items?.[0]
+        if (est) {
+          setItems(prev => prev.map((item, i) => {
+            if (i !== index) return item
+            const qty = (est.quantity > 0 ? est.quantity : null) ?? (item.quantity > 0 ? item.quantity : 100)
+            const filled: LocalItem = {
+              ...item,
+              quantity:  qty,
+              unit:      est.unit      ?? item.unit,
+              calories:  est.calories  ?? null,
+              protein_g: est.protein_g ?? null,
+              carbs_g:   est.carbs_g   ?? null,
+              fat_g:     est.fat_g     ?? null,
+              fiber_g:   est.fiber_g   ?? null,
+              confidence: est.confidence ?? 'medium',
+              source: 'ai_vision',
+            }
+            filled._perUnit = computePerUnit(filled)
+            filled._ver = (item._ver ?? 0) + 1
+            return filled
+          }))
+          setSaveError(null)
+        }
+      } catch {
+        // silently fail — user can fill manually
+      } finally {
+        setScanningIngredient(null)
+      }
+    }
+    reader.readAsDataURL(file)
   }
 
   const update = (index: number, field: keyof MealItem, value: unknown) => {
@@ -152,6 +213,10 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
         </button>
       </div>
 
+      {/* Hidden file inputs for per-ingredient label scanning */}
+      <input ref={scanCameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleIngredientScan} />
+      <input ref={scanGalleryRef} type="file" accept="image/*" className="hidden" onChange={handleIngredientScan} />
+
       {/* Items list */}
       <div className="space-y-3">
         {items.map((item, i) => (
@@ -163,7 +228,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                 placeholder="Ingredient name"
                 className="flex-1 h-8 text-sm"
               />
-              {item.ingredient_name.trim() && !item.quantity && !loadingQty[i] && (
+              {item.ingredient_name.trim() && !item.quantity && !loadingQty[i] && !scanningIngredient && (
                 <button
                   type="button"
                   onClick={() => handleQty(i, item.ingredient_name)}
@@ -172,15 +237,40 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                   QTY
                 </button>
               )}
+              {/* Scan ingredient label */}
+              {item.ingredient_name.trim() && !loadingQty[i] && scanningIngredient !== i && (
+                showScanChoice === i ? (
+                  <div className="flex gap-1 shrink-0">
+                    <button type="button" onClick={() => triggerScan(i, 'camera')} className="h-8 px-2 rounded-md bg-muted text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                      <Camera className="w-3 h-3" /> Camera
+                    </button>
+                    <button type="button" onClick={() => triggerScan(i, 'gallery')} className="h-8 px-2 rounded-md bg-muted text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                      <ImageIcon className="w-3 h-3" /> File
+                    </button>
+                    <button type="button" onClick={() => setShowScanChoice(null)} className="h-8 px-1.5 rounded-md text-muted-foreground hover:text-foreground transition-colors">
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowScanChoice(i)}
+                    className="h-8 w-8 rounded-md bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0 flex items-center justify-center"
+                    title="Scan ingredient label"
+                  >
+                    <ScanLine className="w-3.5 h-3.5" />
+                  </button>
+                )
+              )}
               {item.quantity > 0 && <ConfidenceBadge confidence={item.confidence} />}
               <button onClick={() => remove(i)} className="text-muted-foreground hover:text-destructive transition-colors">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
-            {loadingQty[i] ? (
+            {loadingQty[i] || scanningIngredient === i ? (
               <div className="flex items-center gap-2 h-8 text-xs text-muted-foreground">
                 <span className="w-3.5 h-3.5 border border-current border-t-transparent rounded-full animate-spin shrink-0" />
-                Estimating nutrition…
+                {scanningIngredient === i ? 'Scanning label…' : 'Estimating nutrition…'}
               </div>
             ) : item.quantity > 0 ? (
               <div className="flex gap-2">

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Camera, X } from 'lucide-react'
+import { Camera, ImageIcon, X } from 'lucide-react'
 import VerificationCard from '../components/VerificationCard'
 import type { MealItem } from '@/hooks/useMeals'
 import type { MealType } from '@/lib/utils/constants'
@@ -52,7 +52,9 @@ function NewMealPageInner() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [showPhotoChoice, setShowPhotoChoice] = useState(false)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
 
   // Pre-populate when editing an existing meal
   useEffect(() => {
@@ -131,7 +133,9 @@ function NewMealPageInner() {
     setImagePreview(null)
     setPendingImage(null)
     setImageType(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
+    setShowPhotoChoice(false)
+    if (cameraInputRef.current) cameraInputRef.current.value = ''
+    if (galleryInputRef.current) galleryInputRef.current.value = ''
   }
 
   // Estimate/re-estimate: description takes priority; falls back to image.
@@ -224,14 +228,9 @@ function NewMealPageInner() {
 
         {/* Photo + description — always visible */}
         <div className="space-y-3">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={handleImageUpload}
-          />
+          {/* Two hidden inputs: one forces camera, one opens gallery/files */}
+          <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { setShowPhotoChoice(false); handleImageUpload(e) }} />
+          <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={e => { setShowPhotoChoice(false); handleImageUpload(e) }} />
 
           {imagePreview ? (
             <div className="relative rounded-xl overflow-hidden">
@@ -242,18 +241,38 @@ function NewMealPageInner() {
               >
                 <X className="w-3.5 h-3.5" />
               </button>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-2 right-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/50 text-white text-xs hover:bg-black/70 transition-colors"
-              >
-                <Camera className="w-3.5 h-3.5" /> Replace
-              </button>
+              {showPhotoChoice ? (
+                <div className="absolute bottom-2 right-2 flex gap-1.5">
+                  <button onClick={() => { setShowPhotoChoice(false); cameraInputRef.current?.click() }} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-black/70 text-white text-xs hover:bg-black/90 transition-colors">
+                    <Camera className="w-3 h-3" /> Camera
+                  </button>
+                  <button onClick={() => { setShowPhotoChoice(false); galleryInputRef.current?.click() }} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-black/70 text-white text-xs hover:bg-black/90 transition-colors">
+                    <ImageIcon className="w-3 h-3" /> Gallery
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowPhotoChoice(true)}
+                  className="absolute bottom-2 right-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/50 text-white text-xs hover:bg-black/70 transition-colors"
+                >
+                  <Camera className="w-3.5 h-3.5" /> Replace
+                </button>
+              )}
+            </div>
+          ) : showPhotoChoice ? (
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => { setShowPhotoChoice(false); cameraInputRef.current?.click() }} disabled={loading}>
+                <Camera className="w-4 h-4 mr-2" /> Camera
+              </Button>
+              <Button variant="outline" className="flex-1" onClick={() => { setShowPhotoChoice(false); galleryInputRef.current?.click() }} disabled={loading}>
+                <ImageIcon className="w-4 h-4 mr-2" /> Gallery
+              </Button>
             </div>
           ) : (
             <Button
               variant="outline"
               className="w-full"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => setShowPhotoChoice(true)}
               disabled={loading}
             >
               <Camera className="w-4 h-4 mr-2" /> Add a photo
