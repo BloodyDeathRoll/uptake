@@ -18,7 +18,7 @@ export default function Header() {
   const admin = isAdminEmail(user?.email)
 
   return (
-    <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 h-14 flex items-center justify-between">
+    <header dir="ltr" className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 h-14 flex items-center justify-between">
       <Link href="/dashboard" className="font-bold text-lg tracking-tight flex items-center gap-2">
         <Logo size={24} />
         Uptake

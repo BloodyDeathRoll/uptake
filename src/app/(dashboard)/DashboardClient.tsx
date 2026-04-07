@@ -218,7 +218,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
           )}
           <div className="flex justify-end">
             <DayAnalysis
-              key={`${dateRange.start}-${dateRange.end}`}
+              key={`${dateRange.start}-${dateRange.end}-${g.goal_type}`}
               consumed={{ calories: agg.calories, protein: agg.protein, carbs: agg.carbs, fat: agg.fat }}
               targets={{ calories: scaledGoal.calories, protein: scaledGoal.protein, carbs: scaledGoal.carbs, fat: scaledGoal.fat }}
               goalType={g.goal_type}

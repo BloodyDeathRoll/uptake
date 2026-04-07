@@ -18,12 +18,13 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { consumed, targets, goalType, days, hourOfDay, isCurrentPeriod, quality } = body as {
+  const { consumed, targets, goalType, days, hourOfDay, isCurrentPeriod, quality, lang } = body as {
     consumed: { calories: number; protein: number; carbs: number; fat: number }
     targets: { calories: number; protein: number; carbs: number; fat: number }
     goalType: string; days: number; hourOfDay: number
     isCurrentPeriod: boolean
     quality?: QualityMetrics
+    lang?: string
   }
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10)
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
-    const prompt = buildAnalyzeDayPrompt({ goalType, goalLabel, consumed, targets, days: days ?? 1, priority, profile, hourOfDay: hourOfDay ?? new Date().getHours(), isCurrentPeriod: isCurrentPeriod ?? true, quality, adherenceTrend, foodGroupContext, recentFoods, dietaryBlock })
+    const prompt = buildAnalyzeDayPrompt({ goalType, goalLabel, consumed, targets, days: days ?? 1, priority, profile, hourOfDay: hourOfDay ?? new Date().getHours(), isCurrentPeriod: isCurrentPeriod ?? true, quality, adherenceTrend, foodGroupContext, recentFoods, dietaryBlock, lang })
 
     const completion = await client.chat.completions.create({
       model: MODEL,

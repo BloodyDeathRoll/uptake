@@ -40,8 +40,9 @@ export function buildSuggestMealPrompt(params: {
   priority: PrioritySignal
   mealTimingContext?: string
   foodGroupContext?: string
+  lang?: string
 }): string {
-  const { consumed, targets, goalType, hourOfDay, dietaryPreferences, allergies, location, priority, mealTimingContext, foodGroupContext } = params
+  const { consumed, targets, goalType, hourOfDay, dietaryPreferences, allergies, location, priority, mealTimingContext, foodGroupContext, lang } = params
   const remaining = {
     calories: Math.max(targets.calories - consumed.calories, 0),
     protein: Math.max(targets.protein - consumed.protein, 0),
@@ -63,7 +64,9 @@ export function buildSuggestMealPrompt(params: {
 ⚡ TOP PRIORITY: "${priority.label}" is the most critical nutritional issue for this user's goal right now (currently at ${priority.pct}% of target, ${priority.direction}).
 All 3 suggestions MUST be optimized for ${directionWord} content. If other macros conflict (e.g. carbs are over but protein is severely under), ${priority.label.toLowerCase()} takes precedence — suggest meals that fix the priority gap first, and keep other macros as reasonable as possible within that constraint.`
 
-  return `You are a nutrition coach. Your job is to suggest the 3 best next meals that will make the most meaningful progress towards the user's goal given what they've eaten so far today.
+  const langInstruction = lang === 'he' ? 'IMPORTANT: Respond entirely in Hebrew (עברית). All meal names, descriptions, and text must be in Hebrew.\n\n' : ''
+
+  return `${langInstruction}You are a nutrition coach. Your job is to suggest the 3 best next meals that will make the most meaningful progress towards the user's goal given what they've eaten so far today.
 ${dietaryBlock}${priorityBlock}${mealTimingContext ?? ''}${foodGroupContext ?? ''}
 ${locationLine}User's goal: ${goalType.replace(/_/g, ' ')}
 Time of day: ~${hourOfDay}:00 — suggest ${mealTimeHint}

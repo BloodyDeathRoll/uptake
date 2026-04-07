@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Sparkles, Sunrise, Sandwich, Moon, Cookie, RotateCcw } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -86,7 +86,7 @@ async function getLocation(): Promise<string | undefined> {
 }
 
 export default function MealSuggestions({ consumed, targets, goalType }: Props) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -102,7 +102,7 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
       const res = await fetch('/api/ai/suggest-meal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ consumed, targets, goalType, hourOfDay: new Date().getHours(), location }),
+        body: JSON.stringify({ consumed, targets, goalType, hourOfDay: new Date().getHours(), location, lang }),
       })
       const data = await res.json()
       if (data.suggestions?.length) setSuggestions(data.suggestions.slice(0, 3))
@@ -112,10 +112,10 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
     } finally {
       setLoading(false)
     }
-  }, [consumed, targets, goalType])
+  }, [consumed, targets, goalType, lang])
 
-  // Fetch on mount
-  useState(() => { fetchSuggestions() })
+  // Fetch on mount and whenever lang/goal/consumed changes
+  useEffect(() => { fetchSuggestions() }, [fetchSuggestions])
 
   const count = loading ? 3 : suggestions.length
   const goTo = (i: number) => setActiveIndex(Math.max(0, Math.min(count - 1, i)))

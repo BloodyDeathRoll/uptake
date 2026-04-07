@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useLanguage } from '@/lib/i18n'
 import { Sparkles, TrendingDown, TrendingUp, Minus, ChevronRight, Zap, AlertTriangle, CheckCircle2, Info } from 'lucide-react'
 import {
@@ -70,7 +70,7 @@ function qualitySignalStyle(status: QualitySignal['status']) {
 }
 
 export default function DayAnalysis({ consumed, targets, goalType, days, isCurrentPeriod, quality }: Props) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const PRIORITY_LABEL: Record<QualitySignal['priority'], string> = {
     immediate:    t.act_now,
     important:    t.important,
@@ -81,6 +81,13 @@ export default function DayAnalysis({ consumed, targets, goalType, days, isCurre
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Clear cached analysis when language changes so it re-fetches in the new language
+  const prevLangRef = React.useRef(lang)
+  if (prevLangRef.current !== lang) {
+    prevLangRef.current = lang
+    if (analysis) setAnalysis(null)
+  }
+
   const fetchAnalysis = async () => {
     setLoading(true)
     setError(null)
@@ -88,7 +95,7 @@ export default function DayAnalysis({ consumed, targets, goalType, days, isCurre
       const res = await fetch('/api/ai/analyze-day', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ consumed, targets, goalType, days, hourOfDay: new Date().getHours(), isCurrentPeriod, quality }),
+        body: JSON.stringify({ consumed, targets, goalType, days, hourOfDay: new Date().getHours(), isCurrentPeriod, quality, lang }),
       })
       const json = await res.json()
       if (!res.ok || json.error) throw new Error(json.error ?? 'Failed')

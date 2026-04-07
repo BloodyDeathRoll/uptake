@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { consumed, targets, goalType, hourOfDay, location } = body
+  const { consumed, targets, goalType, hourOfDay, location, lang } = body
 
   // Fetch dietary preferences, meal timing, and food group distribution in parallel
   const [{ data: profile }, { data: recentMeals }, { data: recentItems }] = await Promise.all([
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
-    const prompt = buildSuggestMealPrompt({ consumed, targets, goalType, hourOfDay, dietaryPreferences, allergies, location, priority, mealTimingContext, foodGroupContext })
+    const prompt = buildSuggestMealPrompt({ consumed, targets, goalType, hourOfDay, dietaryPreferences, allergies, location, priority, mealTimingContext, foodGroupContext, lang })
 
     const completion = await client.chat.completions.create({
       model: MODEL,

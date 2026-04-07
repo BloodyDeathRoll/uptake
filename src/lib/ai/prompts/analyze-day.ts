@@ -30,10 +30,11 @@ interface AnalyzeDayInput {
   recentFoods?: RecentFood[]
   dietaryBlock?: string
   profile?: { weight_kg?: number | null; age?: number | null; sex?: string | null; activity_level?: string | null } | null
+  lang?: string
 }
 
 export function buildAnalyzeDayPrompt(input: AnalyzeDayInput): string {
-  const { goalType, goalLabel, consumed, targets, days, priority, hourOfDay, isCurrentPeriod, quality, adherenceTrend, foodGroupContext, recentFoods, dietaryBlock, profile } = input
+  const { goalType, goalLabel, consumed, targets, days, priority, hourOfDay, isCurrentPeriod, quality, adherenceTrend, foodGroupContext, recentFoods, dietaryBlock, profile, lang } = input
 
   const pct = (c: number, t: number) => (t > 0 ? Math.round((c / t) * 100) : 0)
   const remaining = (c: number, t: number) => Math.max(t - c, 0)
@@ -109,7 +110,9 @@ Sodium         : ${Math.round(quality.sodium_mg)}mg (limit ~${2300 * days}mg)`
     { name: 'Fat',      pct: fatPct,  status: macroStatus(fatPct) },
   ]
 
-  return `You are a personal nutrition coach speaking directly to your client. Always use "you/your" — never "the user" or third person. Respond with a single JSON object, no extra text, no markdown.
+  const langInstruction = lang === 'he' ? 'IMPORTANT: Respond entirely in Hebrew (עברית). All text fields in the JSON must be in Hebrew.\n\n' : ''
+
+  return `${langInstruction}You are a personal nutrition coach speaking directly to your client. Always use "you/your" — never "the user" or third person. Respond with a single JSON object, no extra text, no markdown.
 ${dietaryBlock ?? ''}
 GOAL: ${goalLabel} (${goalType})
 ${profileLine}
