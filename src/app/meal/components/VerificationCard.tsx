@@ -133,6 +133,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
             const qty = (est.quantity > 0 ? est.quantity : null) ?? (item.quantity > 0 ? item.quantity : 100)
             const filled: LocalItem = {
               ...item,
+              ingredient_name: item.ingredient_name.trim() || (est.name ?? item.ingredient_name),
               quantity:  qty,
               unit:      est.unit      ?? item.unit,
               calories:  est.calories  ?? null,
@@ -238,7 +239,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                 </button>
               )}
               {/* Scan ingredient label */}
-              {item.ingredient_name.trim() && !loadingQty[i] && scanningIngredient !== i && (
+              {!loadingQty[i] && scanningIngredient !== i && (
                 showScanChoice === i ? (
                   <div className="flex gap-1 shrink-0">
                     <button type="button" onClick={() => triggerScan(i, 'camera')} className="h-8 px-2 rounded-md bg-muted text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
