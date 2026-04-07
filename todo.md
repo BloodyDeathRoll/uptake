@@ -69,4 +69,4 @@
 
 ~~34. analysis should be done on the selected date or range. If the date or range do not include current date - do not supply any recommendations, only review the data and the conclusions. If the date is or includes the current date - include the recommendations as well~~
 
-35. Once analysis is clicked for a certain date, when passing to a different date analysis does not update. Make sure each date/range get their own analysis - while still kepping #34 rules
+~~35. Once analysis is clicked for a certain date, when passing to a different date analysis does not update. Make sure each date/range get their own analysis - while still kepping #34 rules~~
