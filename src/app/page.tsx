@@ -32,9 +32,9 @@ export default function LandingPage() {
 
         <div className="space-y-3 max-w-xl">
           <h1 className="text-4xl font-bold tracking-tight leading-tight">
-            Your Body Your Choice
+            AI Powered Nutrition
           </h1>
-          <h2 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">AI Powered Nutrition</h2>
+          <h2 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">Your Body Your Choice</h2>
           <p className="text-muted-foreground text-sm leading-relaxed">
             Set your goals and track your progress. Follow the apps recommendations and advanced analysis to max out your targets quickly.
           </p>
