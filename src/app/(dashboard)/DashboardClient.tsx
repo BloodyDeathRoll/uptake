@@ -323,7 +323,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
       {/* Floating add meal button — mobile only */}
       <Link
         href="/meal/new"
-        className="sm:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-primary-foreground text-primary flex items-center justify-center shadow-lg hover:bg-primary-foreground/80 active:scale-95 transition-all duration-200"
+        className="sm:hidden fixed bottom-4 right-4 z-[60] w-14 h-14 rounded-full bg-primary-foreground text-primary flex items-center justify-center shadow-lg hover:bg-primary-foreground/80 active:scale-95 transition-all duration-200"
       >
         <Plus className="w-7 h-7" />
       </Link>
