@@ -26,6 +26,8 @@ export default function LandingPage() {
 
       {/* Hero */}
       <main className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-8 py-20">
+        <Image src="/intro.svg" alt="" width={220} height={220} priority className="mx-auto" />
+
         <div className="space-y-3 max-w-xl">
           <h1 className="text-4xl font-bold tracking-tight leading-tight">
             Nutrition goal tracking
