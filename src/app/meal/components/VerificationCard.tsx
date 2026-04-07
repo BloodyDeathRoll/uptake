@@ -273,55 +273,55 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                 {scanningIngredient === i ? 'Scanning label…' : 'Estimating nutrition…'}
               </div>
             ) : item.quantity > 0 ? (
-              <div className="flex gap-2">
+              <div className="grid grid-cols-5 gap-1.5">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-muted-foreground">Amount {item.unit}</span>
+                  <span className="text-[10px] text-muted-foreground truncate">Amt {item.unit}</span>
                   <Input
                     type="number"
                     value={item.quantity || ''}
                     onChange={e => update(i, 'quantity', Number(e.target.value))}
                     placeholder="0"
-                    className="w-20 h-8 text-sm"
+                    className="w-full h-8 text-xs px-1.5"
                   />
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-muted-foreground">kcal</span>
+                  <span className="text-[10px] text-muted-foreground truncate">kcal</span>
                   <Input
                     type="number"
                     value={item.calories ?? ''}
                     onChange={e => update(i, 'calories', e.target.value === '' ? null : Number(e.target.value))}
                     placeholder="—"
-                    className="h-8 text-xs w-20"
+                    className="w-full h-8 text-xs px-1.5"
                   />
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-muted-foreground">Protein g</span>
+                  <span className="text-[10px] text-muted-foreground truncate">Prot g</span>
                   <Input
                     type="number"
                     value={item.protein_g ?? ''}
                     onChange={e => update(i, 'protein_g', e.target.value === '' ? null : Number(e.target.value))}
                     placeholder="—"
-                    className="h-8 text-xs w-20"
+                    className="w-full h-8 text-xs px-1.5"
                   />
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-muted-foreground">Carbs g</span>
+                  <span className="text-[10px] text-muted-foreground truncate">Carbs g</span>
                   <Input
                     type="number"
                     value={item.carbs_g ?? ''}
                     onChange={e => update(i, 'carbs_g', e.target.value === '' ? null : Number(e.target.value))}
                     placeholder="—"
-                    className="h-8 text-xs w-20"
+                    className="w-full h-8 text-xs px-1.5"
                   />
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-muted-foreground">Fat g</span>
+                  <span className="text-[10px] text-muted-foreground truncate">Fat g</span>
                   <Input
                     type="number"
                     value={item.fat_g ?? ''}
                     onChange={e => update(i, 'fat_g', e.target.value === '' ? null : Number(e.target.value))}
                     placeholder="—"
-                    className="h-8 text-xs w-20"
+                    className="w-full h-8 text-xs px-1.5"
                   />
                 </div>
               </div>
