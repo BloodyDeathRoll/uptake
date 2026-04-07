@@ -300,7 +300,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
           </h2>
           <Link
             href="/meal/new"
-            className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/80 hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
+            className="hidden sm:flex w-10 h-10 rounded-full bg-primary text-primary-foreground items-center justify-center shadow-md hover:bg-primary/80 hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
           >
             <Plus className="w-5 h-5" />
           </Link>
@@ -319,6 +319,14 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
         target={breakdownMacro ? scaledGoal[breakdownMacro] : 0}
         onClose={() => setBreakdownMacro(null)}
       />
+
+      {/* Floating add meal button — mobile only */}
+      <Link
+        href="/meal/new"
+        className="sm:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/80 active:scale-95 transition-all duration-200"
+      >
+        <Plus className="w-7 h-7" />
+      </Link>
     </div>
   )
 }
