@@ -60,7 +60,7 @@
 
 ~~30. Review google gemma 4 - https://blog.google/innovation-and-ai/technology/developers-tools/gemma-4/ - can we use it as an llm on the app?~~
 
-31. Add photo should have a choice for camera use or device upload every time. Add the add photo img to an ingredient level as well, so a user can scan the ingredients list of a component of a meal
+~~31. Add photo should have a choice for camera use or device upload every time. Add the add photo img to an ingredient level as well, so a user can scan the ingredients list of a component of a meal~~
 
 ~~32. Currently there is no differentiations between ingredients in analysis and quantities. Not all fats are bad (for example avocado, olive oil are good for the user in moderation). Details should include breakdoen:~~
 ~~"Good" carbs (complex), "bad" carbs (simple), good and bad fats (sturated, trans), full proteins, nutritional fiber, vitamins, etc. SHow information that can help users track all aspects of their nutrition, and point out what needs their attention (immediate, important, good to have, etc)~~
