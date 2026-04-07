@@ -121,7 +121,7 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
           >
             {goal.extended.map((g, i) => {
               const isSelected = selectedGoal === g
-              const imgIndex = GOALS.indexOf(g as GoalType) + 1
+              const imgIndex = GOALS.indexOf(g as typeof GOALS[number]) + 1
               return (
                 <div
                   key={`${g}-${i}`}
