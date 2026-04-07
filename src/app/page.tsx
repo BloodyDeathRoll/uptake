@@ -26,11 +26,11 @@ export default function LandingPage() {
 
       {/* Hero */}
       <main className="flex-1 flex flex-col items-center sm:justify-center px-6 text-center gap-6 pt-0 pb-6 sm:py-6">
-        <div className="overflow-hidden sm:overflow-visible flex justify-center w-full sm:w-auto sm:block">
+        <div className="overflow-hidden sm:overflow-visible flex justify-center w-full sm:w-auto sm:block mt-4 sm:mt-0">
           <Image src="/intro.svg" alt="" width={330} height={330} priority unoptimized className="h-[55vh] w-auto -mt-[10vh] sm:mt-0 sm:w-[330px] sm:h-[330px]" />
         </div>
 
-        <div className="space-y-3 max-w-xl">
+        <div className="space-y-3 max-w-xl -mt-4 sm:mt-0">
           <h1 className="text-4xl font-bold tracking-tight leading-tight">
             AI Powered Nutrition
           </h1>
