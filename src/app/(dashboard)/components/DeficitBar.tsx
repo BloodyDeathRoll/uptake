@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useLanguage } from '@/lib/i18n'
 
 // Gradient: red (deficit/surplus extremes) → amber → green (on target, center)
 // Center (50%) represents exactly at target
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function DeficitBar({ calories, target, isToday }: Props) {
+  const { t } = useLanguage()
   const diff = calories - target
   const isDeficit = diff < 0
   const targetPct = Math.min(Math.abs(diff) / (target || 1) * 100, 50)
@@ -28,15 +30,15 @@ export default function DeficitBar({ calories, target, isToday }: Props) {
   }, [targetPct])
 
   const label = isDeficit
-    ? `${Math.abs(Math.round(diff))} kcal under target`
-    : `${Math.round(diff)} kcal over target`
+    ? `${Math.abs(Math.round(diff))} ${t.kcal_under_target}`
+    : `${Math.round(diff)} ${t.kcal_over_target}`
 
   return (
     <div className="space-y-1">
       <div className="flex justify-between items-center text-xs text-muted-foreground">
-        <span>deficit</span>
+        <span>{t.deficit}</span>
         <span>{label}</span>
-        <span>surplus</span>
+        <span>{t.surplus}</span>
       </div>
       <div className="relative h-1.5 rounded-full overflow-hidden">
         {/* Full gradient track */}

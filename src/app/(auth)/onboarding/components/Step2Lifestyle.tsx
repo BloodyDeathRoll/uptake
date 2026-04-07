@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { OnboardingData } from '../page'
-import { ACTIVITY_LABELS, ACTIVITY_DESCRIPTIONS, type ActivityLevel } from '@/lib/utils/constants'
-import { GOAL_LABELS, GOAL_DESCRIPTIONS, GOAL_FOCUS_METRICS, type GoalType } from '@/lib/utils/constants'
+import type { ActivityLevel, GoalType } from '@/lib/utils/constants'
 import { useCarousel } from './useCarousel'
+import { useLanguage, type Translations } from '@/lib/i18n'
 
 interface Props {
   onNext: (data: Partial<OnboardingData>) => void
@@ -31,6 +31,12 @@ function CarouselDots({ count, activeIndex }: { count: number; activeIndex: numb
 }
 
 export default function Step2Lifestyle({ onNext, onBack }: Props) {
+  const { t } = useLanguage()
+  const actLabel  = (l: string) => (t[('actLabel_' + l)  as keyof Translations] as string) ?? l
+  const actDesc   = (l: string) => (t[('actDesc_' + l)   as keyof Translations] as string) ?? l
+  const goalLabel = (g: string) => (t[('goalLabel_' + g) as keyof Translations] as string) ?? g
+  const goalDesc  = (g: string) => (t[('goalDesc_' + g)  as keyof Translations] as string) ?? g
+  const goalFocus = (g: string) => (t[('goalFocus_' + g) as keyof Translations] as string) ?? g
   const [selectedLevel, setSelectedLevel] = useState<ActivityLevel | null>(null)
   const [selectedGoal, setSelectedGoal] = useState<GoalType | null>(null)
 
@@ -53,7 +59,7 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
 
       {/* Activity carousel */}
       <div className="flex flex-col gap-1.5">
-        <p className="text-sm font-[550] text-foreground shrink-0">Activity level</p>
+        <p className="text-sm font-[550] text-foreground shrink-0">{t.activity_level}</p>
         <div className="relative h-44">
           <div
             ref={activity.scrollRef}
@@ -90,8 +96,8 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
                     <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mb-1">
                       {activity.displayNum(i)} / {LEVELS.length}
                     </p>
-                    <h2 className="text-base font-bold tracking-tight text-foreground leading-tight">{ACTIVITY_LABELS[level as ActivityLevel]}</h2>
-                    <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{ACTIVITY_DESCRIPTIONS[level as ActivityLevel]}</p>
+                    <h2 className="text-base font-bold tracking-tight text-foreground leading-tight">{actLabel(level)}</h2>
+                    <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{actDesc(level)}</p>
                   </div>
                 </div>
               )
@@ -148,9 +154,9 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
                     <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mb-1">
                       {goal.displayNum(i)} / {GOALS.length}
                     </p>
-                    <h2 className="text-base font-bold tracking-tight text-foreground leading-tight">{GOAL_LABELS[g as GoalType]}</h2>
-                    <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{GOAL_DESCRIPTIONS[g as GoalType]}</p>
-                    <p className="text-[10px] text-muted-foreground mt-1 font-medium">Focus: {GOAL_FOCUS_METRICS[g as GoalType]}</p>
+                    <h2 className="text-base font-bold tracking-tight text-foreground leading-tight">{goalLabel(g)}</h2>
+                    <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{goalDesc(g)}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1 font-medium">{t.focus_prefix}{goalFocus(g)}</p>
                   </div>
                 </div>
               )
@@ -171,8 +177,8 @@ export default function Step2Lifestyle({ onNext, onBack }: Props) {
       </div>
 
       <div className="flex gap-3 shrink-0">
-        <Button type="button" variant="outline" onClick={onBack} className="flex-1">Back</Button>
-        <Button type="submit" className="flex-1" disabled={!selectedLevel || !selectedGoal}>Next</Button>
+        <Button type="button" variant="outline" onClick={onBack} className="flex-1">{t.back}</Button>
+        <Button type="submit" className="flex-1" disabled={!selectedLevel || !selectedGoal}>{t.next}</Button>
       </div>
     </form>
   )

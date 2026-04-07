@@ -7,6 +7,7 @@ import { Sunrise, Sandwich, Moon, Cookie, Utensils, Pencil, Trash2 } from 'lucid
 import type { LucideIcon } from 'lucide-react'
 import { formatTime, formatDate } from '@/lib/utils/format'
 import { MEAL_TYPE_LABELS } from '@/lib/utils/constants'
+import { useLanguage, type Translations } from '@/lib/i18n'
 import type { Meal } from '@/hooks/useMeals'
 
 interface Props {
@@ -70,6 +71,8 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
 
 function MealRow({ meal, onDelete }: { meal: Meal; onDelete?: (id: string) => void }) {
   const router = useRouter()
+  const { t } = useLanguage()
+  const mealLabel = (type: string) => (t[('meal_' + type) as keyof Translations] as string) ?? MEAL_TYPE_LABELS[type as keyof typeof MEAL_TYPE_LABELS] ?? type
   const Icon = MEAL_ICON[meal.meal_type] ?? Utensils
   const [navigating, setNavigating] = useState(false)
 
@@ -102,7 +105,7 @@ function MealRow({ meal, onDelete }: { meal: Meal; onDelete?: (id: string) => vo
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-medium text-sm">
-            {MEAL_TYPE_LABELS[meal.meal_type as keyof typeof MEAL_TYPE_LABELS] ?? meal.meal_type}
+            {mealLabel(meal.meal_type)}
           </span>
           <span className="text-xs text-muted-foreground">{formatTime(meal.logged_at)}</span>
         </div>
@@ -134,6 +137,7 @@ function MealRow({ meal, onDelete }: { meal: Meal; onDelete?: (id: string) => vo
 }
 
 export default function MealTimeline({ meals, showDates = false, onDelete, multiColumn = false }: Props) {
+  const { t } = useLanguage()
   const gridClass = multiColumn
     ? 'grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-3'
     : 'space-y-2'
@@ -141,7 +145,7 @@ export default function MealTimeline({ meals, showDates = false, onDelete, multi
   if (meals.length === 0) {
     return (
       <div className="animate-in fade-in duration-500 text-center py-10 text-muted-foreground text-sm">
-        Nothing logged yet. Tap + to add your first meal.
+        {t.nothing_logged}
       </div>
     )
   }

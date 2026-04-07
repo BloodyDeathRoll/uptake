@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Spinner from '@/components/Spinner'
 import UseAnimations from 'react-useanimations'
 import alertCircle from 'react-useanimations/lib/alertCircle'
+import { useLanguage } from '@/lib/i18n'
 
 function GoogleIcon() {
   return (
@@ -35,6 +36,7 @@ function MicrosoftIcon() {
 
 export default function SignupPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -45,8 +47,8 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    if (password !== confirm) { setError('Passwords do not match'); return }
-    if (password.length < 8) { setError('Password must be at least 8 characters'); return }
+    if (password !== confirm) { setError(t.err_passwords_mismatch); return }
+    if (password.length < 8) { setError(t.err_password_short); return }
     setLoading(true)
     const supabase = createClient()
     const { error: authError } = await supabase.auth.signUp({ email, password })
@@ -71,8 +73,8 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center px-4 bg-background">
       <Card className="w-full max-w-sm border-0 ring-0 shadow-none animate-in fade-in slide-in-from-bottom-6 duration-500">
         <CardHeader className="text-center pb-2">
-          <CardTitle className="text-2xl font-bold tracking-tight">Create account</CardTitle>
-          <CardDescription>Start tracking your nutrition today</CardDescription>
+          <CardTitle className="text-2xl font-bold tracking-tight">{t.create_account}</CardTitle>
+          <CardDescription>{t.create_account_subtitle}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button
@@ -82,7 +84,7 @@ export default function SignupPage() {
             disabled={!!oauthLoading}
           >
             {oauthLoading === 'google' ? <Spinner size={16} /> : <GoogleIcon />}
-            <span className="ml-2">{oauthLoading === 'google' ? 'Redirecting…' : 'Continue with Google'}</span>
+            <span className="ml-2">{oauthLoading === 'google' ? t.redirecting : t.continue_google}</span>
           </Button>
 
           <Button
@@ -92,7 +94,7 @@ export default function SignupPage() {
             disabled={!!oauthLoading}
           >
             {oauthLoading === 'microsoft' ? <Spinner size={16} /> : <MicrosoftIcon />}
-            <span className="ml-2">{oauthLoading === 'microsoft' ? 'Redirecting…' : 'Continue with Microsoft'}</span>
+            <span className="ml-2">{oauthLoading === 'microsoft' ? t.redirecting : t.continue_microsoft}</span>
           </Button>
 
           <div className="relative">
@@ -100,14 +102,14 @@ export default function SignupPage() {
               <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">or</span>
+              <span className="bg-card px-2 text-muted-foreground">{t.or_divider}</span>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <FloatingLabelInput
               id="email"
-              label="Email"
+              label={t.email_field}
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -116,7 +118,7 @@ export default function SignupPage() {
             />
             <FloatingLabelInput
               id="password"
-              label="Password"
+              label={t.password_field}
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -126,7 +128,7 @@ export default function SignupPage() {
             />
             <FloatingLabelInput
               id="confirm"
-              label="Confirm password"
+              label={t.confirm_password}
               type="password"
               value={confirm}
               onChange={e => setConfirm(e.target.value)}
@@ -146,13 +148,13 @@ export default function SignupPage() {
               className="w-full transition-transform duration-150 active:scale-[0.98]"
               disabled={loading || !!oauthLoading}
             >
-              {loading ? <><Spinner size={16} strokeColor="currentColor" /><span className="ml-2">Creating account…</span></> : 'Create account'}
+              {loading ? <><Spinner size={16} strokeColor="currentColor" /><span className="ml-2">{t.creating_account}</span></> : t.create_account}
             </Button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <Link href="/login" className="text-accent underline underline-offset-4 hover:text-accent/80 transition-colors">Sign in</Link>
+            {t.already_account}{' '}
+            <Link href="/login" className="text-accent underline underline-offset-4 hover:text-accent/80 transition-colors">{t.sign_in}</Link>
           </p>
         </CardContent>
       </Card>

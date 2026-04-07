@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useLanguage } from '@/lib/i18n'
 import { Sparkles, TrendingDown, TrendingUp, Minus, ChevronRight, Zap, AlertTriangle, CheckCircle2, Info } from 'lucide-react'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -68,13 +69,13 @@ function qualitySignalStyle(status: QualitySignal['status']) {
   return                           { color: 'text-amber-500',   bg: 'bg-amber-500/8 border-amber-500/20',     icon: <Info           className="w-4 h-4 shrink-0" /> }
 }
 
-const PRIORITY_LABEL: Record<QualitySignal['priority'], string> = {
-  immediate:    'Act now',
-  important:    'Important',
-  good_to_have: 'Nice to have',
-}
-
 export default function DayAnalysis({ consumed, targets, goalType, days, isCurrentPeriod, quality }: Props) {
+  const { t } = useLanguage()
+  const PRIORITY_LABEL: Record<QualitySignal['priority'], string> = {
+    immediate:    t.act_now,
+    important:    t.important,
+    good_to_have: t.nice_to_have,
+  }
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
@@ -93,7 +94,7 @@ export default function DayAnalysis({ consumed, targets, goalType, days, isCurre
       if (!res.ok || json.error) throw new Error(json.error ?? 'Failed')
       setAnalysis(json.analysis)
     } catch {
-      setError("Couldn't generate analysis right now. Try again in a moment.")
+      setError(t.analysis_error)
     } finally {
       setLoading(false)
     }
@@ -109,10 +110,10 @@ export default function DayAnalysis({ consumed, targets, goalType, days, isCurre
       <button
         onClick={handleOpen}
         className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg bg-muted hover:bg-muted/80 border border-border transition-colors"
-        aria-label="Analyze today's nutrition"
+        aria-label={t.analysis_aria}
       >
         <Sparkles className="w-3 h-3" />
-        Analysis
+        {t.analysis_btn}
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -120,7 +121,7 @@ export default function DayAnalysis({ consumed, targets, goalType, days, isCurre
           <DialogHeader className="px-6 pt-5 pb-3 md:px-10">
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-primary" />
-              Nutrition Analysis
+              {t.nutrition_analysis}
             </DialogTitle>
           </DialogHeader>
 
@@ -128,7 +129,7 @@ export default function DayAnalysis({ consumed, targets, goalType, days, isCurre
             {loading && (
               <div className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
                 <span className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                <span className="text-sm">Analyzing your nutrition…</span>
+                <span className="text-sm">{t.analyzing_nutrition}</span>
               </div>
             )}
 
@@ -136,7 +137,7 @@ export default function DayAnalysis({ consumed, targets, goalType, days, isCurre
               <div className="py-6 text-center space-y-3">
                 <p className="text-sm text-destructive">{error}</p>
                 <button onClick={fetchAnalysis} className="text-sm text-accent underline underline-offset-4">
-                  Try again
+                  {t.try_again}
                 </button>
               </div>
             )}

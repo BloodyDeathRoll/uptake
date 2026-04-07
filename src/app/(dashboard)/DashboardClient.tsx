@@ -18,6 +18,7 @@ import type { Meal } from '@/hooks/useMeals'
 import type { GoalType } from '@/lib/utils/constants'
 import type { GoalProfile } from './components/GoalSwitcher'
 import { createSequentialFetcher } from '@/lib/utils/sequential-fetch'
+import { useLanguage, type Translations } from '@/lib/i18n'
 
 interface Snapshot {
   total_calories: number | null; total_protein_g: number | null; total_carbs_g: number | null
@@ -80,6 +81,7 @@ function aggregateQuality(meals: Meal[]) {
 export default function DashboardClient({ snapshot, goal: initialGoal, meals: serverMeals, profile, initialDate }: Props) {
   const today = localToday()
   const router = useRouter()
+  const { t, lang } = useLanguage()
   const startDate = initialDate ?? today
   const [goal, setGoal] = useState(initialGoal)
   const [dateRange, setDateRange] = useState<DateRange>({ start: startDate, end: startDate, days: 1 })
@@ -199,7 +201,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
             }
           />
         ) : (
-          <span className="font-semibold text-base">{g.goal_type.replace(/_/g, ' ')}</span>
+          <span className="font-semibold text-base">{(t[('goalLabel_' + g.goal_type) as keyof Translations] as string) ?? g.goal_type.replace(/_/g, ' ')}</span>
         )}
         <DateRangeSelector onChange={handleRangeChange} initialDate={startDate !== today ? startDate : undefined} />
       </div>
@@ -239,14 +241,14 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
         {/* Col 2: remaining today */}
         <div className="bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] p-4 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 pb-1">
-            {days === 1 ? 'Remaining today' : `Remaining (${days} days)`}
+            {days === 1 ? t.remaining_today : (lang === 'he' ? `נותר (${days} ימים)` : `Remaining (${days} days)`)}
           </h3>
           {(() => {
             const nutrientConfig = {
-              calories: { label: 'Calories', current: agg.calories,  target: scaledGoal.calories, unit: ' kcal',  remaining: remaining.calories, suffix: 'kcal' },
-              protein:  { label: 'Protein',  current: agg.protein,   target: scaledGoal.protein,  unit: undefined, remaining: remaining.protein,  suffix: 'g protein' },
-              carbs:    { label: 'Carbs',    current: agg.carbs,     target: scaledGoal.carbs,    unit: undefined, remaining: remaining.carbs,    suffix: 'g carbs' },
-              fat:      { label: 'Fat',      current: agg.fat,       target: scaledGoal.fat,      unit: undefined, remaining: remaining.fat,      suffix: 'g fat' },
+              calories: { label: t.calories, current: agg.calories,  target: scaledGoal.calories, unit: ' kcal',  remaining: remaining.calories, suffix: 'kcal' },
+              protein:  { label: t.protein,  current: agg.protein,   target: scaledGoal.protein,  unit: undefined, remaining: remaining.protein,  suffix: `g ${t.protein.toLowerCase()}` },
+              carbs:    { label: t.carbs,    current: agg.carbs,     target: scaledGoal.carbs,    unit: undefined, remaining: remaining.carbs,    suffix: `g ${t.carbs.toLowerCase()}` },
+              fat:      { label: t.fat,      current: agg.fat,       target: scaledGoal.fat,      unit: undefined, remaining: remaining.fat,      suffix: `g ${t.fat.toLowerCase()}` },
             }
             const ranked = rankMacrosByGoal(g.goal_type)
             return (
@@ -297,7 +299,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-base flex items-center gap-2">
             <UtensilsCrossed className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
-            {days === 1 && isToday ? "Today's meals" : days === 1 ? 'Meals' : `Meals (${days} days)`}
+            {days === 1 && isToday ? t.todays_meals : days === 1 ? t.meals_label : (lang === 'he' ? `${t.meals_label} (${days} ימים)` : `${t.meals_label} (${days} days)`)}
           </h2>
           <Link
             href="/meal/new"

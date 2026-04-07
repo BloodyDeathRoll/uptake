@@ -11,6 +11,7 @@ import Spinner from '@/components/Spinner'
 import Logo from '@/components/Logo'
 import UseAnimations from 'react-useanimations'
 import alertCircle from 'react-useanimations/lib/alertCircle'
+import { useLanguage } from '@/lib/i18n'
 
 function GoogleIcon() {
   return (
@@ -37,10 +38,11 @@ function MicrosoftIcon() {
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useLanguage()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(
-    searchParams.get('error') === 'oauth' ? 'OAuth sign-in failed. Please try again.' : null
+    searchParams.get('error') === 'oauth' ? t.err_oauth : null
   )
   const [loading, setLoading] = useState(false)
   const [oauthLoading, setOauthLoading] = useState<'google' | 'microsoft' | null>(null)
@@ -88,7 +90,7 @@ function LoginForm() {
             <Logo size={48} />
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">Uptake</CardTitle>
-          <CardDescription>Sign in to track your nutrition</CardDescription>
+          <CardDescription>{t.sign_in_subtitle}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pb-8">
           <Button
@@ -98,7 +100,7 @@ function LoginForm() {
             disabled={!!oauthLoading}
           >
             {oauthLoading === 'google' ? <Spinner size={16} /> : <GoogleIcon />}
-            <span className="ml-2">{oauthLoading === 'google' ? 'Redirecting…' : 'Continue with Google'}</span>
+            <span className="ml-2">{oauthLoading === 'google' ? t.redirecting : t.continue_google}</span>
           </Button>
 
           <Button
@@ -108,7 +110,7 @@ function LoginForm() {
             disabled={!!oauthLoading}
           >
             {oauthLoading === 'microsoft' ? <Spinner size={16} /> : <MicrosoftIcon />}
-            <span className="ml-2">{oauthLoading === 'microsoft' ? 'Redirecting…' : 'Continue with Microsoft'}</span>
+            <span className="ml-2">{oauthLoading === 'microsoft' ? t.redirecting : t.continue_microsoft}</span>
           </Button>
 
           <div className="relative">
@@ -116,14 +118,14 @@ function LoginForm() {
               <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">or</span>
+              <span className="bg-card px-2 text-muted-foreground">{t.or_divider}</span>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <FloatingLabelInput
               id="email"
-              label="Email"
+              label={t.email_field}
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -132,7 +134,7 @@ function LoginForm() {
             />
             <FloatingLabelInput
               id="password"
-              label="Password"
+              label={t.password_field}
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -152,13 +154,13 @@ function LoginForm() {
               className="w-full transition-transform duration-150 active:scale-[0.98]"
               disabled={loading || !!oauthLoading}
             >
-              {loading ? <><Spinner size={16} strokeColor="currentColor" /><span className="ml-2">Signing in…</span></> : 'Sign in'}
+              {loading ? <><Spinner size={16} strokeColor="currentColor" /><span className="ml-2">{t.signing_in}</span></> : t.sign_in}
             </Button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground">
-            No account?{' '}
-            <Link href="/signup" className="text-accent underline underline-offset-4 hover:text-accent/80 transition-colors">Sign up</Link>
+            {t.no_account}{' '}
+            <Link href="/signup" className="text-accent underline underline-offset-4 hover:text-accent/80 transition-colors">{t.sign_up}</Link>
           </p>
         </CardContent>
       </Card>

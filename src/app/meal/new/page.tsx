@@ -9,6 +9,7 @@ import { Camera, ImageIcon, X } from 'lucide-react'
 import VerificationCard from '../components/VerificationCard'
 import type { MealItem } from '@/hooks/useMeals'
 import type { MealType } from '@/lib/utils/constants'
+import { useLanguage } from '@/lib/i18n'
 
 function mapItems(
   items: Record<string, unknown>[],
@@ -38,6 +39,7 @@ function mapItems(
 function NewMealPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useLanguage()
   const revisionOf = searchParams.get('revisionOf')
   const returnDate = searchParams.get('returnDate')
   const isEdit = !!revisionOf
@@ -90,7 +92,7 @@ function NewMealPageInner() {
           }))
         )
       })
-      .catch(() => setError("Couldn't load the original meal."))
+      .catch(() => setError(t.err_load_meal))
       .finally(() => setLoading(false))
   }, [revisionOf])
 
@@ -122,7 +124,7 @@ function NewMealPageInner() {
           setDescription(suggested)
         }
       } catch {
-        setError("Couldn't analyze the image. You can still describe your meal below.")
+        setError(t.err_analyze_image)
       } finally {
         setLoading(false)
       }
@@ -146,7 +148,7 @@ function NewMealPageInner() {
     const hasDesc = description.trim().length > 0
     const hasImage = !!pendingImage
     if (!hasDesc && !hasImage) {
-      setError('Add a photo or describe your meal first')
+      setError(t.err_no_meal)
       return
     }
     const isReanalysis = items !== null  // replacing a previous AI analysis
@@ -176,7 +178,7 @@ function NewMealPageInner() {
         setAnalyzeCount(c => c + 1)
       }
     } catch {
-      setError("We had trouble analyzing that. Try listing ingredients separately, e.g. '200g chicken, 1 cup rice, salad'.")
+      setError(t.err_analyze)
     } finally {
       setLoading(false)
     }
@@ -199,7 +201,7 @@ function NewMealPageInner() {
       if (!res.ok) throw new Error(json.error)
       router.push(returnDate ? `/dashboard?date=${returnDate}` : '/dashboard')
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't save your meal. Your entries are preserved — tap Save to try again.")
+      setError(e instanceof Error ? e.message : t.err_save_meal)
     } finally {
       setSaving(false)
     }
@@ -216,9 +218,9 @@ function NewMealPageInner() {
         >
           {navigating
             ? <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            : 'Cancel'}
+            : t.cancel}
         </button>
-        <span className="font-semibold">{isEdit ? 'Edit meal' : 'Log meal'}</span>
+        <span className="font-semibold">{isEdit ? t.edit_meal : t.log_meal}</span>
         <div className="w-12" />
       </div>
 
@@ -227,10 +229,10 @@ function NewMealPageInner() {
         {/* Meal type */}
         <Tabs value={mealType} onValueChange={v => setMealType(v as MealType)}>
           <TabsList className="w-full">
-            <TabsTrigger value="breakfast" className="flex-1">Breakfast</TabsTrigger>
-            <TabsTrigger value="lunch" className="flex-1">Lunch</TabsTrigger>
-            <TabsTrigger value="dinner" className="flex-1">Dinner</TabsTrigger>
-            <TabsTrigger value="snack" className="flex-1">Snack</TabsTrigger>
+            <TabsTrigger value="breakfast" className="flex-1">{t.meal_breakfast}</TabsTrigger>
+            <TabsTrigger value="lunch" className="flex-1">{t.meal_lunch}</TabsTrigger>
+            <TabsTrigger value="dinner" className="flex-1">{t.meal_dinner}</TabsTrigger>
+            <TabsTrigger value="snack" className="flex-1">{t.meal_snack}</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -252,10 +254,10 @@ function NewMealPageInner() {
               {showPhotoChoice ? (
                 <div className="absolute bottom-2 right-2 flex gap-1.5">
                   <button onClick={() => { setShowPhotoChoice(false); cameraInputRef.current?.click() }} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-black/70 text-white text-xs hover:bg-black/90 transition-colors">
-                    <Camera className="w-3 h-3" /> Camera
+                    <Camera className="w-3 h-3" /> {t.camera_btn}
                   </button>
                   <button onClick={() => { setShowPhotoChoice(false); galleryInputRef.current?.click() }} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-black/70 text-white text-xs hover:bg-black/90 transition-colors">
-                    <ImageIcon className="w-3 h-3" /> Gallery
+                    <ImageIcon className="w-3 h-3" /> {t.gallery_btn}
                   </button>
                 </div>
               ) : (
@@ -263,17 +265,17 @@ function NewMealPageInner() {
                   onClick={() => setShowPhotoChoice(true)}
                   className="absolute bottom-2 right-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/50 text-white text-xs hover:bg-black/70 transition-colors"
                 >
-                  <Camera className="w-3.5 h-3.5" /> Replace
+                  <Camera className="w-3.5 h-3.5" /> {t.replace_btn}
                 </button>
               )}
             </div>
           ) : showPhotoChoice ? (
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => { setShowPhotoChoice(false); cameraInputRef.current?.click() }} disabled={loading}>
-                <Camera className="w-4 h-4 mr-2" /> Camera
+                <Camera className="w-4 h-4 mr-2" /> {t.camera_btn}
               </Button>
               <Button variant="outline" className="flex-1" onClick={() => { setShowPhotoChoice(false); galleryInputRef.current?.click() }} disabled={loading}>
-                <ImageIcon className="w-4 h-4 mr-2" /> Gallery
+                <ImageIcon className="w-4 h-4 mr-2" /> {t.gallery_btn}
               </Button>
             </div>
           ) : (
@@ -283,12 +285,12 @@ function NewMealPageInner() {
               onClick={() => setShowPhotoChoice(true)}
               disabled={loading}
             >
-              <Camera className="w-4 h-4 mr-2" /> Add a photo
+              <Camera className="w-4 h-4 mr-2" /> {t.add_photo}
             </Button>
           )}
 
           <Textarea
-            placeholder="Describe your meal… e.g. '200g grilled chicken, 1 cup brown rice, mixed salad'"
+            placeholder={t.meal_placeholder}
             value={description}
             onChange={e => setDescription(e.target.value)}
             rows={3}
@@ -305,14 +307,14 @@ function NewMealPageInner() {
             {loading ? (
               <span className="flex items-center gap-2">
                 <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                Analyzing…
+                {t.analyzing_meal}
               </span>
-            ) : items !== null ? 'Re-analyze' : 'Estimate nutrition'}
+            ) : items !== null ? t.re_analyze : t.estimate_nutrition}
           </Button>
 
           {items === null && (
             <Button variant="outline" onClick={() => setItems([])} className="w-full">
-              Enter manually
+              {t.enter_manually}
             </Button>
           )}
         </div>
@@ -322,7 +324,7 @@ function NewMealPageInner() {
           <>
             {imageType === 'ingredient_list' && (
               <div className="px-3 py-2.5 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 text-sm">
-                Looks like an ingredient list. Each item defaults to 100g — update the amounts to what you actually ate.
+                {t.ingredient_list_hint}
               </div>
             )}
             <VerificationCard

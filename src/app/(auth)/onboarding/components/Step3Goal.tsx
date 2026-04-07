@@ -4,7 +4,8 @@ import { useRef, useState, useEffect, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { OnboardingData } from '../page'
-import { GOAL_LABELS, GOAL_DESCRIPTIONS, GOAL_FOCUS_METRICS, type GoalType } from '@/lib/utils/constants'
+import type { GoalType } from '@/lib/utils/constants'
+import { useLanguage, type Translations } from '@/lib/i18n'
 
 interface Props {
   onNext: (data: Partial<OnboardingData>) => void
@@ -19,6 +20,10 @@ const GOALS: GoalType[] = [
 const EXTENDED = [GOALS[GOALS.length - 1], ...GOALS, GOALS[0]]
 
 export default function Step3Goal({ onNext, onBack }: Props) {
+  const { t } = useLanguage()
+  const goalLabel = (g: string) => (t[('goalLabel_' + g) as keyof Translations] as string) ?? g
+  const goalDesc  = (g: string) => (t[('goalDesc_'  + g) as keyof Translations] as string) ?? g
+  const goalFocus = (g: string) => (t[('goalFocus_' + g) as keyof Translations] as string) ?? g
   const [activeIndex, setActiveIndex] = useState(1)
   const [selectedGoal, setSelectedGoal] = useState<GoalType | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -78,8 +83,8 @@ export default function Step3Goal({ onNext, onBack }: Props) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col flex-1 gap-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Your goal</h1>
-        <p className="text-muted-foreground mt-1">We'll optimize your targets around this</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t.your_goal}</h1>
+        <p className="text-muted-foreground mt-1">{t.goal_subtitle}</p>
       </div>
 
       <div className="relative flex-1 min-h-0">
@@ -118,9 +123,9 @@ export default function Step3Goal({ onNext, onBack }: Props) {
                   <p className="text-[10px] font-medium text-black/60 uppercase tracking-widest mb-1">
                     {displayNum(i)} / {GOALS.length}
                   </p>
-                  <h2 className="text-base font-bold tracking-tight text-black leading-tight">{GOAL_LABELS[goal]}</h2>
-                  <p className="text-black/70 mt-1 text-sm leading-relaxed">{GOAL_DESCRIPTIONS[goal]}</p>
-                  <p className="text-[10px] text-black/60 mt-1 font-medium">Focus: {GOAL_FOCUS_METRICS[goal]}</p>
+                  <h2 className="text-base font-bold tracking-tight text-black leading-tight">{goalLabel(goal)}</h2>
+                  <p className="text-black/70 mt-1 text-sm leading-relaxed">{goalDesc(goal)}</p>
+                  <p className="text-[10px] text-black/60 mt-1 font-medium">{t.focus_prefix}{goalFocus(goal)}</p>
                 </div>
               </div>
             )
@@ -155,8 +160,8 @@ export default function Step3Goal({ onNext, onBack }: Props) {
       </div>
 
       <div className="flex gap-3 shrink-0">
-        <Button type="button" variant="outline" onClick={onBack} className="flex-1">Back</Button>
-        <Button type="submit" className="flex-1" disabled={!selectedGoal}>Finalize</Button>
+        <Button type="button" variant="outline" onClick={onBack} className="flex-1">{t.back}</Button>
+        <Button type="submit" className="flex-1" disabled={!selectedGoal}>{t.finalize}</Button>
       </div>
     </form>
   )

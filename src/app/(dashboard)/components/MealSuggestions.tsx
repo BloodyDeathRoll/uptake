@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Sparkles, Sunrise, Sandwich, Moon, Cookie, RotateCcw } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { useLanguage } from '@/lib/i18n'
 
 interface Suggestion {
   name: string
@@ -85,6 +86,7 @@ async function getLocation(): Promise<string | undefined> {
 }
 
 export default function MealSuggestions({ consumed, targets, goalType }: Props) {
+  const { t } = useLanguage()
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -132,14 +134,14 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-semibold text-base flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
-          Suggested next meal
+          {t.suggested_meal}
         </h2>
         <div className="flex items-center gap-1">
           {!loading && (
             <button
               onClick={fetchSuggestions}
               className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-              title="Refresh suggestions"
+              title={t.refresh_suggestions}
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
@@ -182,8 +184,8 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
           </div>
         ) : error ? (
           <div className="h-32 bg-muted/50 rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground text-sm">
-            <span>Could not load suggestions</span>
-            <button onClick={fetchSuggestions} className="text-xs underline hover:text-foreground transition-colors">Try again</button>
+            <span>{t.suggestions_error}</span>
+            <button onClick={fetchSuggestions} className="text-xs underline hover:text-foreground transition-colors">{t.try_again}</button>
           </div>
         ) : (
           <div
@@ -210,15 +212,15 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
                       <p className="text-xs text-muted-foreground mb-3 leading-relaxed line-clamp-2">{s.description}</p>
                       <div className="flex items-center justify-between">
                         <div className="flex gap-3 text-xs text-muted-foreground">
-                          <span><span className="font-medium text-foreground">{s.protein_g}g</span> protein</span>
-                          <span><span className="font-medium text-foreground">{s.carbs_g}g</span> carbs</span>
-                          <span><span className="font-medium text-foreground">{s.fat_g}g</span> fat</span>
+                          <span><span className="font-medium text-foreground">{s.protein_g}g</span> {t.protein}</span>
+                          <span><span className="font-medium text-foreground">{s.carbs_g}g</span> {t.carbs}</span>
+                          <span><span className="font-medium text-foreground">{s.fat_g}g</span> {t.fat}</span>
                         </div>
                         <Link
                           href={`/meal/new?description=${encodeURIComponent(s.description)}`}
                           className="text-xs font-medium text-accent hover:underline flex-shrink-0 ml-3"
                         >
-                          Log this →
+                          {t.log_this}
                         </Link>
                       </div>
                     </CardContent>

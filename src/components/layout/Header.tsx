@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Settings } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import Logo from '@/components/Logo'
+import { LanguageSwitcher } from '@/lib/i18n'
 
 function isAdminEmail(email: string | undefined | null): boolean {
   const list = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
@@ -31,6 +32,7 @@ export default function Header() {
             Admin
           </Link>
         )}
+        <LanguageSwitcher />
         <Link
           href="/settings"
           className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"

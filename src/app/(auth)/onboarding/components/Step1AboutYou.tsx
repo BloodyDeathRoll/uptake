@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import type { OnboardingData } from '../page'
 import { ftInToCm, lbsToKg } from '@/lib/utils/format'
 import { DIETARY_PREFERENCE_OPTIONS } from '@/lib/utils/constants'
+import { useLanguage, LanguageSwitcher, type Translations } from '@/lib/i18n'
 
 interface Props {
   onNext: (data: Partial<OnboardingData>) => void
@@ -24,7 +25,12 @@ const UnitToggle = ({ options, value, onChange }: { options: [string, string]; v
   </div>
 )
 
+function prefKey(pref: string): keyof Translations {
+  return ('pref_' + pref.replace(/-/g, '_').replace(/ /g, '_')) as keyof Translations
+}
+
 export default function Step1AboutYou({ onNext }: Props) {
+  const { t } = useLanguage()
   const [heightUnit, setHeightUnit] = useState<'cm' | 'ft'>('cm')
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg')
   const [heightCm, setHeightCm] = useState('175')
@@ -43,8 +49,8 @@ export default function Step1AboutYou({ onNext }: Props) {
     setPreferences(prev => prev.includes(pref) ? prev.filter(p => p !== pref) : [...prev, pref])
 
   const addAllergy = () => {
-    const t = allergyInput.trim()
-    if (t && !allergies.includes(t)) { setAllergies(prev => [...prev, t]); setAllergyInput('') }
+    const v = allergyInput.trim()
+    if (v && !allergies.includes(v)) { setAllergies(prev => [...prev, v]); setAllergyInput('') }
   }
 
   const validate = () => {
@@ -52,9 +58,9 @@ export default function Step1AboutYou({ onNext }: Props) {
     const h = heightUnit === 'cm' ? Number(heightCm) : ftInToCm(Number(heightFt), Number(heightIn))
     const w = weightUnit === 'kg' ? Number(weight) : lbsToKg(Number(weight))
     const a = Number(age)
-    if (!h || h < 50 || h > 300) errs.height = 'Enter a valid height (50–300 cm)'
-    if (!w || w < 10 || w > 500) errs.weight = 'Enter a valid weight'
-    if (!a || a < 1 || a > 120) errs.age = 'Enter a valid age (1–120)'
+    if (!h || h < 50 || h > 300) errs.height = t.err_height
+    if (!w || w < 10 || w > 500) errs.weight = t.err_weight
+    if (!a || a < 1 || a > 120) errs.age = t.err_age
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -74,9 +80,12 @@ export default function Step1AboutYou({ onNext }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col flex-1 gap-0">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">About you</h1>
-        <p className="text-muted-foreground mt-1">Your stats & food preferences</p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{t.about_you}</h1>
+          <p className="text-muted-foreground mt-1">{t.about_you_subtitle}</p>
+        </div>
+        <LanguageSwitcher />
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-6 pb-4" style={{ scrollbarWidth: 'none' }}>
@@ -85,7 +94,7 @@ export default function Step1AboutYou({ onNext }: Props) {
         <div className="space-y-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>Height</Label>
+              <Label>{t.height}</Label>
               <UnitToggle options={['cm', 'ft']} value={heightUnit} onChange={v => setHeightUnit(v as 'cm' | 'ft')} />
             </div>
             {heightUnit === 'cm' ? (
@@ -101,7 +110,7 @@ export default function Step1AboutYou({ onNext }: Props) {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>Weight</Label>
+              <Label>{t.weight}</Label>
               <UnitToggle options={['kg', 'lbs']} value={weightUnit} onChange={v => setWeightUnit(v as 'kg' | 'lbs')} />
             </div>
             <Input type="number" placeholder={weightUnit === 'kg' ? '70' : '154'} value={weight} onChange={e => setWeight(e.target.value)} />
@@ -109,41 +118,41 @@ export default function Step1AboutYou({ onNext }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="age">Age</Label>
+            <Label htmlFor="age">{t.age}</Label>
             <Input id="age" type="number" placeholder="30" value={age} onChange={e => setAge(e.target.value)} />
             {errors.age && <p className="text-xs text-destructive">{errors.age}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label>Sex <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+            <Label>{t.sex} <span className="text-muted-foreground text-xs font-normal">({t.optional})</span></Label>
             <div className="flex gap-2">
               {(['male', 'female'] as const).map(s => (
                 <button key={s} type="button" onClick={() => setSex(prev => prev === s ? '' : s)}
                   className={`flex-1 py-2.5 text-sm rounded-xl border font-medium capitalize transition-all ${sex === s ? 'bg-primary text-primary-foreground border-transparent' : 'border-border text-muted-foreground hover:bg-muted hover:border-border'}`}>
-                  {s}
+                  {s === 'male' ? t.sex_male : t.sex_female}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Diet <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+            <Label>{t.diet_label} <span className="text-muted-foreground text-xs font-normal">({t.optional})</span></Label>
             <div className="flex flex-wrap gap-2">
               {DIETARY_PREFERENCE_OPTIONS.map(pref => (
                 <button key={pref} type="button" onClick={() => togglePref(pref)}
                   className={`px-3 py-1.5 text-xs rounded-full border font-medium transition-colors ${preferences.includes(pref) ? 'bg-primary text-primary-foreground border-transparent' : 'border-border text-muted-foreground hover:bg-muted hover:border-border'}`}>
-                  {pref}
+                  {(t[prefKey(pref)] as string) ?? pref}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Allergies <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+            <Label>{t.allergies_label} <span className="text-muted-foreground text-xs font-normal">({t.optional})</span></Label>
             <div className="flex gap-2">
-              <Input placeholder="e.g. peanuts" value={allergyInput} onChange={e => setAllergyInput(e.target.value)}
+              <Input placeholder={t.allergy_placeholder} value={allergyInput} onChange={e => setAllergyInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addAllergy() } }} />
-              <Button type="button" variant="outline" onClick={addAllergy}>Add</Button>
+              <Button type="button" variant="outline" onClick={addAllergy}>{t.add}</Button>
             </div>
             {allergies.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
@@ -158,7 +167,7 @@ export default function Step1AboutYou({ onNext }: Props) {
         </div>
       </div>
 
-      <Button type="submit" className="w-full mt-4 shrink-0">Start</Button>
+      <Button type="submit" className="w-full mt-4 shrink-0">{t.start}</Button>
     </form>
   )
 }

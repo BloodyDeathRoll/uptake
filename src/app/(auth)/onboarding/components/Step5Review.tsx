@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import type { OnboardingData } from '../page'
-import { GOAL_LABELS } from '@/lib/utils/constants'
+import { useLanguage, type Translations } from '@/lib/i18n'
 import { formatCalories, formatGrams, formatMl } from '@/lib/utils/format'
 
 interface Props {
@@ -20,6 +20,8 @@ interface Targets {
 }
 
 export default function Step5Review({ data, onComplete, onBack, saving }: Props) {
+  const { t } = useLanguage()
+  const goalLabel = (g: string) => (t[('goalLabel_' + g) as keyof Translations] as string) ?? g
   const [targets, setTargets] = useState<Targets | null>(null)
   const [rationale, setRationale] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -37,7 +39,7 @@ export default function Step5Review({ data, onComplete, onBack, saving }: Props)
     })
       .then(r => r.json())
       .then(json => { setTargets(json.targets); setRationale(json.rationale) })
-      .catch(() => setError('Failed to calculate targets. Please try again.'))
+      .catch(() => setError(t.err_calculate_targets))
       .finally(() => setLoading(false))
   }, [])
 
@@ -45,7 +47,7 @@ export default function Step5Review({ data, onComplete, onBack, saving }: Props)
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-muted-foreground text-sm">Calculating your targets…</p>
+        <p className="text-muted-foreground text-sm">{t.calculating_targets}</p>
       </div>
     )
   }
@@ -54,26 +56,26 @@ export default function Step5Review({ data, onComplete, onBack, saving }: Props)
     return (
       <div className="space-y-4 text-center py-12">
         <p className="text-destructive text-sm">{error}</p>
-        <Button variant="outline" onClick={() => { setLoading(true); setError(null) }}>Try again</Button>
+        <Button variant="outline" onClick={() => { setLoading(true); setError(null) }}>{t.try_again}</Button>
       </div>
     )
   }
 
   const rows = [
-    { label: 'Daily calories', value: formatCalories(targets.calories), primary: true },
-    { label: 'Protein', value: formatGrams(targets.protein_g) },
-    { label: 'Carbohydrates', value: formatGrams(targets.carbs_g) },
-    { label: 'Fat', value: formatGrams(targets.fat_g) },
-    { label: 'Fiber', value: formatGrams(targets.fiber_g) },
-    { label: 'Water', value: formatMl(targets.water_ml) },
+    { label: t.daily_calories, value: formatCalories(targets.calories), primary: true },
+    { label: t.protein, value: formatGrams(targets.protein_g) },
+    { label: t.carbohydrates, value: formatGrams(targets.carbs_g) },
+    { label: t.fat_label, value: formatGrams(targets.fat_g) },
+    { label: t.fiber, value: formatGrams(targets.fiber_g) },
+    { label: t.water, value: formatMl(targets.water_ml) },
   ]
 
   return (
     <div className="flex flex-col flex-1 gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Your targets</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t.your_targets}</h1>
         <p className="text-muted-foreground mt-1">
-          Personalized for <span className="font-semibold text-foreground">{GOAL_LABELS[data.goalType]}</span>
+          {t.personalized_for} <span className="font-semibold text-foreground">{goalLabel(data.goalType)}</span>
         </p>
       </div>
 
@@ -89,9 +91,9 @@ export default function Step5Review({ data, onComplete, onBack, saving }: Props)
       </Card>
 
       <div className="flex gap-3 mt-auto">
-        <Button type="button" variant="outline" onClick={onBack} className="flex-1" disabled={saving}>Back</Button>
+        <Button type="button" variant="outline" onClick={onBack} className="flex-1" disabled={saving}>{t.back}</Button>
         <Button onClick={() => onComplete(targets as unknown as Record<string, number>, rationale)} className="flex-1" disabled={saving}>
-          {saving ? 'Setting up…' : 'Start tracking'}
+          {saving ? t.setting_up : t.start_tracking}
         </Button>
       </div>
     </div>

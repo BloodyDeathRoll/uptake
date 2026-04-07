@@ -4,7 +4,8 @@ import { useRef, useState, useEffect, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { OnboardingData } from '../page'
-import { ACTIVITY_LABELS, ACTIVITY_DESCRIPTIONS, type ActivityLevel } from '@/lib/utils/constants'
+import type { ActivityLevel } from '@/lib/utils/constants'
+import { useLanguage, type Translations } from '@/lib/i18n'
 
 interface Props {
   onNext: (data: Partial<OnboardingData>) => void
@@ -15,6 +16,9 @@ const LEVELS: ActivityLevel[] = ['sedentary', 'light', 'moderate', 'very_active'
 const EXTENDED = [LEVELS[LEVELS.length - 1], ...LEVELS, LEVELS[0]]
 
 export default function Step2Activity({ onNext, onBack }: Props) {
+  const { t } = useLanguage()
+  const actLabel = (l: string) => (t[('actLabel_' + l) as keyof Translations] as string) ?? l
+  const actDesc  = (l: string) => (t[('actDesc_'  + l) as keyof Translations] as string) ?? l
   const [activeIndex, setActiveIndex] = useState(1)
   const [selectedLevel, setSelectedLevel] = useState<ActivityLevel | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -74,8 +78,8 @@ export default function Step2Activity({ onNext, onBack }: Props) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col flex-1 gap-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Activity level</h1>
-        <p className="text-muted-foreground mt-1">How active are you on a typical week?</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t.activity_level}</h1>
+        <p className="text-muted-foreground mt-1">{t.activity_subtitle}</p>
       </div>
 
       <div className="relative flex-1 min-h-0">
@@ -114,8 +118,8 @@ export default function Step2Activity({ onNext, onBack }: Props) {
                   <p className="text-[10px] font-medium text-black/60 uppercase tracking-widest mb-1">
                     {displayNum(i)} / {LEVELS.length}
                   </p>
-                  <h2 className="text-base font-bold tracking-tight text-black leading-tight">{ACTIVITY_LABELS[level]}</h2>
-                  <p className="text-black/70 mt-1 text-sm leading-relaxed">{ACTIVITY_DESCRIPTIONS[level]}</p>
+                  <h2 className="text-base font-bold tracking-tight text-black leading-tight">{actLabel(level)}</h2>
+                  <p className="text-black/70 mt-1 text-sm leading-relaxed">{actDesc(level)}</p>
                 </div>
               </div>
             )
@@ -150,8 +154,8 @@ export default function Step2Activity({ onNext, onBack }: Props) {
       </div>
 
       <div className="flex gap-3 shrink-0">
-        <Button type="button" variant="outline" onClick={onBack} className="flex-1">Back</Button>
-        <Button type="submit" className="flex-1" disabled={!selectedLevel}>Next</Button>
+        <Button type="button" variant="outline" onClick={onBack} className="flex-1">{t.back}</Button>
+        <Button type="submit" className="flex-1" disabled={!selectedLevel}>{t.next}</Button>
       </div>
     </form>
   )
