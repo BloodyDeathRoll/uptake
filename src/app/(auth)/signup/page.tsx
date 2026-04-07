@@ -152,7 +152,7 @@ export default function SignupPage() {
 
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{' '}
-            <Link href="/login" className="underline underline-offset-4 hover:text-foreground transition-colors">Sign in</Link>
+            <Link href="/login" className="text-accent underline underline-offset-4 hover:text-accent/80 transition-colors">Sign in</Link>
           </p>
         </CardContent>
       </Card>

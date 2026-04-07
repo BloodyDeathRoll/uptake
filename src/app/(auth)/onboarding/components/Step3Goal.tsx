@@ -14,7 +14,7 @@ interface Props {
 const GOALS: GoalType[] = [
   'muscle_gain', 'athlete_cut', 'weight_loss', 'maintenance',
   'recomposition', 'endurance', 'heart_healthy', 'longevity',
-  'diabetic', 'recovery', 'custom'
+  'diabetic', 'recovery'
 ]
 const EXTENDED = [GOALS[GOALS.length - 1], ...GOALS, GOALS[0]]
 

@@ -17,7 +17,7 @@ const LEVELS = ['sedentary', 'light', 'moderate', 'very_active', 'athlete'] as c
 const GOALS = [
   'muscle_gain', 'athlete_cut', 'weight_loss', 'maintenance',
   'recomposition', 'endurance', 'heart_healthy', 'longevity',
-  'diabetic', 'recovery', 'custom',
+  'diabetic', 'recovery',
 ] as const
 
 function CarouselDots({ count, activeIndex }: { count: number; activeIndex: number }) {

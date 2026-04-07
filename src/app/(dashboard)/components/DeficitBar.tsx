@@ -7,13 +7,16 @@ import { useState, useEffect } from 'react'
 const GRADIENT = 'linear-gradient(to right, #E04040 0%, #F07840 18%, #F5B942 34%, #7EC8A0 50%, #F5B942 66%, #F07840 82%, #E04040 100%)'
 const TRANSITION = 'width 0.9s cubic-bezier(0.4, 0, 0.2, 1)'
 
+const TODAY_COLOR = '#ab947c'
+
 interface Props {
   calories: number
   target: number
   goalType?: string
+  isToday?: boolean
 }
 
-export default function DeficitBar({ calories, target }: Props) {
+export default function DeficitBar({ calories, target, isToday }: Props) {
   const diff = calories - target
   const isDeficit = diff < 0
   const targetPct = Math.min(Math.abs(diff) / (target || 1) * 100, 50)
@@ -37,7 +40,7 @@ export default function DeficitBar({ calories, target }: Props) {
       </div>
       <div className="relative h-1.5 rounded-full overflow-hidden">
         {/* Full gradient track */}
-        <div className="absolute inset-0" style={{ background: GRADIENT }} />
+        <div className="absolute inset-0" style={{ background: isToday ? TODAY_COLOR : GRADIENT }} />
 
         {/* Masks to reveal only the filled portion */}
         {isDeficit ? (

@@ -8,9 +8,10 @@ interface Props {
   current: number
   target: number
   unit?: string
+  barColor?: string
 }
 
-export default function NutrientBar({ label, current, target, unit = 'g' }: Props) {
+export default function NutrientBar({ label, current, target, unit = 'g', barColor }: Props) {
   const ratio = target > 0 ? current / target : 0
   const targetPct = Math.min(ratio * 100, 100)
   const [pct, setPct] = useState(0)
@@ -35,7 +36,7 @@ export default function NutrientBar({ label, current, target, unit = 'g' }: Prop
           className="h-full rounded-full"
           style={{
             width: `${pct}%`,
-            backgroundColor: nutritionColor(ratio),
+            backgroundColor: barColor ?? nutritionColor(ratio),
             transition: 'width 0.9s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         />

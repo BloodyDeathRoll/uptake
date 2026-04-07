@@ -107,7 +107,7 @@ export default async function MealDetailPage({
         {meal.revision_of && (
           <p className="text-xs text-muted-foreground text-center">
             This is a revised version of an earlier log.{' '}
-            <Link href={`/meal/${meal.revision_of}`} className="underline">View original</Link>
+            <Link href={`/meal/${meal.revision_of}`} className="text-accent underline">View original</Link>
           </p>
         )}
       </div>

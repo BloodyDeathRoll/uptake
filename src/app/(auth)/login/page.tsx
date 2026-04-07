@@ -158,7 +158,7 @@ function LoginForm() {
 
           <p className="text-center text-sm text-muted-foreground">
             No account?{' '}
-            <Link href="/signup" className="underline underline-offset-4 hover:text-foreground transition-colors">Sign up</Link>
+            <Link href="/signup" className="text-accent underline underline-offset-4 hover:text-accent/80 transition-colors">Sign up</Link>
           </p>
         </CardContent>
       </Card>

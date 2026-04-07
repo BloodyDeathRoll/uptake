@@ -229,9 +229,10 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
             calories={{ current: agg.calories, target: scaledGoal.calories }}
             protein={{ current: agg.protein, target: scaledGoal.protein }}
             carbs={{ current: agg.carbs, target: scaledGoal.carbs }}
+            isToday={isToday}
           />
           <div className="mt-auto">
-            <DeficitBar calories={agg.calories} target={scaledGoal.calories} goalType={g.goal_type} />
+            <DeficitBar calories={agg.calories} target={scaledGoal.calories} goalType={g.goal_type} isToday={isToday} />
           </div>
         </div>
 
@@ -260,7 +261,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
                         onClick={() => setBreakdownMacro(n)}
                         className="text-left w-full hover:opacity-70 transition-opacity relative group"
                       >
-                        <NutrientBar label={c.label} current={c.current} target={c.target} unit={c.unit} />
+                        <NutrientBar label={c.label} current={c.current} target={c.target} unit={c.unit} barColor={isToday ? '#ab947c' : undefined} />
                         <Info className="absolute top-0 right-0 w-3 h-3 text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors" />
                       </button>
                     )
