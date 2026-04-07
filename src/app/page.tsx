@@ -25,8 +25,8 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-6 py-6">
-        <Image src="/intro.svg" alt="" width={330} height={330} priority unoptimized className="mx-auto w-48 h-48 sm:w-[330px] sm:h-[330px]" />
+      <main className="flex-1 flex flex-col items-center sm:justify-center px-6 text-center gap-6 pt-0 pb-6 sm:py-6">
+        <Image src="/intro.svg" alt="" width={330} height={330} priority unoptimized className="mx-auto h-[55vh] w-auto sm:w-[330px] sm:h-[330px]" />
 
         <div className="space-y-3 max-w-xl">
           <h1 className="text-4xl font-bold tracking-tight leading-tight">
