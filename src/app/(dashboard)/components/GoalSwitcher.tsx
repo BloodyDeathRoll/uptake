@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { GOAL_LABELS, GOAL_DESCRIPTIONS, type GoalType } from '@/lib/utils/constants'
+import { useLanguage } from '@/lib/i18n'
 
 export const ORDERED_GOALS: GoalType[] = [
   'muscle_gain', 'athlete_cut', 'weight_loss', 'maintenance',
@@ -33,6 +34,7 @@ interface SlideItem {
 const DURATION = 220
 
 export default function GoalSwitcher({ initialGoalType, profile, onGoalChange }: Props) {
+  const { t } = useLanguage()
   const startIndex = Math.max(ORDERED_GOALS.indexOf(initialGoalType), 0)
   const [curr, setCurr] = useState<SlideItem>({ index: startIndex, id: 0 })
   const [exiting, setExiting] = useState<(SlideItem & { toLeft: boolean }) | null>(null)
@@ -92,7 +94,7 @@ export default function GoalSwitcher({ initialGoalType, profile, onGoalChange }:
       </button>
 
       <div className="flex-1 min-w-0 text-center relative overflow-hidden">
-        <div className="text-[10px] text-muted-foreground uppercase tracking-widest mb-0.5">Goal</div>
+        <div className="text-[10px] text-muted-foreground uppercase tracking-widest mb-0.5">{t.goal_section_label}</div>
 
         {/* Sliding text area */}
         <div className="relative" style={{ height: '2.75rem' }}>

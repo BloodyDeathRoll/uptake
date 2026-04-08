@@ -7,6 +7,7 @@ import { Plus, Trash2, RotateCcw, Camera, ImageIcon, ScanLine } from 'lucide-rea
 import ConfidenceBadge from '@/components/shared/ConfidenceBadge'
 import type { MealItem } from '@/hooks/useMeals'
 import { scaleMacros, computePerUnit, applyPerUnit, type PerUnit } from '@/lib/nutrition/scaling'
+import { useLanguage } from '@/lib/i18n'
 
 type LocalItem = MealItem & { _perUnit?: PerUnit; _ver?: number }
 
@@ -45,6 +46,7 @@ function blankItem(): MealItem {
 }
 
 export default function VerificationCard({ initialItems, onSave, onReset, saving }: Props) {
+  const { t } = useLanguage()
   const [items, setItems] = useState<LocalItem[]>(
     (initialItems.length > 0 ? initialItems : [blankItem()]).map(item => ({
       ...item,
@@ -208,9 +210,9 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold">Review ingredients</h2>
+        <h2 className="font-semibold">{t.review_ingredients}</h2>
         <button onClick={onReset} className="text-xs text-muted-foreground flex items-center gap-1">
-          <RotateCcw className="w-3 h-3" /> Start over
+          <RotateCcw className="w-3 h-3" /> {t.start_over}
         </button>
       </div>
 
@@ -226,7 +228,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
               <Input
                 value={item.ingredient_name}
                 onChange={e => update(i, 'ingredient_name', e.target.value)}
-                placeholder="Ingredient name"
+                placeholder={t.ingredient_name_placeholder}
                 className="flex-1 h-8 text-sm"
               />
               {item.ingredient_name.trim() && !item.quantity && !loadingQty[i] && !scanningIngredient && (
@@ -235,7 +237,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                   onClick={() => handleQty(i, item.ingredient_name)}
                   className="h-8 px-2 rounded-md bg-muted text-xs font-medium text-muted-foreground hover:text-foreground transition-colors shrink-0 flex items-center gap-1"
                 >
-                  QTY
+                  {t.qty_auto}
                 </button>
               )}
               {/* Scan ingredient label */}
@@ -243,10 +245,10 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                 showScanChoice === i ? (
                   <div className="flex gap-1 shrink-0">
                     <button type="button" onClick={() => triggerScan(i, 'camera')} className="h-8 px-2 rounded-md bg-muted text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                      <Camera className="w-3 h-3" /> Camera
+                      <Camera className="w-3 h-3" /> {t.camera_btn}
                     </button>
                     <button type="button" onClick={() => triggerScan(i, 'gallery')} className="h-8 px-2 rounded-md bg-muted text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                      <ImageIcon className="w-3 h-3" /> File
+                      <ImageIcon className="w-3 h-3" /> {t.file_btn}
                     </button>
                     <button type="button" onClick={() => setShowScanChoice(null)} className="h-8 px-1.5 rounded-md text-muted-foreground hover:text-foreground transition-colors">
                       ×
@@ -257,7 +259,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                     type="button"
                     onClick={() => setShowScanChoice(i)}
                     className="h-8 w-8 rounded-md bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0 flex items-center justify-center"
-                    title="Scan ingredient label"
+                    title={t.scan_label_title}
                   >
                     <ScanLine className="w-3.5 h-3.5" />
                   </button>
@@ -271,12 +273,12 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
             {loadingQty[i] || scanningIngredient === i ? (
               <div className="flex items-center gap-2 h-8 text-xs text-muted-foreground">
                 <span className="w-3.5 h-3.5 border border-current border-t-transparent rounded-full animate-spin shrink-0" />
-                {scanningIngredient === i ? 'Scanning label…' : 'Estimating nutrition…'}
+                {scanningIngredient === i ? t.scanning_label : t.estimating_nutrition}
               </div>
             ) : item.quantity > 0 ? (
               <div className="grid grid-cols-5 gap-1.5">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-muted-foreground truncate">Amt {item.unit}</span>
+                  <span className="text-[10px] text-muted-foreground truncate">{t.col_amt} {item.unit}</span>
                   <Input
                     type="number"
                     value={item.quantity || ''}
@@ -286,7 +288,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                   />
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-muted-foreground truncate">kcal</span>
+                  <span className="text-[10px] text-muted-foreground truncate">{t.col_cal}</span>
                   <Input
                     type="number"
                     value={item.calories ?? ''}
@@ -296,7 +298,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                   />
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-muted-foreground truncate">Prot g</span>
+                  <span className="text-[10px] text-muted-foreground truncate">{t.col_prot_g}</span>
                   <Input
                     type="number"
                     value={item.protein_g ?? ''}
@@ -306,7 +308,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                   />
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-muted-foreground truncate">Carbs g</span>
+                  <span className="text-[10px] text-muted-foreground truncate">{t.col_carbs_g}</span>
                   <Input
                     type="number"
                     value={item.carbs_g ?? ''}
@@ -316,7 +318,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                   />
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-muted-foreground truncate">Fat g</span>
+                  <span className="text-[10px] text-muted-foreground truncate">{t.col_fat_g}</span>
                   <Input
                     type="number"
                     value={item.fat_g ?? ''}
@@ -333,15 +335,15 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
 
       {/* Add button */}
       <button onClick={add} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] text-sm text-muted-foreground hover:text-foreground transition-colors">
-        <Plus className="w-4 h-4" /> Add ingredient
+        <Plus className="w-4 h-4" /> {t.add_ingredient}
       </button>
 
       {/* Summary */}
       <div className="p-3 rounded-xl bg-muted/50 grid grid-cols-4 gap-2 text-center">
-        <div><div className="text-xs text-muted-foreground">Cal</div><div className="font-bold text-sm">{Math.round(totalCalories)}</div></div>
-        <div><div className="text-xs text-muted-foreground">Protein</div><div className="font-bold text-sm">{Math.round(totalProtein)}g</div></div>
-        <div><div className="text-xs text-muted-foreground">Carbs</div><div className="font-bold text-sm">{Math.round(totalCarbs)}g</div></div>
-        <div><div className="text-xs text-muted-foreground">Fat</div><div className="font-bold text-sm">{Math.round(totalFat)}g</div></div>
+        <div><div className="text-xs text-muted-foreground">{t.col_cal}</div><div className="font-bold text-sm">{Math.round(totalCalories)}</div></div>
+        <div><div className="text-xs text-muted-foreground">{t.protein}</div><div className="font-bold text-sm">{Math.round(totalProtein)}g</div></div>
+        <div><div className="text-xs text-muted-foreground">{t.carbs}</div><div className="font-bold text-sm">{Math.round(totalCarbs)}g</div></div>
+        <div><div className="text-xs text-muted-foreground">{t.fat}</div><div className="font-bold text-sm">{Math.round(totalFat)}g</div></div>
       </div>
 
       {/* Actions */}
@@ -352,14 +354,14 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
         <Button
           onClick={() => {
             const missing = items.some(it => it.quantity === 0)
-            if (missing) { setSaveError('Must fill out quantity of item'); return }
+            if (missing) { setSaveError(t.must_fill_quantity); return }
             setSaveError(null)
             onSave(items.map(({ _perUnit: _p, _ver: _v, ...rest }) => rest))
           }}
           disabled={saving}
           className="w-full"
         >
-          {saving ? 'Saving…' : 'Save'}
+          {saving ? t.saving : t.save}
         </Button>
       </div>
     </div>

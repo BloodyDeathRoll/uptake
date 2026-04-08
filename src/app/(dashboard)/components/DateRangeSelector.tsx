@@ -285,7 +285,7 @@ export default function DateRangeSelector({ onChange, initialDate }: Props) {
           </div>
 
           {pendingStart && (
-            <p className="text-[10px] text-muted-foreground text-center mt-3">Now select an end date</p>
+            <p className="text-[10px] text-muted-foreground text-center mt-3">{t.select_end_date}</p>
           )}
         </div>
       )}

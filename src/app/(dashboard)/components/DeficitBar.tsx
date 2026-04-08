@@ -18,7 +18,8 @@ interface Props {
 }
 
 export default function DeficitBar({ calories, target, isToday }: Props) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const rtl = lang === 'he'
   const diff = calories - target
   const isDeficit = diff < 0
   const targetPct = Math.min(Math.abs(diff) / (target || 1) * 100, 50)
@@ -36,9 +37,9 @@ export default function DeficitBar({ calories, target, isToday }: Props) {
   return (
     <div className="space-y-1">
       <div className="flex justify-between items-center text-xs text-muted-foreground">
-        <span>{t.deficit}</span>
+        <span>{rtl ? t.surplus : t.deficit}</span>
         <span>{label}</span>
-        <span>{t.surplus}</span>
+        <span>{rtl ? t.deficit : t.surplus}</span>
       </div>
       <div className="relative h-1.5 rounded-full overflow-hidden">
         {/* Full gradient track */}

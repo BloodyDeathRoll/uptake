@@ -2,14 +2,15 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { Meal } from '@/hooks/useMeals'
+import { useLanguage, type Translations } from '@/lib/i18n'
 
 type MacroKey = 'calories' | 'protein' | 'carbs' | 'fat'
 
-const MACRO_CONFIG: Record<MacroKey, { label: string; field: 'calories' | 'protein_g' | 'carbs_g' | 'fat_g'; unit: string }> = {
-  calories: { label: 'Calories',  field: 'calories',   unit: 'kcal' },
-  protein:  { label: 'Protein',   field: 'protein_g',  unit: 'g' },
-  carbs:    { label: 'Carbs',     field: 'carbs_g',    unit: 'g' },
-  fat:      { label: 'Fat',       field: 'fat_g',      unit: 'g' },
+const MACRO_FIELDS: Record<MacroKey, { field: 'calories' | 'protein_g' | 'carbs_g' | 'fat_g'; unit: string; labelKey: keyof Translations }> = {
+  calories: { field: 'calories',   unit: 'kcal', labelKey: 'calories' },
+  protein:  { field: 'protein_g',  unit: 'g',    labelKey: 'protein' },
+  carbs:    { field: 'carbs_g',    unit: 'g',    labelKey: 'carbs' },
+  fat:      { field: 'fat_g',      unit: 'g',    labelKey: 'fat' },
 }
 
 function QualityBar({ label, value, total, color, description }: { label: string; value: number; total: number; color: string; description: string }) {
@@ -41,8 +42,10 @@ interface Props {
 }
 
 export default function MacroBreakdownDialog({ macro, meals, target, onClose }: Props) {
+  const { t } = useLanguage()
   if (!macro) return null
-  const cfg = MACRO_CONFIG[macro]
+  const cfg = MACRO_FIELDS[macro]
+  const label = t[cfg.labelKey] as string
 
   // Group meals by type, sorted by known order
   const grouped = meals
@@ -66,13 +69,16 @@ export default function MacroBreakdownDialog({ macro, meals, target, onClose }: 
     return acc
   }, { fiber: 0, sugar: 0, saturated: 0, sodium: 0 })
 
+  const mealTypeLabel = (type: string) =>
+    (t[('meal_' + type.toLowerCase()) as keyof Translations] as string) || type
+
   return (
     <Dialog open={!!macro} onOpenChange={open => { if (!open) onClose() }}>
       <DialogContent className="sm:max-w-none w-[min(92vw,32rem)] max-h-[82dvh] overflow-y-auto p-0">
         <DialogHeader className="px-5 pt-5 pb-3">
-          <DialogTitle>{cfg.label} breakdown</DialogTitle>
+          <DialogTitle>{label} {t.breakdown_suffix}</DialogTitle>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {fmt(total, cfg.unit)} consumed · {fmt(target, cfg.unit)} goal
+            {fmt(total, cfg.unit)} {t.consumed_label} · {fmt(target, cfg.unit)} {t.goal_word}
           </p>
         </DialogHeader>
 
@@ -80,32 +86,32 @@ export default function MacroBreakdownDialog({ macro, meals, target, onClose }: 
           {/* Quality breakdown panel */}
           {macro === 'carbs' && (quality.fiber > 0 || quality.sugar > 0) && (
             <div className="rounded-xl bg-muted/50 p-3 space-y-2.5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Quality breakdown</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">{t.quality_breakdown}</p>
               {quality.fiber > 0 && (
-                <QualityBar label="Fiber (complex)" value={quality.fiber} total={total} color="#22c55e" description="slows digestion, feeds gut bacteria" />
+                <QualityBar label={t.fiber_complex} value={quality.fiber} total={total} color="#22c55e" description={t.fiber_desc} />
               )}
               {quality.sugar > 0 && (
-                <QualityBar label="Sugar (simple)" value={quality.sugar} total={total} color="#f97316" description="fast-digesting, watch for spikes" />
+                <QualityBar label={t.sugar_simple} value={quality.sugar} total={total} color="#f97316" description={t.sugar_desc} />
               )}
               {total > 0 && quality.fiber === 0 && quality.sugar === 0 && (
-                <p className="text-xs text-muted-foreground">No fiber or sugar data for logged items.</p>
+                <p className="text-xs text-muted-foreground">{t.no_fiber_sugar_data}</p>
               )}
             </div>
           )}
 
           {macro === 'fat' && (quality.saturated > 0 || total > 0) && (
             <div className="rounded-xl bg-muted/50 p-3 space-y-2.5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Quality breakdown</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">{t.quality_breakdown}</p>
               {quality.saturated > 0 && (
-                <QualityBar label="Saturated" value={quality.saturated} total={total} color="#f97316" description="limit — raises LDL cholesterol" />
+                <QualityBar label={t.saturated_label} value={quality.saturated} total={total} color="#f97316" description={t.saturated_desc} />
               )}
               {total > 0 && (
                 <QualityBar
-                  label="Unsaturated"
+                  label={t.unsaturated_label}
                   value={Math.max(total - quality.saturated, 0)}
                   total={total}
                   color="#22c55e"
-                  description="heart-healthy (mono & poly)"
+                  description={t.unsaturated_desc}
                 />
               )}
             </div>
@@ -114,14 +120,14 @@ export default function MacroBreakdownDialog({ macro, meals, target, onClose }: 
           {macro === 'calories' && quality.sodium > 0 && (
             <div className="rounded-xl bg-muted/50 p-3 flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sodium</p>
-                <p className="text-xs text-muted-foreground mt-0.5">daily limit ~2300mg</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.sodium_macro_label}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t.sodium_daily_limit}</p>
               </div>
-              <div className="text-right">
+              <div className="text-end">
                 <span className={`text-sm font-semibold tabular-nums ${quality.sodium > 2300 ? 'text-red-500' : quality.sodium > 1500 ? 'text-amber-500' : 'text-emerald-500'}`}>
                   {Math.round(quality.sodium)} mg
                 </span>
-                <p className="text-xs text-muted-foreground">{Math.round((quality.sodium / 2300) * 100)}% of limit</p>
+                <p className="text-xs text-muted-foreground">{Math.round((quality.sodium / 2300) * 100)}{t.pct_of_limit}</p>
               </div>
             </div>
           )}
@@ -129,8 +135,8 @@ export default function MacroBreakdownDialog({ macro, meals, target, onClose }: 
           {macro === 'protein' && quality.fiber > 0 && (
             <div className="rounded-xl bg-muted/50 p-3 flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Fiber (from protein foods)</p>
-                <p className="text-xs text-muted-foreground mt-0.5">goal ~25–38g/day</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.fiber_from_protein}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t.fiber_goal_note}</p>
               </div>
               <span className={`text-sm font-semibold tabular-nums ${quality.fiber >= 25 ? 'text-emerald-500' : quality.fiber >= 15 ? 'text-amber-500' : 'text-red-500'}`}>
                 {Math.round(quality.fiber)}g
@@ -139,7 +145,7 @@ export default function MacroBreakdownDialog({ macro, meals, target, onClose }: 
           )}
 
           {grouped.length === 0 && (
-            <p className="text-sm text-muted-foreground py-4 text-center">No data logged yet.</p>
+            <p className="text-sm text-muted-foreground py-4 text-center">{t.no_data_logged}</p>
           )}
 
           {grouped.map(meal => {
@@ -148,8 +154,8 @@ export default function MacroBreakdownDialog({ macro, meals, target, onClose }: 
             return (
               <div key={meal.id}>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground capitalize">
-                    {meal.meal_type}
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {mealTypeLabel(meal.meal_type)}
                   </span>
                   <span className="text-xs font-semibold tabular-nums text-muted-foreground">
                     {fmt(mealTotal, cfg.unit)}
@@ -169,9 +175,9 @@ export default function MacroBreakdownDialog({ macro, meals, target, onClose }: 
                             <span className="text-sm truncate block">{item.ingredient_name}</span>
                             <span className="text-xs text-muted-foreground">{item.quantity} {item.unit}</span>
                           </div>
-                          <div className="text-right shrink-0">
+                          <div className="text-end shrink-0">
                             <span className="text-sm font-medium tabular-nums">{fmt(val, cfg.unit)}</span>
-                            <span className="text-xs text-muted-foreground block">{Math.round(pct)}% of meal</span>
+                            <span className="text-xs text-muted-foreground block">{Math.round(pct)}{t.pct_of_meal}</span>
                           </div>
                         </div>
                       )
@@ -184,10 +190,10 @@ export default function MacroBreakdownDialog({ macro, meals, target, onClose }: 
           {/* Total row */}
           {grouped.length > 0 && (
             <div className="flex items-center justify-between pt-2 border-t">
-              <span className="text-sm font-semibold">Total</span>
-              <div className="text-right">
+              <span className="text-sm font-semibold">{t.total_label}</span>
+              <div className="text-end">
                 <span className="text-sm font-semibold tabular-nums">{fmt(total, cfg.unit)}</span>
-                <span className="text-xs text-muted-foreground block">{Math.round(target > 0 ? (total / target) * 100 : 0)}% of goal</span>
+                <span className="text-xs text-muted-foreground block">{Math.round(target > 0 ? (total / target) * 100 : 0)}{t.pct_of_goal}</span>
               </div>
             </div>
           )}
