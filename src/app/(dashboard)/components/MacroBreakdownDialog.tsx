@@ -3,6 +3,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { Meal } from '@/hooks/useMeals'
 import { useLanguage, type Translations } from '@/lib/i18n'
+import { useTranslatedNames } from '@/hooks/useTranslatedNames'
+import { translateUnit } from '@/lib/utils/translate-unit'
 
 type MacroKey = 'calories' | 'protein' | 'carbs' | 'fat'
 
@@ -42,7 +44,9 @@ interface Props {
 }
 
 export default function MacroBreakdownDialog({ macro, meals, target, onClose }: Props) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const allNames = meals.flatMap(m => m.meal_items.map(i => i.ingredient_name))
+  const translatedNames = useTranslatedNames(allNames, lang)
   if (!macro) return null
   const cfg = MACRO_FIELDS[macro]
   const label = t[cfg.labelKey] as string
@@ -172,8 +176,8 @@ export default function MacroBreakdownDialog({ macro, meals, target, onClose }: 
                       return (
                         <div key={idx} className="flex items-center justify-between px-3 py-2 gap-3">
                           <div className="flex-1 min-w-0">
-                            <span className="text-sm truncate block">{item.ingredient_name}</span>
-                            <span className="text-xs text-muted-foreground">{item.quantity} {item.unit}</span>
+                            <span className="text-sm truncate block">{translatedNames[item.ingredient_name] ?? item.ingredient_name}</span>
+                            <span className="text-xs text-muted-foreground">{item.quantity} {translateUnit(item.unit, lang)}</span>
                           </div>
                           <div className="text-end shrink-0">
                             <span className="text-sm font-medium tabular-nums">{fmt(val, cfg.unit)}</span>
