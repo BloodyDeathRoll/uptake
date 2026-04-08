@@ -1,5 +1,5 @@
 const UNIT_HE: Record<string, string> = {
-  g: "ג'",
+  g: 'גרם',
   kg: 'ק"ג',
   mg: 'מ"ג',
   ml: 'מ"ל',
