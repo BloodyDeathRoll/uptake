@@ -82,12 +82,12 @@ export default function GoalDropdown({ initialGoalType, profile, onGoalChange, o
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-2 bg-background rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] z-50 w-56 overflow-hidden">
+        <div className="absolute top-full start-0 mt-2 bg-background rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] z-50 w-56 overflow-hidden">
           {ORDERED_GOALS.map(g => (
             <button
               key={g}
               onClick={() => select(g)}
-              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-muted transition-colors ${
+              className={`w-full text-start px-4 py-2.5 text-sm hover:bg-muted transition-colors ${
                 g === goalType ? 'font-semibold' : 'text-foreground'
               }`}
             >

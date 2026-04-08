@@ -148,28 +148,28 @@ Tone and content rules — follow strictly:
 - recommendations: return an empty array []. Do NOT suggest foods or actions — this is a past period.
 - next_best_action: set label to "" (empty string). Do NOT suggest anything forward-looking.`}
 
-Output a JSON object with exactly these fields (numbers and status values are pre-filled — only write the string values):
+${isHe ? 'FINAL REMINDER: ALL text you write must be in Hebrew (עברית). headline, body_state, every impact sentence, every recommendation, next_best_action.label, every note — all Hebrew. Quality signal labels must be: "סיבים תזונתיים", "סוכר", "שומן רווי", "נתרן". No English words.\n\n' : ''}Output a JSON object with exactly these fields (numbers and status values are pre-filled — only write the string values):
 
 {
-  "headline": <one direct sentence>,
+  "headline": <one direct sentence${isHe ? ' IN HEBREW' : ''}>,
   "next_best_action": {
     "nutrient": "${priorityNutrientLabel}",
-    "label": ${isCurrentPeriod ? '<one concrete sentence: exactly what to eat or do right now, naming a specific food if possible>' : '""'}
+    "label": ${isCurrentPeriod ? `<one concrete sentence${isHe ? ' IN HEBREW' : ''}: exactly what to eat or do right now, naming a specific food if possible>` : '""'}
   },
-  "body_state": <2-3 sentences>,
+  "body_state": <2-3 sentences${isHe ? ' IN HEBREW' : ''}>,
   "macros": [
-    { "name": "${macroSchema[0].name}", "pct": ${macroSchema[0].pct}, "status": "${macroSchema[0].status}", "impact": <one sentence> },
-    { "name": "${macroSchema[1].name}", "pct": ${macroSchema[1].pct}, "status": "${macroSchema[1].status}", "impact": <one sentence> },
-    { "name": "${macroSchema[2].name}", "pct": ${macroSchema[2].pct}, "status": "${macroSchema[2].status}", "impact": <one sentence> },
-    { "name": "${macroSchema[3].name}", "pct": ${macroSchema[3].pct}, "status": "${macroSchema[3].status}", "impact": <one sentence> }
+    { "name": "${macroSchema[0].name}", "pct": ${macroSchema[0].pct}, "status": "${macroSchema[0].status}", "impact": <one sentence${isHe ? ' IN HEBREW' : ''}> },
+    { "name": "${macroSchema[1].name}", "pct": ${macroSchema[1].pct}, "status": "${macroSchema[1].status}", "impact": <one sentence${isHe ? ' IN HEBREW' : ''}> },
+    { "name": "${macroSchema[2].name}", "pct": ${macroSchema[2].pct}, "status": "${macroSchema[2].status}", "impact": <one sentence${isHe ? ' IN HEBREW' : ''}> },
+    { "name": "${macroSchema[3].name}", "pct": ${macroSchema[3].pct}, "status": "${macroSchema[3].status}", "impact": <one sentence${isHe ? ' IN HEBREW' : ''}> }
   ],
   "recommendations": ${isCurrentPeriod ? `[
-    <specific food suggestion with quantity>,
-    <specific next step 2>,
-    <specific next step 3>
+    <specific food suggestion with quantity${isHe ? ' IN HEBREW' : ''}>,
+    <specific next step 2${isHe ? ' IN HEBREW' : ''}>,
+    <specific next step 3${isHe ? ' IN HEBREW' : ''}>
   ]` : '[]'},
   "quality_signals": [
-    { "label": <nutrient name>, "status": <"good"|"watch"|"concern">, "note": <one sentence using "you">, "priority": <"immediate"|"important"|"good_to_have"> }
+    { "label": <${isHe ? 'Hebrew nutrient name, e.g. "סיבים תזונתיים"' : 'nutrient name'}>, "status": <"good"|"watch"|"concern">, "note": <one sentence${isHe ? ' IN HEBREW' : ''} using "you">, "priority": <"immediate"|"important"|"good_to_have"> }
   ]
 }`
 }
