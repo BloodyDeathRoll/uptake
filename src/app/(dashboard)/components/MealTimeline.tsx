@@ -8,6 +8,7 @@ import type { LucideIcon } from 'lucide-react'
 import { formatTime, formatDate } from '@/lib/utils/format'
 import { MEAL_TYPE_LABELS } from '@/lib/utils/constants'
 import { useLanguage, type Translations } from '@/lib/i18n'
+import { useTranslatedNames } from '@/hooks/useTranslatedNames'
 import type { Meal } from '@/hooks/useMeals'
 
 interface Props {
@@ -72,7 +73,7 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
   )
 }
 
-function MealRow({ meal, onDelete }: { meal: Meal; onDelete?: (id: string) => void }) {
+function MealRow({ meal, onDelete, translatedNames }: { meal: Meal; onDelete?: (id: string) => void; translatedNames?: Record<string, string> }) {
   const router = useRouter()
   const { t } = useLanguage()
   const mealLabel = (type: string) => (t[('meal_' + type) as keyof Translations] as string) ?? MEAL_TYPE_LABELS[type as keyof typeof MEAL_TYPE_LABELS] ?? type
@@ -113,14 +114,14 @@ function MealRow({ meal, onDelete }: { meal: Meal; onDelete?: (id: string) => vo
           <span className="text-xs text-muted-foreground">{formatTime(meal.logged_at)}</span>
         </div>
         <div className="text-xs text-muted-foreground truncate mt-0.5">
-          {meal.human_description ?? meal.meal_items.map(i => i.ingredient_name).join(', ')}
+          {meal.human_description ?? meal.meal_items.map(i => (translatedNames?.[i.ingredient_name] ?? i.ingredient_name)).join(', ')}
         </div>
       </div>
 
       <div className="flex items-center gap-1 flex-shrink-0">
         <div className="text-right mr-1">
           <div className="text-sm font-semibold tabular-nums">{Math.round(totalCalories(meal))}</div>
-          <div className="text-[10px] text-muted-foreground">kcal</div>
+          <div className="text-[10px] text-muted-foreground">{t.unit_kcal}</div>
         </div>
         <Link
           href={`/meal/new?revisionOf=${meal.id}&returnDate=${mealDate}`}
@@ -140,7 +141,9 @@ function MealRow({ meal, onDelete }: { meal: Meal; onDelete?: (id: string) => vo
 }
 
 export default function MealTimeline({ meals, showDates = false, onDelete, multiColumn = false }: Props) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const allNames = meals.flatMap(m => m.meal_items.map(i => i.ingredient_name))
+  const translatedNames = useTranslatedNames(allNames, lang)
   const gridClass = multiColumn
     ? 'grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-3'
     : 'space-y-2'
@@ -162,7 +165,7 @@ export default function MealTimeline({ meals, showDates = false, onDelete, multi
             className="animate-in fade-in slide-in-from-bottom-3"
             style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
           >
-            <MealRow meal={meal} onDelete={onDelete} />
+            <MealRow meal={meal} onDelete={onDelete} translatedNames={translatedNames} />
           </div>
         ))}
       </div>
@@ -178,7 +181,7 @@ export default function MealTimeline({ meals, showDates = false, onDelete, multi
           <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{label}</div>
           <div className={gridClass}>
             {groupMeals.map(meal => (
-              <MealRow key={meal.id} meal={meal} onDelete={onDelete} />
+              <MealRow key={meal.id} meal={meal} onDelete={onDelete} translatedNames={translatedNames} />
             ))}
           </div>
         </div>

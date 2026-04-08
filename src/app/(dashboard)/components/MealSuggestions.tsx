@@ -208,7 +208,7 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
                           </div>
                           <span className="font-semibold text-sm truncate">{s.name}</span>
                         </div>
-                        <span className="text-sm font-semibold tabular-nums flex-shrink-0">{s.calories} kcal</span>
+                        <span className="text-sm font-semibold tabular-nums flex-shrink-0">{s.calories} {t.unit_kcal}</span>
                       </div>
                       <p className="text-xs text-muted-foreground mb-3 leading-relaxed line-clamp-2">{s.description}</p>
                       <div className="flex items-center justify-between">

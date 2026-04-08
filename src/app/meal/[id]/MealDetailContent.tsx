@@ -6,6 +6,8 @@ import ConfidenceBadge from '@/components/shared/ConfidenceBadge'
 import { Badge } from '@/components/ui/badge'
 import NavBackButton from '../components/NavBackButton'
 import { useLanguage, type Translations } from '@/lib/i18n'
+import { useTranslatedNames } from '@/hooks/useTranslatedNames'
+import { translateUnit } from '@/lib/utils/translate-unit'
 
 interface MealItem {
   id: string
@@ -37,12 +39,14 @@ interface Props {
 }
 
 export default function MealDetailContent({ meal, returnDate }: Props) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
 
   const mealLabel = (type: string) =>
     (t[('meal_' + type) as keyof Translations] as string) ?? type
 
   const items = meal.meal_items ?? []
+  const ingredientNames = items.map(i => i.ingredient_name)
+  const translatedNames = useTranslatedNames(ingredientNames, lang)
   const totalCal = items.reduce((s, i) => s + (i.calories ?? 0), 0)
   const totalProtein = items.reduce((s, i) => s + (i.protein_g ?? 0), 0)
   const totalCarbs = items.reduce((s, i) => s + (i.carbs_g ?? 0), 0)
@@ -70,10 +74,10 @@ export default function MealDetailContent({ meal, returnDate }: Props) {
         {/* Summary */}
         <div className="grid grid-cols-4 gap-2 text-center">
           {[
-            { label: t.calories, value: Math.round(totalCal), unit: 'kcal' },
-            { label: t.protein, value: Math.round(totalProtein), unit: 'g' },
-            { label: t.carbs, value: Math.round(totalCarbs), unit: 'g' },
-            { label: t.fat, value: Math.round(totalFat), unit: 'g' },
+            { label: t.calories, value: Math.round(totalCal), unit: t.unit_kcal },
+            { label: t.protein, value: Math.round(totalProtein), unit: translateUnit('g', lang) },
+            { label: t.carbs, value: Math.round(totalCarbs), unit: translateUnit('g', lang) },
+            { label: t.fat, value: Math.round(totalFat), unit: translateUnit('g', lang) },
           ].map(({ label, value, unit }) => (
             <div key={label} className="p-3 rounded-xl bg-card shadow-[0_0_2px_0_rgba(0,0,0,0.1)]">
               <div className="text-lg font-bold">{value}<span className="text-xs font-normal text-muted-foreground">{unit}</span></div>
@@ -89,16 +93,16 @@ export default function MealDetailContent({ meal, returnDate }: Props) {
             <div key={item.id} className="flex items-center gap-3 p-3 rounded-xl bg-card shadow-[0_0_2px_0_rgba(0,0,0,0.1)]">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">{item.ingredient_name}</span>
+                  <span className="text-sm font-medium">{translatedNames[item.ingredient_name] ?? item.ingredient_name}</span>
                   <ConfidenceBadge confidence={item.confidence as 'high' | 'medium' | 'low' | null} />
                   {item.was_corrected && (
                     <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-blue-500/30 text-blue-500">{t.edited_badge}</Badge>
                   )}
                 </div>
-                <span className="text-xs text-muted-foreground">{item.quantity} {item.unit}</span>
+                <span className="text-xs text-muted-foreground">{item.quantity} {translateUnit(item.unit, lang)}</span>
               </div>
               <div className="text-right">
-                <div className="text-sm font-semibold">{Math.round(item.calories ?? 0)} kcal</div>
+                <div className="text-sm font-semibold">{Math.round(item.calories ?? 0)} {t.unit_kcal}</div>
                 <div className="text-xs text-muted-foreground">{Math.round(item.protein_g ?? 0)}g {t.protein.toLowerCase()}</div>
               </div>
             </div>

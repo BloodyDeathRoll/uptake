@@ -273,6 +273,8 @@ const en = {
   confidence_low: 'Low confidence',
   // Goal switcher
   goal_section_label: 'Goal',
+  // Units
+  unit_kcal: 'kcal',
 } as const
 
 const he: Translations = {
@@ -537,6 +539,8 @@ const he: Translations = {
   confidence_low: 'ביטחון נמוך',
   // Goal switcher
   goal_section_label: 'מטרה',
+  // Units
+  unit_kcal: "קל'",
 }
 
 export type Translations = { [K in keyof typeof en]: string }
