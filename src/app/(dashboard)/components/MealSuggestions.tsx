@@ -34,12 +34,11 @@ const LOCATION_CACHE_KEY = 'uptake_location_cache'
 const LOCATION_CACHE_TTL = 86400000 // 24 hours
 
 interface LocationCache {
-  location: string | null // null = denied
+  location: string | null
   timestamp: number
 }
 
 async function getLocation(): Promise<string | undefined> {
-  // Check cache first
   try {
     const raw = localStorage.getItem(LOCATION_CACHE_KEY)
     if (raw) {
@@ -52,11 +51,10 @@ async function getLocation(): Promise<string | undefined> {
 
   if (!navigator.geolocation) return undefined
 
-  // Check browser permission state — if denied, skip the prompt entirely
   try {
     const perm = await navigator.permissions.query({ name: 'geolocation' })
     if (perm.state === 'denied') return undefined
-  } catch { /* permissions API not supported — proceed */ }
+  } catch { /* permissions API not supported */ }
 
   return new Promise(resolve => {
     navigator.geolocation.getCurrentPosition(
@@ -85,6 +83,47 @@ async function getLocation(): Promise<string | undefined> {
   })
 }
 
+function SuggestionCard({ s, t }: { s: Suggestion; t: ReturnType<typeof useLanguage>['t'] }) {
+  const Icon = MEAL_ICONS[s.meal_type] ?? Cookie
+  return (
+    <Card>
+      <CardContent className="pt-4 pb-4">
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+              <Icon className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
+            </div>
+            <span className="font-semibold text-sm truncate">{s.name}</span>
+          </div>
+          <span className="text-sm font-semibold tabular-nums flex-shrink-0">{s.calories} {t.unit_kcal}</span>
+        </div>
+        <p className="text-xs text-muted-foreground mb-3 leading-relaxed line-clamp-2">{s.description}</p>
+        <div className="flex items-center justify-between">
+          <div className="flex gap-3 text-xs text-muted-foreground">
+            <span><span className="font-medium text-foreground">{s.protein_g}g</span> {t.protein}</span>
+            <span><span className="font-medium text-foreground">{s.carbs_g}g</span> {t.carbs}</span>
+            <span><span className="font-medium text-foreground">{s.fat_g}g</span> {t.fat}</span>
+          </div>
+          <Link
+            href={`/meal/new?description=${encodeURIComponent(s.description)}`}
+            className="text-xs font-medium text-accent hover:underline flex-shrink-0 ms-3"
+          >
+            {t.log_this}
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function SkeletonCard() {
+  return (
+    <div className="h-32 bg-muted/50 rounded-xl flex items-center justify-center">
+      <span className="w-5 h-5 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+}
+
 export default function MealSuggestions({ consumed, targets, goalType }: Props) {
   const { t, lang } = useLanguage()
   const rtl = lang === 'he'
@@ -103,7 +142,8 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
       const res = await fetch('/api/ai/suggest-meal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ consumed, targets, goalType, hourOfDay: new Date().getHours(), location, lang }),
+        cache: 'no-store',
+        body: JSON.stringify({ consumed, targets, goalType, hourOfDay: new Date().getHours(), location, lang, nonce: Math.random() }),
       })
       const data = await res.json()
       if (data.suggestions?.length) setSuggestions(data.suggestions.slice(0, 3))
@@ -115,7 +155,6 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
     }
   }, [consumed, targets, goalType, lang])
 
-  // Fetch on mount and whenever lang/goal/consumed changes
   useEffect(() => { fetchSuggestions() }, [fetchSuggestions])
 
   const count = loading ? 3 : suggestions.length
@@ -128,6 +167,11 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
     if (Math.abs(diff) > 50) goTo(activeIndex + (diff > 0 ? (rtl ? -1 : 1) : (rtl ? 1 : -1)))
     setTouchStartX(null)
   }
+
+  // In RTL flex the DOM order is visually reversed: first child → rightmost.
+  // ChevronLeft btn is DOM-first → visual right in RTL. Swap icons so arrows point the right way.
+  const PrevIcon = rtl ? ChevronRight : ChevronLeft
+  const NextIcon = rtl ? ChevronLeft : ChevronRight
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '280ms', animationFillMode: 'both' }}>
@@ -147,14 +191,15 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
           )}
+          {/* Carousel controls — hidden on desktop (grid shown instead) */}
           {!loading && !error && (
-            <>
+            <div className="flex items-center gap-1 md:hidden">
               <button
                 onClick={() => goTo(rtl ? activeIndex + 1 : activeIndex - 1)}
                 disabled={rtl ? activeIndex >= count - 1 : activeIndex === 0}
                 className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <PrevIcon className="w-4 h-4" />
               </button>
               <div className="flex gap-1.5 px-1">
                 {Array.from({ length: count }).map((_, i) => (
@@ -170,19 +215,17 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
                 disabled={rtl ? activeIndex === 0 : activeIndex >= count - 1}
                 className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
               >
-                <ChevronRight className="w-4 h-4" />
+                <NextIcon className="w-4 h-4" />
               </button>
-            </>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Carousel */}
-      <div className="overflow-hidden">
+      {/* Mobile: carousel */}
+      <div className="md:hidden overflow-hidden">
         {loading ? (
-          <div className="h-32 bg-muted/50 rounded-xl flex items-center justify-center">
-            <span className="w-5 h-5 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
-          </div>
+          <SkeletonCard />
         ) : error ? (
           <div className="h-32 bg-muted/50 rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground text-sm">
             <span>{t.suggestions_error}</span>
@@ -195,40 +238,31 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
-            {suggestions.map((s, i) => {
-              const Icon = MEAL_ICONS[s.meal_type] ?? Cookie
-              return (
-                <div key={i} className="flex-shrink-0 w-full">
-                  <Card>
-                    <CardContent className="pt-4 pb-4">
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                            <Icon className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
-                          </div>
-                          <span className="font-semibold text-sm truncate">{s.name}</span>
-                        </div>
-                        <span className="text-sm font-semibold tabular-nums flex-shrink-0">{s.calories} {t.unit_kcal}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mb-3 leading-relaxed line-clamp-2">{s.description}</p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex gap-3 text-xs text-muted-foreground">
-                          <span><span className="font-medium text-foreground">{s.protein_g}g</span> {t.protein}</span>
-                          <span><span className="font-medium text-foreground">{s.carbs_g}g</span> {t.carbs}</span>
-                          <span><span className="font-medium text-foreground">{s.fat_g}g</span> {t.fat}</span>
-                        </div>
-                        <Link
-                          href={`/meal/new?description=${encodeURIComponent(s.description)}`}
-                          className="text-xs font-medium text-accent hover:underline flex-shrink-0 ml-3"
-                        >
-                          {t.log_this}
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )
-            })}
+            {suggestions.map((s, i) => (
+              <div key={i} className="flex-shrink-0 w-full">
+                <SuggestionCard s={s} t={t} />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop: 3-column grid */}
+      <div className="hidden md:block">
+        {loading ? (
+          <div className="grid grid-cols-3 gap-3">
+            <SkeletonCard /><SkeletonCard /><SkeletonCard />
+          </div>
+        ) : error ? (
+          <div className="h-32 bg-muted/50 rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground text-sm">
+            <span>{t.suggestions_error}</span>
+            <button onClick={fetchSuggestions} className="text-xs underline hover:text-foreground transition-colors">{t.try_again}</button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-3">
+            {suggestions.map((s, i) => (
+              <SuggestionCard key={i} s={s} t={t} />
+            ))}
           </div>
         )}
       </div>
