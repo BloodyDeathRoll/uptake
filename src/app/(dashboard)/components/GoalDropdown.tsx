@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { GOAL_LABELS, type GoalType } from '@/lib/utils/constants'
 import { ORDERED_GOALS, type GoalProfile } from './GoalSwitcher'
+import { useLanguage, type Translations } from '@/lib/i18n'
 
 interface Props {
   initialGoalType: GoalType
@@ -13,6 +14,8 @@ interface Props {
 }
 
 export default function GoalDropdown({ initialGoalType, profile, onGoalChange, onLoadingChange }: Props) {
+  const { t } = useLanguage()
+  const goalLabel = (g: GoalType) => (t[('goalLabel_' + g) as keyof Translations] as string) || GOAL_LABELS[g]
   const [goalType, setGoalType] = useState(initialGoalType)
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -68,7 +71,7 @@ export default function GoalDropdown({ initialGoalType, profile, onGoalChange, o
         disabled={loading}
         className="flex items-center gap-1.5 max-w-[200px]"
       >
-        <span className="font-semibold text-base leading-tight truncate">{GOAL_LABELS[goalType]}</span>
+        <span className="font-semibold text-base leading-tight truncate">{goalLabel(goalType)}</span>
         {loading ? (
           <span className="w-3.5 h-3.5 border border-current border-t-transparent rounded-full animate-spin flex-shrink-0 text-muted-foreground" />
         ) : (
@@ -88,7 +91,7 @@ export default function GoalDropdown({ initialGoalType, profile, onGoalChange, o
                 g === goalType ? 'font-semibold' : 'text-foreground'
               }`}
             >
-              {GOAL_LABELS[g]}
+              {goalLabel(g)}
             </button>
           ))}
         </div>

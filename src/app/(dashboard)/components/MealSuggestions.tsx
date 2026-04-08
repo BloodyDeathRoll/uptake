@@ -87,6 +87,7 @@ async function getLocation(): Promise<string | undefined> {
 
 export default function MealSuggestions({ consumed, targets, goalType }: Props) {
   const { t, lang } = useLanguage()
+  const rtl = lang === 'he'
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -124,7 +125,7 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX === null) return
     const diff = touchStartX - e.changedTouches[0].clientX
-    if (Math.abs(diff) > 50) goTo(activeIndex + (diff > 0 ? 1 : -1))
+    if (Math.abs(diff) > 50) goTo(activeIndex + (diff > 0 ? (rtl ? -1 : 1) : (rtl ? 1 : -1)))
     setTouchStartX(null)
   }
 
@@ -149,8 +150,8 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
           {!loading && !error && (
             <>
               <button
-                onClick={() => goTo(activeIndex - 1)}
-                disabled={activeIndex === 0}
+                onClick={() => goTo(rtl ? activeIndex + 1 : activeIndex - 1)}
+                disabled={rtl ? activeIndex >= count - 1 : activeIndex === 0}
                 className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -165,8 +166,8 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
                 ))}
               </div>
               <button
-                onClick={() => goTo(activeIndex + 1)}
-                disabled={activeIndex >= count - 1}
+                onClick={() => goTo(rtl ? activeIndex - 1 : activeIndex + 1)}
+                disabled={rtl ? activeIndex === 0 : activeIndex >= count - 1}
                 className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -190,7 +191,7 @@ export default function MealSuggestions({ consumed, targets, goalType }: Props) 
         ) : (
           <div
             className="flex transition-transform duration-300 ease-out"
-            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+            style={{ transform: `translateX(${rtl ? '' : '-'}${activeIndex * 100}%)` }}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >

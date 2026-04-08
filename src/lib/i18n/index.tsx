@@ -217,6 +217,14 @@ const en = {
   pref_Gluten_Free: 'Gluten-Free',
   pref_Dairy_Free: 'Dairy-Free',
   pref_Low_FODMAP: 'Low-FODMAP',
+  // Date labels
+  date_today: 'Today',
+  date_yesterday: 'Yesterday',
+  // Filter tabs
+  filter_day: 'Day',
+  filter_7d: '7D',
+  filter_30d: '30D',
+  filter_custom: 'Custom',
 } as const
 
 const he: Translations = {
@@ -425,6 +433,14 @@ const he: Translations = {
   pref_Gluten_Free: 'ללא גלוטן',
   pref_Dairy_Free: 'ללא חלב',
   pref_Low_FODMAP: 'Low-FODMAP',
+  // Date labels
+  date_today: 'היום',
+  date_yesterday: 'אתמול',
+  // Filter tabs
+  filter_day: 'יום',
+  filter_7d: '7י',
+  filter_30d: '30י',
+  filter_custom: 'מותאם',
 }
 
 export type Translations = { [K in keyof typeof en]: string }

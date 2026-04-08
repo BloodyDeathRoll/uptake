@@ -42,7 +42,7 @@
 
 ~~21. Admin user "last signin" gets cut off. make sure the data does not exceed the line (show '...' on email address ending if too long, and allow users to click and see full address)~~
 
-22. Admin database 'size on disk' column is empty throughout the table
+~~22. Admin database 'size on disk' column is empty throughout the table~~
 
 ~~23. Add a link to the logo - should lead to the main app page, even from the admin page~~
 
@@ -70,3 +70,7 @@
 ~~34. analysis should be done on the selected date or range. If the date or range do not include current date - do not supply any recommendations, only review the data and the conclusions. If the date is or includes the current date - include the recommendations as well~~
 
 ~~35. Once analysis is clicked for a certain date, when passing to a different date analysis does not update. Make sure each date/range get their own analysis - while still kepping #34 rules~~
+
+36. Selecting a new goal, analysis doesnt change from the previous goal analysis antil we move to another date and come back
+
+36. Language: Suggested meal content, Analysis content, all admin sections and meal ingredients are not translated when switchin languages. Translate all if a user switches languages. Also, do not change the header direction to rtl on language change - header items should stay on the same placement on ltr & rtl languages - this includes inner pages, meal edits, etc.

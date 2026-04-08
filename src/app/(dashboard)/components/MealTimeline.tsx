@@ -28,19 +28,22 @@ const MEAL_ICON: Record<string, LucideIcon> = {
   snack: Cookie,
 }
 
-function groupByDate(meals: Meal[]): { dateKey: string; label: string; meals: Meal[] }[] {
+function groupByDate(meals: Meal[], t: { date_today: string; date_yesterday: string }): { dateKey: string; label: string; meals: Meal[] }[] {
   const groups = new Map<string, Meal[]>()
   for (const meal of meals) {
-    // Use local date from the logged_at timestamp
-    const key = new Date(meal.logged_at).toLocaleDateString('en-CA')
+    // Use UTC date from the stored timestamp to match the API's UTC-based date filtering
+    const key = meal.logged_at.slice(0, 10)
     if (!groups.has(key)) groups.set(key, [])
     groups.get(key)!.push(meal)
   }
+  const todayKey = new Date().toLocaleDateString('en-CA')
+  const d = new Date(); d.setDate(d.getDate() - 1)
+  const yesterdayKey = d.toLocaleDateString('en-CA')
   return Array.from(groups.entries())
     .sort(([a], [b]) => b.localeCompare(a)) // most recent first
     .map(([key, meals]) => ({
       dateKey: key,
-      label: formatDate(key),
+      label: key === todayKey ? t.date_today : key === yesterdayKey ? t.date_yesterday : formatDate(key),
       meals,
     }))
 }
@@ -127,7 +130,7 @@ function MealRow({ meal, onDelete }: { meal: Meal; onDelete?: (id: string) => vo
           <Pencil className="w-3.5 h-3.5" />
         </Link>
         {onDelete && (
-          <div className="ml-2 pl-2 border-l border-border flex-shrink-0">
+          <div className="ms-2 ps-2 border-s border-border flex-shrink-0">
             <DeleteButton onDelete={() => onDelete(meal.id)} />
           </div>
         )}
@@ -166,7 +169,7 @@ export default function MealTimeline({ meals, showDates = false, onDelete, multi
     )
   }
 
-  const groups = groupByDate(meals)
+  const groups = groupByDate(meals, t)
 
   return (
     <div className="space-y-4">

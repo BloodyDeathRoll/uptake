@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatDate } from '@/lib/utils/format'
+import { useLanguage } from '@/lib/i18n'
 
 export interface DateRange {
   start: string
@@ -74,16 +75,17 @@ interface Props {
   initialDate?: string
 }
 
-const TABS: { key: Mode; label: string }[] = [
-  { key: 'day', label: 'Day' },
-  { key: '7d', label: '7D' },
-  { key: '30d', label: '30D' },
-  { key: 'custom', label: 'Custom' },
-]
-
 const DOW = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
 export default function DateRangeSelector({ onChange, initialDate }: Props) {
+  const { t, lang } = useLanguage()
+  const rtl = lang === 'he'
+  const TABS = [
+    { key: 'day' as Mode, label: t.filter_day },
+    { key: '7d' as Mode, label: t.filter_7d },
+    { key: '30d' as Mode, label: t.filter_30d },
+    { key: 'custom' as Mode, label: t.filter_custom },
+  ]
   const today = localToday()
   const [mode, setMode] = useState<Mode>('day')
   const [dayDate, setDayDate] = useState(initialDate ?? today)
@@ -172,11 +174,11 @@ export default function DateRangeSelector({ onChange, initialDate }: Props) {
     <div ref={containerRef} className="relative w-full md:w-auto">
       <div className="flex items-center justify-between gap-3 h-8">
 
-        {/* Left: date label + chevrons */}
+        {/* Start: date label + chevrons (direction-aware) */}
         <div className="flex items-center gap-0.5 min-w-0 h-full">
           {mode === 'day' && (
             <button
-              onClick={() => setDayDate(prev => addDays(prev, -1))}
+              onClick={() => setDayDate(prev => addDays(prev, rtl ? 1 : -1))}
               className="w-7 h-full flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
@@ -187,7 +189,7 @@ export default function DateRangeSelector({ onChange, initialDate }: Props) {
           </span>
           {mode === 'day' && dayDate !== today && (
             <button
-              onClick={() => setDayDate(prev => addDays(prev, 1))}
+              onClick={() => setDayDate(prev => addDays(prev, rtl ? -1 : 1))}
               className="w-7 h-full flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
             >
               <ChevronRight className="w-3.5 h-3.5" />

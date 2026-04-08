@@ -3,6 +3,7 @@
 @import "shadcn/tailwind.css";
 
 /* Inter variable font — loaded via rsms.me in layout.tsx */
+/* Noto Sans Hebrew — loaded via Google Fonts in layout.tsx */
 :root {
   font-family: 'Inter var', 'Inter', sans-serif;
   font-feature-settings:
@@ -19,6 +20,11 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+/* Hebrew: use Noto Sans Hebrew with Inter as fallback */
+html[lang="he"] {
+  font-family: 'Noto Sans Hebrew', 'Inter var', 'Inter', sans-serif;
 }
 
 @custom-variant dark (&:is(.dark *));

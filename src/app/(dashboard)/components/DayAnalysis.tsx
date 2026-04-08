@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useLanguage } from '@/lib/i18n'
-import { Sparkles, TrendingDown, TrendingUp, Minus, ChevronRight, Zap, AlertTriangle, CheckCircle2, Info } from 'lucide-react'
+import { Sparkles, TrendingDown, TrendingUp, Minus, ChevronRight, ChevronLeft, Zap, AlertTriangle, CheckCircle2, Info } from 'lucide-react'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
@@ -71,6 +71,7 @@ function qualitySignalStyle(status: QualitySignal['status']) {
 
 export default function DayAnalysis({ consumed, targets, goalType, days, isCurrentPeriod, quality }: Props) {
   const { t, lang } = useLanguage()
+  const RecChevron = lang === 'he' ? ChevronLeft : ChevronRight
   const PRIORITY_LABEL: Record<QualitySignal['priority'], string> = {
     immediate:    t.act_now,
     important:    t.important,
@@ -161,7 +162,7 @@ export default function DayAnalysis({ consumed, targets, goalType, days, isCurre
                   </div>
 
                   <div className="space-y-2">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Macro breakdown</h3>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.macro_breakdown}</h3>
                     {analysis.macros.map(macro => (
                       <div key={macro.name} className="flex gap-3 items-start p-3 rounded-xl bg-card">
                         <div className={`mt-0.5 ${statusColor(macro.status)}`}>
@@ -186,7 +187,7 @@ export default function DayAnalysis({ consumed, targets, goalType, days, isCurre
                       <Zap className="w-4 h-4 shrink-0 mt-0.5 text-primary" />
                       <div>
                         <span className="text-xs font-semibold uppercase tracking-wide text-primary">
-                          Focus on {analysis.next_best_action.nutrient}
+                          {t.focus_on} {analysis.next_best_action.nutrient}
                         </span>
                         <p className="text-sm mt-1 leading-relaxed">{analysis.next_best_action.label}</p>
                       </div>
@@ -195,10 +196,10 @@ export default function DayAnalysis({ consumed, targets, goalType, days, isCurre
 
                   {isCurrentPeriod && analysis.recommendations.length > 0 && (
                     <div className="space-y-2">
-                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">What to do</h3>
+                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.what_to_do}</h3>
                       {analysis.recommendations.map((rec, i) => (
                         <div key={i} className="flex gap-3 items-start p-3 rounded-xl bg-card">
-                          <ChevronRight className="w-4 h-4 shrink-0 mt-0.5 text-primary" />
+                          <RecChevron className="w-4 h-4 shrink-0 mt-0.5 text-primary" />
                           <p className="text-sm leading-relaxed">{rec}</p>
                         </div>
                       ))}
@@ -207,7 +208,7 @@ export default function DayAnalysis({ consumed, targets, goalType, days, isCurre
 
                   {analysis.quality_signals && analysis.quality_signals.length > 0 && (
                     <div className="space-y-2">
-                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Nutrition quality</h3>
+                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.nutrition_quality}</h3>
                       {analysis.quality_signals
                         .sort((a, b) => {
                           const order = { immediate: 0, important: 1, good_to_have: 2 }
