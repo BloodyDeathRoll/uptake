@@ -80,7 +80,7 @@ export default function MealDetailContent({ meal, returnDate }: Props) {
             { label: t.fat, value: Math.round(totalFat), unit: translateUnit('g', lang) },
           ].map(({ label, value, unit }) => (
             <div key={label} className="p-3 rounded-xl bg-card shadow-[0_0_2px_0_rgba(0,0,0,0.1)]">
-              <div dir="ltr" className="text-lg font-bold">{value}<span className="text-xs font-normal text-muted-foreground">{unit}</span></div>
+              <div className="text-lg font-bold text-right">{value}<span className="text-xs font-normal text-muted-foreground">{unit}</span></div>
               <div className="text-[10px] text-muted-foreground">{label}</div>
             </div>
           ))}
@@ -99,11 +99,11 @@ export default function MealDetailContent({ meal, returnDate }: Props) {
                     <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-blue-500/30 text-blue-500">{t.edited_badge}</Badge>
                   )}
                 </div>
-                <span dir="ltr" className="text-xs text-muted-foreground">{item.quantity} {translateUnit(item.unit, lang)}</span>
+                <span className="text-xs text-muted-foreground">{item.quantity} {translateUnit(item.unit, lang)}</span>
               </div>
               <div className="text-right">
-                <div dir="ltr" className="text-sm font-semibold">{Math.round(item.calories ?? 0)} {t.unit_kcal}</div>
-                <div dir="ltr" className="text-xs text-muted-foreground">{Math.round(item.protein_g ?? 0)}{translateUnit('g', lang)} {t.protein.toLowerCase()}</div>
+                <div className="text-sm font-semibold">{Math.round(item.calories ?? 0)} {t.unit_kcal}</div>
+                <div className="text-xs text-muted-foreground">{Math.round(item.protein_g ?? 0)}{translateUnit('g', lang)} {t.protein.toLowerCase()}</div>
               </div>
             </div>
           ))}
