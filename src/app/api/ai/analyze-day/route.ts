@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     const completion = await client.chat.completions.create({
       model: MODEL,
       messages: [
-        { role: 'system', content: 'You are a nutrition coach. Always respond with valid JSON only — no markdown, no explanation, no code fences.' },
+        { role: 'system', content: `You are a nutrition coach. Always respond with valid JSON only — no markdown, no explanation, no code fences.${lang === 'he' ? ' Respond entirely in Hebrew (עברית).' : ''}` },
         { role: 'user', content: prompt },
       ],
       temperature: 0.4,

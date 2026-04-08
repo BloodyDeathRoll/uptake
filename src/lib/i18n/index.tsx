@@ -438,8 +438,8 @@ const he: Translations = {
   date_yesterday: 'אתמול',
   // Filter tabs
   filter_day: 'יום',
-  filter_7d: '7י',
-  filter_30d: '30י',
+  filter_7d: '7',
+  filter_30d: '30',
   filter_custom: 'מותאם',
 }
 

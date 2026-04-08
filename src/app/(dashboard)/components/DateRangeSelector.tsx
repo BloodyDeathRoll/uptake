@@ -80,6 +80,8 @@ const DOW = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 export default function DateRangeSelector({ onChange, initialDate }: Props) {
   const { t, lang } = useLanguage()
   const rtl = lang === 'he'
+  const BackChevron = rtl ? ChevronRight : ChevronLeft
+  const FwdChevron  = rtl ? ChevronLeft  : ChevronRight
   const TABS = [
     { key: 'day' as Mode, label: t.filter_day },
     { key: '7d' as Mode, label: t.filter_7d },
@@ -147,7 +149,11 @@ export default function DateRangeSelector({ onChange, initialDate }: Props) {
   }
 
   const dateLabel = () => {
-    if (mode === 'day') return formatDate(dayDate)
+    if (mode === 'day') {
+      if (dayDate === today) return t.date_today
+      if (dayDate === addDays(today, -1)) return t.date_yesterday
+      return formatDate(dayDate)
+    }
     if (mode === '7d') return `${shortDate(addDays(today, -6))} – ${shortDate(today)}`
     if (mode === '30d') return `${shortDate(addDays(today, -29))} – ${shortDate(today)}`
     if (customStart === customEnd) return shortDate(customStart)
@@ -178,10 +184,10 @@ export default function DateRangeSelector({ onChange, initialDate }: Props) {
         <div className="flex items-center gap-0.5 min-w-0 h-full">
           {mode === 'day' && (
             <button
-              onClick={() => setDayDate(prev => addDays(prev, rtl ? 1 : -1))}
+              onClick={() => setDayDate(prev => addDays(prev, -1))}
               className="w-7 h-full flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
             >
-              <ChevronLeft className="w-3.5 h-3.5" />
+              <BackChevron className="w-3.5 h-3.5" />
             </button>
           )}
           <span className="text-xs text-muted-foreground select-none px-1 truncate leading-none">
@@ -189,10 +195,10 @@ export default function DateRangeSelector({ onChange, initialDate }: Props) {
           </span>
           {mode === 'day' && dayDate !== today && (
             <button
-              onClick={() => setDayDate(prev => addDays(prev, rtl ? -1 : 1))}
+              onClick={() => setDayDate(prev => addDays(prev, 1))}
               className="w-7 h-full flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
             >
-              <ChevronRight className="w-3.5 h-3.5" />
+              <FwdChevron className="w-3.5 h-3.5" />
             </button>
           )}
           {mode === 'custom' && (

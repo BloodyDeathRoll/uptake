@@ -103,14 +103,23 @@ Sodium         : ${Math.round(quality.sodium_mg)}mg (limit ~${2300 * days}mg)`
       : `You are a forward-looking, personal nutrition coach talking directly to this person. They have ~${remainingH}h left today. Focus entirely on what to do next — not what was already eaten. Address them as "you" throughout.`
 
   // Pre-fill the numeric/enum fields so the model only needs to write text
+  const isHe = lang === 'he'
+  const macroNames = isHe
+    ? ['קלוריות', 'חלבון', 'פחמימות', 'שומן']
+    : ['Calories', 'Protein', 'Carbs', 'Fat']
   const macroSchema = [
-    { name: 'Calories', pct: calPct,  status: macroStatus(calPct) },
-    { name: 'Protein',  pct: proPct,  status: macroStatus(proPct) },
-    { name: 'Carbs',    pct: carbPct, status: macroStatus(carbPct) },
-    { name: 'Fat',      pct: fatPct,  status: macroStatus(fatPct) },
+    { name: macroNames[0], pct: calPct,  status: macroStatus(calPct) },
+    { name: macroNames[1], pct: proPct,  status: macroStatus(proPct) },
+    { name: macroNames[2], pct: carbPct, status: macroStatus(carbPct) },
+    { name: macroNames[3], pct: fatPct,  status: macroStatus(fatPct) },
   ]
+  const priorityNutrientLabel = isHe
+    ? ({ calories: 'קלוריות', protein: 'חלבון', carbs: 'פחמימות', fat: 'שומן' }[priority.nutrient] ?? priority.label)
+    : priority.label
 
-  const langInstruction = lang === 'he' ? 'IMPORTANT: Respond entirely in Hebrew (עברית). All text fields in the JSON must be in Hebrew.\n\n' : ''
+  const langInstruction = isHe
+    ? 'CRITICAL INSTRUCTION: You MUST write ALL text fields in Hebrew (עברית). Every sentence, every word in headline, body_state, impact, label, note, recommendations, and next_best_action.label must be in Hebrew. Do not use English in any text field.\n\n'
+    : ''
 
   return `${langInstruction}You are a personal nutrition coach speaking directly to your client. Always use "you/your" — never "the user" or third person. Respond with a single JSON object, no extra text, no markdown.
 ${dietaryBlock ?? ''}
@@ -124,7 +133,7 @@ Protein  : ${Math.round(consumed.protein)}g / ${Math.round(targets.protein)}g ($
 Carbs    : ${Math.round(consumed.carbs)}g / ${Math.round(targets.carbs)}g (${carbPct}%)
 Fat      : ${Math.round(consumed.fat)}g / ${Math.round(targets.fat)}g (${fatPct}%)
 ${remainingBlock}${qualityBlock}
-PRIORITY: ${priority.label} is the most critical gap right now (${priority.pct}% of target, ${priority.direction}).
+PRIORITY: ${priorityNutrientLabel} is the most critical gap right now (${priority.pct}% of target, ${priority.direction}).
 
 ${taskLine}
 
@@ -144,7 +153,7 @@ Output a JSON object with exactly these fields (numbers and status values are pr
 {
   "headline": <one direct sentence>,
   "next_best_action": {
-    "nutrient": "${priority.nutrient}",
+    "nutrient": "${priorityNutrientLabel}",
     "label": ${isCurrentPeriod ? '<one concrete sentence: exactly what to eat or do right now, naming a specific food if possible>' : '""'}
   },
   "body_state": <2-3 sentences>,

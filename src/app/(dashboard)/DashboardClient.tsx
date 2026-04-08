@@ -261,10 +261,10 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
                         key={n}
                         type="button"
                         onClick={() => setBreakdownMacro(n)}
-                        className="text-left w-full hover:opacity-70 transition-opacity relative group"
+                        className="text-start w-full hover:opacity-70 transition-opacity relative group"
                       >
                         <NutrientBar label={c.label} current={c.current} target={c.target} unit={c.unit} barColor={isToday ? '#ab947c' : undefined} />
-                        <Info className="absolute top-0 right-0 w-3 h-3 text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors" />
+                        <Info className="absolute top-0 end-0 w-3 h-3 text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors" />
                       </button>
                     )
                   })}
