@@ -15,8 +15,8 @@ export class GeminiProvider implements AIProvider {
     this.client = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
   }
 
-  async parseText(description: string, mealHistory?: string): Promise<LLMResponse> {
-    const prompt = buildParseTextPrompt(description, mealHistory)
+  async parseText(description: string, mealHistory?: string, lang?: string): Promise<LLMResponse> {
+    const prompt = buildParseTextPrompt(description, mealHistory, lang)
     const model = this.client.getGenerativeModel({ model: VISION_MODEL })
     const start = Date.now()
 
@@ -34,8 +34,8 @@ export class GeminiProvider implements AIProvider {
     }
   }
 
-  async parseImage(imageBase64: string, mimeType: string, additionalText?: string, mealHistory?: string): Promise<LLMResponse> {
-    const prompt = buildParseImagePrompt(additionalText, mealHistory)
+  async parseImage(imageBase64: string, mimeType: string, additionalText?: string, mealHistory?: string, lang?: string): Promise<LLMResponse> {
+    const prompt = buildParseImagePrompt(additionalText, mealHistory, lang)
     const model = this.client.getGenerativeModel({ model: VISION_MODEL })
     const start = Date.now()
 

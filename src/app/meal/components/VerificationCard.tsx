@@ -46,7 +46,7 @@ function blankItem(): MealItem {
 }
 
 export default function VerificationCard({ initialItems, onSave, onReset, saving }: Props) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const [items, setItems] = useState<LocalItem[]>(
     (initialItems.length > 0 ? initialItems : [blankItem()]).map(item => ({
       ...item,
@@ -125,7 +125,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
         const res = await fetch('/api/ai/parse-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: base64, mimeType: file.type, description: 'ingredient nutrition label' }),
+          body: JSON.stringify({ imageBase64: base64, mimeType: file.type, description: 'ingredient nutrition label', lang }),
         })
         const json = await res.json()
         const est = json.data?.items?.[0]

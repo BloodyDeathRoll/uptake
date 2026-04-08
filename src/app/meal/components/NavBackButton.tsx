@@ -10,9 +10,8 @@ interface Props {
 }
 
 export default function NavBackButton({ href, label }: Props) {
-  const { t, lang } = useLanguage()
-  const arrow = lang === 'he' ? '→' : '←'
-  const defaultLabel = `${arrow} ${t.back}`
+  const { t } = useLanguage()
+  const defaultLabel = `← ${t.back}`
   const router = useRouter()
   const [navigating, setNavigating] = useState(false)
 

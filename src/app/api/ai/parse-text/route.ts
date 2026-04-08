@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { description } = body
+  const { description, lang } = body
 
   if (!description || typeof description !== 'string' || description.trim().length === 0) {
     return NextResponse.json(
@@ -56,8 +56,8 @@ export async function POST(request: NextRequest) {
     try {
       const response = await execute(
         'groq',
-        () => groq.parseText(description, mealHistory),
-        () => gemini.parseText(description, mealHistory)
+        () => groq.parseText(description, mealHistory, lang),
+        () => gemini.parseText(description, mealHistory, lang)
       )
 
       const raw = parseNutritionResponse(response.content)

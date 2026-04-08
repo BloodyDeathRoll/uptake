@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { imageBase64, mimeType, description } = body
+  const { imageBase64, mimeType, description, lang } = body
 
   if (!imageBase64 || !mimeType) {
     return NextResponse.json({ error: 'Image data required' }, { status: 400 })
@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
   try {
     const response = await execute(
       'groq',
-      () => groq.parseImage(imageBase64, mimeType, description, mealHistory),
-      () => gemini.parseImage(imageBase64, mimeType, description, mealHistory)
+      () => groq.parseImage(imageBase64, mimeType, description, mealHistory, lang),
+      () => gemini.parseImage(imageBase64, mimeType, description, mealHistory, lang)
     )
 
     const raw = parseNutritionResponse(response.content)

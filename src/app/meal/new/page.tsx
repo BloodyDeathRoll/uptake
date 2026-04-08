@@ -39,7 +39,7 @@ function mapItems(
 function NewMealPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const revisionOf = searchParams.get('revisionOf')
   const returnDate = searchParams.get('returnDate')
   const isEdit = !!revisionOf
@@ -111,7 +111,7 @@ function NewMealPageInner() {
         const res = await fetch('/api/ai/parse-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: base64, mimeType: file.type }),
+          body: JSON.stringify({ imageBase64: base64, mimeType: file.type, lang }),
         })
         const json = await res.json()
         if (json.error) { setError(json.error); setLoading(false); return }
@@ -159,7 +159,7 @@ function NewMealPageInner() {
         const res = await fetch('/api/ai/parse-text', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ description }),
+          body: JSON.stringify({ description, lang }),
         })
         const json = await res.json()
         if (json.error) { setError(json.error); return }
@@ -170,7 +170,7 @@ function NewMealPageInner() {
         const res = await fetch('/api/ai/parse-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: pendingImage!.base64, mimeType: pendingImage!.mimeType }),
+          body: JSON.stringify({ imageBase64: pendingImage!.base64, mimeType: pendingImage!.mimeType, lang }),
         })
         const json = await res.json()
         if (json.error) { setError(json.error); return }

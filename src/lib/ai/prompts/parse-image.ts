@@ -1,10 +1,11 @@
-export function buildParseImagePrompt(additionalText?: string, mealHistory?: string): string {
+export function buildParseImagePrompt(additionalText?: string, mealHistory?: string, lang?: string): string {
   const historyBlock = mealHistory ?? ''
   const textContext = additionalText
     ? `\n\nUser's description: "${additionalText}"`
     : ''
+  const langLine = lang === 'he' ? 'IMPORTANT: Return all ingredient "name" values in Hebrew (עברית).\n\n' : ''
 
-  return `You are a nutrition expert. Analyze the provided image — it may be either a photo of a prepared meal OR an ingredient list (such as a nutrition label, package ingredients panel, grocery list, handwritten ingredients list, or recipe ingredient list).
+  return `${langLine}You are a nutrition expert. Analyze the provided image — it may be either a photo of a prepared meal OR an ingredient list (such as a nutrition label, package ingredients panel, grocery list, handwritten ingredients list, or recipe ingredient list).
 
 First, determine which type of image this is:
 - "meal": a photo of prepared or plated food

@@ -15,8 +15,8 @@ export class GroqProvider implements AIProvider {
     this.client = new Groq({ apiKey: process.env.GROQ_API_KEY })
   }
 
-  async parseText(description: string, mealHistory?: string): Promise<LLMResponse> {
-    const prompt = buildParseTextPrompt(description, mealHistory)
+  async parseText(description: string, mealHistory?: string, lang?: string): Promise<LLMResponse> {
+    const prompt = buildParseTextPrompt(description, mealHistory, lang)
     const start = Date.now()
 
     const completion = await this.client.chat.completions.create({
@@ -38,8 +38,8 @@ export class GroqProvider implements AIProvider {
     }
   }
 
-  async parseImage(imageBase64: string, mimeType: string, additionalText?: string, mealHistory?: string): Promise<LLMResponse> {
-    const prompt = buildParseImagePrompt(additionalText, mealHistory)
+  async parseImage(imageBase64: string, mimeType: string, additionalText?: string, mealHistory?: string, lang?: string): Promise<LLMResponse> {
+    const prompt = buildParseImagePrompt(additionalText, mealHistory, lang)
     const start = Date.now()
 
     const completion = await this.client.chat.completions.create({

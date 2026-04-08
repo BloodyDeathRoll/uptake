@@ -1,7 +1,8 @@
-export function buildParseTextPrompt(description: string, mealHistory?: string): string {
+export function buildParseTextPrompt(description: string, mealHistory?: string, lang?: string): string {
   const historyBlock = mealHistory ?? ''
+  const langLine = lang === 'he' ? 'IMPORTANT: Return all ingredient "name" values in Hebrew (עברית).\n\n' : ''
 
-  return `You are a nutrition expert.${historyBlock}
+  return `${langLine}You are a nutrition expert.${historyBlock}
 
 Parse the following meal description into a structured list of ingredients with quantities.
 
