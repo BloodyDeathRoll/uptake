@@ -19,6 +19,7 @@ import type { GoalType } from '@/lib/utils/constants'
 import type { GoalProfile } from './components/GoalSwitcher'
 import { createSequentialFetcher } from '@/lib/utils/sequential-fetch'
 import { useLanguage, type Translations } from '@/lib/i18n'
+import { translateUnit } from '@/lib/utils/translate-unit'
 
 interface Snapshot {
   total_calories: number | null; total_protein_g: number | null; total_carbs_g: number | null
@@ -241,11 +242,13 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
             {days === 1 ? t.remaining_today : (lang === 'he' ? `נותר (${days} ימים)` : `Remaining (${days} days)`)}
           </h3>
           {(() => {
+            const gUnit = translateUnit('g', lang)
+            const kcalUnit = t.unit_kcal as string
             const nutrientConfig = {
-              calories: { label: t.calories, current: agg.calories,  target: scaledGoal.calories, unit: ' kcal',  remaining: remaining.calories, suffix: 'kcal' },
-              protein:  { label: t.protein,  current: agg.protein,   target: scaledGoal.protein,  unit: undefined, remaining: remaining.protein,  suffix: `g ${t.protein.toLowerCase()}` },
-              carbs:    { label: t.carbs,    current: agg.carbs,     target: scaledGoal.carbs,    unit: undefined, remaining: remaining.carbs,    suffix: `g ${t.carbs.toLowerCase()}` },
-              fat:      { label: t.fat,      current: agg.fat,       target: scaledGoal.fat,      unit: undefined, remaining: remaining.fat,      suffix: `g ${t.fat.toLowerCase()}` },
+              calories: { label: t.calories, current: agg.calories,  target: scaledGoal.calories, unit: ` ${kcalUnit}`,  remaining: remaining.calories, suffix: kcalUnit },
+              protein:  { label: t.protein,  current: agg.protein,   target: scaledGoal.protein,  unit: gUnit, remaining: remaining.protein,  suffix: `${gUnit} ${t.protein}` },
+              carbs:    { label: t.carbs,    current: agg.carbs,     target: scaledGoal.carbs,    unit: gUnit, remaining: remaining.carbs,    suffix: `${gUnit} ${t.carbs}` },
+              fat:      { label: t.fat,      current: agg.fat,       target: scaledGoal.fat,      unit: gUnit, remaining: remaining.fat,      suffix: `${gUnit} ${t.fat}` },
             }
             const ranked = rankMacrosByGoal(g.goal_type)
             return (
