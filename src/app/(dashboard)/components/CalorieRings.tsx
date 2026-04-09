@@ -54,15 +54,15 @@ function Ring({ pct, icon: Icon, isToday }: { pct: number; icon: LucideIcon; isT
   )
 }
 
-function RingBlock({ label, pct, value, sub, icon, isToday }: {
-  label: string; pct: number; value: string; sub: string; icon: LucideIcon; isToday?: boolean
+function RingBlock({ label, pct, value, sub, icon, isToday, dir = 'rtl' }: {
+  label: string; pct: number; value: string; sub: string; icon: LucideIcon; isToday?: boolean; dir?: 'ltr' | 'rtl'
 }) {
   return (
     <div className="flex flex-col items-center gap-2">
       <Ring pct={pct} icon={icon} isToday={isToday} />
       <div className="text-center">
         <div className="text-xs text-muted-foreground">{label}</div>
-        <div className="text-sm font-semibold tabular-nums" dir="rtl">
+        <div className="text-sm font-semibold tabular-nums" dir={dir}>
           {value}<span className="text-muted-foreground font-normal text-xs"> /{sub}</span>
         </div>
       </div>
@@ -78,7 +78,7 @@ export default function CalorieRings({ calories, protein, carbs, isToday }: Prop
 
   return (
     <div className="flex justify-around py-2">
-      <RingBlock icon={Flame} label={t.calories} pct={pct(calories)} value={String(Math.round(calories.current))} sub={String(calories.target)} isToday={isToday} />
+      <RingBlock icon={Flame} label={t.calories} pct={pct(calories)} value={String(Math.round(calories.current))} sub={String(calories.target)} isToday={isToday} dir="ltr" />
       <RingBlock icon={Dna}   label={t.protein}  pct={pct(protein)}  value={`${Math.round(protein.current)}${g}`}  sub={`${protein.target}${g}`} isToday={isToday} />
       <RingBlock icon={Wheat} label={t.carbs}    pct={pct(carbs)}    value={`${Math.round(carbs.current)}${g}`}    sub={`${carbs.target}${g}`} isToday={isToday} />
     </div>
