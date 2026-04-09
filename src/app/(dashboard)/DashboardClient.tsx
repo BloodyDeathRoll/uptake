@@ -264,7 +264,6 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
                         className="text-start w-full hover:opacity-70 transition-opacity group"
                       >
                         <NutrientBar
-                          key={`${n}-${dateRange.start}-${dateRange.end}`}
                           label={c.label}
                           current={fetchingMeals ? 0 : c.current}
                           target={c.target}
