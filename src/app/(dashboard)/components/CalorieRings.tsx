@@ -5,6 +5,7 @@ import { Flame, Dna, Wheat } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { nutritionColor } from '@/lib/utils/color'
 import { useLanguage } from '@/lib/i18n'
+import { translateUnit } from '@/lib/utils/translate-unit'
 
 const TODAY_COLOR = '#ab947c'
 
@@ -61,7 +62,7 @@ function RingBlock({ label, pct, value, sub, icon, isToday }: {
       <Ring pct={pct} icon={icon} isToday={isToday} />
       <div className="text-center">
         <div className="text-xs text-muted-foreground">{label}</div>
-        <div className="text-sm font-semibold tabular-nums">
+        <div className="text-sm font-semibold tabular-nums" dir="ltr">
           {value}<span className="text-muted-foreground font-normal text-xs"> /{sub}</span>
         </div>
       </div>
@@ -70,15 +71,16 @@ function RingBlock({ label, pct, value, sub, icon, isToday }: {
 }
 
 export default function CalorieRings({ calories, protein, carbs, isToday }: Props) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const pct = (v: { current: number; target: number }) =>
     v.target > 0 ? v.current / v.target : 0
+  const g = translateUnit('g', lang)
 
   return (
     <div className="flex justify-around py-2">
       <RingBlock icon={Flame} label={t.calories} pct={pct(calories)} value={String(Math.round(calories.current))} sub={String(calories.target)} isToday={isToday} />
-      <RingBlock icon={Dna}   label={t.protein}  pct={pct(protein)}  value={`${Math.round(protein.current)}g`}  sub={`${protein.target}g`} isToday={isToday} />
-      <RingBlock icon={Wheat} label={t.carbs}    pct={pct(carbs)}    value={`${Math.round(carbs.current)}g`}    sub={`${carbs.target}g`} isToday={isToday} />
+      <RingBlock icon={Dna}   label={t.protein}  pct={pct(protein)}  value={`${Math.round(protein.current)}${g}`}  sub={`${protein.target}${g}`} isToday={isToday} />
+      <RingBlock icon={Wheat} label={t.carbs}    pct={pct(carbs)}    value={`${Math.round(carbs.current)}${g}`}    sub={`${carbs.target}${g}`} isToday={isToday} />
     </div>
   )
 }
