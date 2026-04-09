@@ -44,11 +44,24 @@ export default function Step5Review({ data, onComplete, onBack, saving }: Props)
     })
       .then(async r => {
         const json = await r.json()
-        if (!r.ok) throw new Error(json.error ?? t.err_calculate_targets)
+        if (!r.ok) {
+          const msg = json.error ?? t.err_calculate_targets
+          console.error('[calculate-goals] API error', { status: r.status, message: msg, input: { weightKg: data.weightKg, heightCm: data.heightCm, age: data.age, sex: data.sex, activityLevel: data.activityLevel, goalType: data.goalType } })
+          throw new Error(`${msg} (HTTP ${r.status})`)
+        }
+        if (!json.targets) {
+          console.error('[calculate-goals] Response missing targets field', { json })
+          throw new Error(t.err_calculate_targets)
+        }
         return json
       })
       .then(json => { if (!cancelled) { setTargets(json.targets); setRationale(json.rationale) } })
-      .catch(err => { if (!cancelled) setError(err.message ?? t.err_calculate_targets) })
+      .catch(err => {
+        if (!cancelled) {
+          console.error('[calculate-goals] Failed to calculate targets', { error: err?.message, attempt })
+          setError(err?.message ?? t.err_calculate_targets)
+        }
+      })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [attempt])
