@@ -26,8 +26,13 @@ export default function Step5Review({ data, onComplete, onBack, saving }: Props)
   const [rationale, setRationale] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    setTargets(null)
     fetch('/api/ai/calculate-goals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -37,11 +42,16 @@ export default function Step5Review({ data, onComplete, onBack, saving }: Props)
         dietaryPreferences: data.dietaryPreferences,
       }),
     })
-      .then(r => r.json())
-      .then(json => { setTargets(json.targets); setRationale(json.rationale) })
-      .catch(() => setError(t.err_calculate_targets))
-      .finally(() => setLoading(false))
-  }, [])
+      .then(async r => {
+        const json = await r.json()
+        if (!r.ok) throw new Error(json.error ?? t.err_calculate_targets)
+        return json
+      })
+      .then(json => { if (!cancelled) { setTargets(json.targets); setRationale(json.rationale) } })
+      .catch(err => { if (!cancelled) setError(err.message ?? t.err_calculate_targets) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [attempt])
 
   if (loading) {
     return (
@@ -56,7 +66,7 @@ export default function Step5Review({ data, onComplete, onBack, saving }: Props)
     return (
       <div className="space-y-4 text-center py-12">
         <p className="text-destructive text-sm">{error}</p>
-        <Button variant="outline" onClick={() => { setLoading(true); setError(null) }}>{t.try_again}</Button>
+        <Button variant="outline" onClick={() => setAttempt(a => a + 1)}>{t.try_again}</Button>
       </div>
     )
   }
