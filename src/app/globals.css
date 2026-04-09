@@ -183,7 +183,7 @@ html[lang="he"] {
   }
   html {
     @apply font-sans;
-    font-size: 15.4px;
+    font-size: 18.5px;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);

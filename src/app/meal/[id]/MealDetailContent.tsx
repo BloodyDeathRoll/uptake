@@ -60,7 +60,7 @@ export default function MealDetailContent({ meal, returnDate }: Props) {
         <Link href={`/meal/new?revisionOf=${meal.id}${returnDate ? `&returnDate=${returnDate}` : ''}`} className="text-accent text-sm">{t.edit_btn}</Link>
       </div>
 
-      <div className="px-4 py-6 max-w-lg mx-auto space-y-6">
+      <div className="px-4 py-6 max-w-[38.4rem] mx-auto space-y-6">
         <div className="text-sm text-muted-foreground">{formatTime(meal.logged_at)}</div>
 
         {meal.image_url && (

@@ -224,7 +224,7 @@ function NewMealPageInner() {
         <div className="w-12" />
       </div>
 
-      <div className="px-4 py-6 space-y-6 max-w-lg mx-auto">
+      <div className="px-4 py-6 space-y-6 max-w-[38.4rem] mx-auto">
 
         {/* Meal type */}
         <Tabs value={mealType} onValueChange={v => setMealType(v as MealType)}>

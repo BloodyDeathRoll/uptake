@@ -37,7 +37,7 @@ export default function SettingsContent({ email, profile, goal }: Props) {
     (t[('goalLabel_' + type) as keyof Translations] as string) ?? type.replace(/_/g, ' ')
 
   return (
-    <div className="px-4 py-6 space-y-6 max-w-lg mx-auto w-full">
+    <div className="px-4 py-6 space-y-6 max-w-[38.4rem] mx-auto w-full">
       <h1 className="text-xl font-bold">{t.settings}</h1>
 
       <Card>
