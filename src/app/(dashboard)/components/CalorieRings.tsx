@@ -62,7 +62,7 @@ function RingBlock({ label, pct, value, sub, icon, isToday }: {
       <Ring pct={pct} icon={icon} isToday={isToday} />
       <div className="text-center">
         <div className="text-xs text-muted-foreground">{label}</div>
-        <div className="text-sm font-semibold tabular-nums" dir="ltr">
+        <div className="text-sm font-semibold tabular-nums" dir="rtl">
           {value}<span className="text-muted-foreground font-normal text-xs"> /{sub}</span>
         </div>
       </div>
