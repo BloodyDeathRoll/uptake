@@ -210,13 +210,13 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
       <div className="space-y-6 md:grid md:grid-cols-2 md:gap-10 md:items-stretch md:space-y-0">
 
         {/* Col 1: rings */}
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] p-4 flex flex-col">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 py-2 flex flex-col">
           {fetchingMeals && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-xl z-10">
               <span className="w-5 h-5 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
-          <div className="absolute top-3 end-3 z-10">
+          <div className="flex justify-center md:absolute md:top-3 md:end-3 md:z-10">
             <DayAnalysis
               key={`${dateRange.start}-${dateRange.end}-${g.goal_type}`}
               consumed={{ calories: agg.calories, protein: agg.protein, carbs: agg.carbs, fat: agg.fat }}
