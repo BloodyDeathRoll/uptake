@@ -77,10 +77,12 @@ export default function CalorieRings({ calories, protein, carbs, isToday }: Prop
   const g = translateUnit('g', lang)
 
   return (
-    <div className="flex-1 flex items-center justify-around py-4">
+    <div className="flex-1 grid grid-cols-2 md:grid-cols-3 place-items-center gap-y-6 py-4">
       <RingBlock icon={Flame} label={t.calories} pct={pct(calories)} value={String(Math.round(calories.current))} sub={String(calories.target)} isToday={isToday} dir={lang === 'he' ? 'rtl' : 'ltr'} />
       <RingBlock icon={Dna}   label={t.protein}  pct={pct(protein)}  value={`${Math.round(protein.current)}${g}`}  sub={`${protein.target}${g}`} isToday={isToday} />
-      <RingBlock icon={Wheat} label={t.carbs}    pct={pct(carbs)}    value={`${Math.round(carbs.current)}${g}`}    sub={`${carbs.target}${g}`} isToday={isToday} />
+      <div className="col-span-2 md:col-span-1 flex justify-center">
+        <RingBlock icon={Wheat} label={t.carbs} pct={pct(carbs)} value={`${Math.round(carbs.current)}${g}`} sub={`${carbs.target}${g}`} isToday={isToday} />
+      </div>
     </div>
   )
 }
