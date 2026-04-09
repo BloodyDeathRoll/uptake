@@ -275,10 +275,15 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
                     )
                   })}
                 </div>
-                <div className="flex justify-between text-xs text-muted-foreground mt-3 pt-1">
-                  {ranked.map(n => {
+                <div className="flex justify-center text-xs text-muted-foreground mt-3 pt-1 gap-0">
+                  {ranked.map((n, i) => {
                     const c = nutrientConfig[n]
-                    return <span key={n}>~{Math.round(c.remaining)} {c.suffix}</span>
+                    return (
+                      <span key={n} className="flex items-center">
+                        {i > 0 && <span className="mx-1.5 opacity-40">|</span>}
+                        ~{Math.round(c.remaining)} {c.suffix}
+                      </span>
+                    )
                   })}
                 </div>
               </>
