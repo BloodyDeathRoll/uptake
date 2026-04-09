@@ -229,9 +229,9 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
             />
           </div>
           <CalorieRings
-            calories={{ current: agg.calories, target: scaledGoal.calories }}
-            protein={{ current: agg.protein, target: scaledGoal.protein }}
-            carbs={{ current: agg.carbs, target: scaledGoal.carbs }}
+            calories={{ current: fetchingMeals ? 0 : agg.calories, target: scaledGoal.calories }}
+            protein={{ current: fetchingMeals ? 0 : agg.protein,   target: scaledGoal.protein }}
+            carbs={{ current: fetchingMeals ? 0 : agg.carbs,       target: scaledGoal.carbs }}
             isToday={isToday}
           />
         </div>
