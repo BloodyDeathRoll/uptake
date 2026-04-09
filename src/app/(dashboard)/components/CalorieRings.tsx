@@ -16,7 +16,7 @@ interface Props {
   isToday?: boolean
 }
 
-const SIZE   = 100
+const SIZE   = 120
 const STROKE = 5
 const R      = (SIZE - STROKE) / 2
 const CIRC   = 2 * Math.PI * R
@@ -48,7 +48,7 @@ function Ring({ pct, icon: Icon, isToday }: { pct: number; icon: LucideIcon; isT
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <Icon className="w-11 h-11" style={{ color }} strokeWidth={1.5} />
+        <Icon className="w-14 h-14" style={{ color }} strokeWidth={1.5} />
       </div>
     </div>
   )
@@ -61,9 +61,9 @@ function RingBlock({ label, pct, value, sub, icon, isToday, dir = 'rtl' }: {
     <div className="flex flex-col items-center gap-2">
       <Ring pct={pct} icon={icon} isToday={isToday} />
       <div className="text-center">
-        <div className="text-xs text-muted-foreground">{label}</div>
-        <div className="text-sm font-semibold tabular-nums" dir={dir}>
-          {value}<span className="text-muted-foreground font-normal text-xs"> /{sub}</span>
+        <div className="text-sm text-muted-foreground">{label}</div>
+        <div className="text-base font-semibold tabular-nums" dir={dir}>
+          {value}<span className="text-muted-foreground font-normal text-sm"> /{sub}</span>
         </div>
       </div>
     </div>
@@ -77,7 +77,7 @@ export default function CalorieRings({ calories, protein, carbs, isToday }: Prop
   const g = translateUnit('g', lang)
 
   return (
-    <div className="flex justify-around py-2">
+    <div className="flex-1 flex items-center justify-around py-4">
       <RingBlock icon={Flame} label={t.calories} pct={pct(calories)} value={String(Math.round(calories.current))} sub={String(calories.target)} isToday={isToday} dir={lang === 'he' ? 'rtl' : 'ltr'} />
       <RingBlock icon={Dna}   label={t.protein}  pct={pct(protein)}  value={`${Math.round(protein.current)}${g}`}  sub={`${protein.target}${g}`} isToday={isToday} />
       <RingBlock icon={Wheat} label={t.carbs}    pct={pct(carbs)}    value={`${Math.round(carbs.current)}${g}`}    sub={`${carbs.target}${g}`} isToday={isToday} />
