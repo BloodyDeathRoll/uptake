@@ -48,7 +48,7 @@ function Ring({ pct, icon: Icon, isToday }: { pct: number; icon: LucideIcon; isT
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <Icon className="w-14 h-14" style={{ color }} strokeWidth={1.5} />
+        <Icon className="w-10 h-10" style={{ color }} strokeWidth={1.5} />
       </div>
     </div>
   )

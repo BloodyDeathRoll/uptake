@@ -207,7 +207,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
       </div>
 
       {/* 2-column section: rings+deficit | remaining */}
-      <div className="space-y-6 md:grid md:grid-cols-[7fr_3.5fr] md:gap-10 md:items-stretch md:space-y-0">
+      <div className="space-y-6 md:grid md:grid-cols-2 md:gap-10 md:items-stretch md:space-y-0">
 
         {/* Col 1: rings */}
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] p-4 flex flex-col">
