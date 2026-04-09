@@ -5,7 +5,6 @@ import { Settings } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import Logo from '@/components/Logo'
 import { LanguageSwitcher } from '@/lib/i18n'
-import { ThemeSwitcher } from '@/components/layout/ThemeSwitcher'
 
 function isAdminEmail(email: string | undefined | null): boolean {
   const list = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
@@ -33,7 +32,6 @@ export default function Header() {
             Admin
           </Link>
         )}
-        <ThemeSwitcher />
         <LanguageSwitcher />
         <Link
           href="/settings"
