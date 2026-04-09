@@ -16,8 +16,8 @@ interface Props {
   isToday?: boolean
 }
 
-const SIZE   = 72
-const STROKE = 4
+const SIZE   = 100
+const STROKE = 5
 const R      = (SIZE - STROKE) / 2
 const CIRC   = 2 * Math.PI * R
 
@@ -48,7 +48,7 @@ function Ring({ pct, icon: Icon, isToday }: { pct: number; icon: LucideIcon; isT
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <Icon className="w-8 h-8" style={{ color }} strokeWidth={1.5} />
+        <Icon className="w-11 h-11" style={{ color }} strokeWidth={1.5} />
       </div>
     </div>
   )
@@ -78,7 +78,7 @@ export default function CalorieRings({ calories, protein, carbs, isToday }: Prop
 
   return (
     <div className="flex justify-around py-2">
-      <RingBlock icon={Flame} label={t.calories} pct={pct(calories)} value={String(Math.round(calories.current))} sub={String(calories.target)} isToday={isToday} dir="ltr" />
+      <RingBlock icon={Flame} label={t.calories} pct={pct(calories)} value={String(Math.round(calories.current))} sub={String(calories.target)} isToday={isToday} dir={lang === 'he' ? 'rtl' : 'ltr'} />
       <RingBlock icon={Dna}   label={t.protein}  pct={pct(protein)}  value={`${Math.round(protein.current)}${g}`}  sub={`${protein.target}${g}`} isToday={isToday} />
       <RingBlock icon={Wheat} label={t.carbs}    pct={pct(carbs)}    value={`${Math.round(carbs.current)}${g}`}    sub={`${carbs.target}${g}`} isToday={isToday} />
     </div>

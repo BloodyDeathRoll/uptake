@@ -233,9 +233,6 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
             carbs={{ current: agg.carbs, target: scaledGoal.carbs }}
             isToday={isToday}
           />
-          <div className="mt-auto">
-            <DeficitBar calories={agg.calories} target={scaledGoal.calories} goalType={g.goal_type} isToday={isToday} />
-          </div>
         </div>
 
         {/* Col 2: remaining today */}
