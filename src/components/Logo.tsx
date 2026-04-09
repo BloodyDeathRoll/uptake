@@ -8,7 +8,7 @@ interface LogoProps {
 export default function Logo({ size = 24, className = '' }: LogoProps) {
   return (
     <Image
-      src="/favicon.svg"
+      src="/uptake-icon.svg"
       alt="Uptake logo"
       width={size}
       height={size}

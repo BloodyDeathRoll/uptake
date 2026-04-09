@@ -13,7 +13,7 @@ export default function LandingPage() {
       {/* Nav */}
       <header className="px-6 h-14 flex items-center justify-between">
         <span className="font-bold text-lg tracking-tight flex items-center gap-2">
-          <Image src="/favicon.svg" alt="Uptake" width={24} height={24} priority />
+          <Image src="/uptake-icon.svg" alt="Uptake" width={24} height={24} priority />
           Uptake
         </span>
         <Link
