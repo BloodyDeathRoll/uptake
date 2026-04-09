@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import Groq from 'groq-sdk'
-import { buildDietaryBlock } from '@/lib/ai/prompts/suggest-meal'
-import { buildMealTimingContext, buildFoodGroupContext } from '@/lib/ai/prompts/user-context'
 
 const MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct'
 const MIN_DAYS = 5
+
+interface PastMeal {
+  description: string
+  meal_type: string
+  calories: number
+  protein_g: number
+  carbs_g: number
+  fat_g: number
+}
+
+function normKey(s: string) {
+  return s.toLowerCase().trim()
+}
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -18,24 +29,27 @@ export async function POST(request: NextRequest) {
   const [
     { data: recentMeals },
     { data: profile },
-    { data: recentItems },
+    { data: pastMealsRaw },
   ] = await Promise.all([
+    // Recent meals for distinct-day counting
     supabase.from('meals')
-      .select('meal_type, logged_at')
+      .select('logged_at')
       .eq('user_id', user.id)
-      .gte('logged_at', new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString())
-      .order('logged_at', { ascending: false }),
+      .gte('logged_at', new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()),
     supabase.from('profiles')
-      .select('dietary_preferences, allergies, meals_per_day')
+      .select('meals_per_day')
       .eq('id', user.id)
       .single(),
-    supabase.from('meal_items')
-      .select('ingredient_name, food_group, meals!inner(user_id)')
-      .eq('meals.user_id', user.id)
-      .limit(120),
+    // Past meals with their actual nutrition
+    supabase.from('meals')
+      .select('human_description, meal_type, meal_items(calories, protein_g, carbs_g, fat_g)')
+      .eq('user_id', user.id)
+      .not('human_description', 'is', null)
+      .order('logged_at', { ascending: false })
+      .limit(80),
   ])
 
-  // Count distinct logged days to check readiness
+  // Check readiness: need at least MIN_DAYS distinct logged days
   const distinctDays = new Set(
     (recentMeals ?? []).map(m => new Date(m.logged_at).toLocaleDateString('en-CA'))
   ).size
@@ -44,59 +58,75 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ready: false, daysLogged: distinctDays, daysNeeded: MIN_DAYS })
   }
 
-  const dietaryPreferences: string[] = profile?.dietary_preferences ?? []
-  const allergies: string[] = profile?.allergies ?? []
-  const mealsPerDay: number = profile?.meals_per_day ?? 3
+  // Build deduplicated meal list with real macros from DB
+  const seen = new Set<string>()
+  const mealMap = new Map<string, PastMeal>()  // normalised description → entry
 
-  // Extract most frequently eaten ingredients from history
-  const ingredientCounts: Record<string, number> = {}
-  for (const item of recentItems ?? []) {
-    if (!item.ingredient_name) continue
-    const name = item.ingredient_name.toLowerCase().trim()
-    ingredientCounts[name] = (ingredientCounts[name] ?? 0) + 1
+  for (const m of pastMealsRaw ?? []) {
+    if (!m.human_description) continue
+    const desc = m.human_description as string
+    const key = normKey(desc)
+    if (seen.has(key)) continue
+    seen.add(key)
+
+    const items = m.meal_items as { calories: number | null; protein_g: number | null; carbs_g: number | null; fat_g: number | null }[]
+    const calories  = items.reduce((s, i) => s + (i.calories  ?? 0), 0)
+    const protein_g = items.reduce((s, i) => s + (i.protein_g ?? 0), 0)
+    const carbs_g   = items.reduce((s, i) => s + (i.carbs_g   ?? 0), 0)
+    const fat_g     = items.reduce((s, i) => s + (i.fat_g     ?? 0), 0)
+
+    if (calories <= 0) continue  // skip meals with no nutrition data
+
+    const entry: PastMeal = { description: desc, meal_type: m.meal_type ?? 'snack', calories, protein_g, carbs_g, fat_g }
+    mealMap.set(key, entry)
   }
-  const topIngredients = Object.entries(ingredientCounts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 15)
-    .map(([name, count]) => `${name} (×${count})`)
-    .join(', ')
 
-  const mealTimingContext = buildMealTimingContext(recentMeals ?? [])
-  const foodGroupContext = buildFoodGroupContext((recentItems ?? []) as { food_group: string | null }[])
-  const dietaryBlock = buildDietaryBlock(dietaryPreferences, allergies)
+  if (mealMap.size === 0) {
+    return NextResponse.json({ ready: false, daysLogged: distinctDays, daysNeeded: MIN_DAYS })
+  }
 
+  const allMeals = Array.from(mealMap.values())
+  const byType: Record<string, PastMeal[]> = { breakfast: [], lunch: [], dinner: [], snack: [], any: [] }
+
+  for (const m of allMeals) {
+    if (m.meal_type in byType) byType[m.meal_type].push(m)
+    else byType.any.push(m)
+  }
+
+  const mealsPerDay: number = profile?.meals_per_day ?? 3
   const includeSnack = mealsPerDay >= 4
-  const mealTypes = includeSnack
-    ? ['breakfast', 'lunch', 'dinner', 'snack']
-    : ['breakfast', 'lunch', 'dinner']
+  const slots = includeSnack ? ['breakfast', 'lunch', 'dinner', 'snack'] : ['breakfast', 'lunch', 'dinner']
 
-  const langInstruction = lang === 'he'
-    ? 'IMPORTANT: Respond entirely in Hebrew (עברית). All meal names, descriptions, and text must be in Hebrew.\n\n'
-    : ''
+  // Format a list of meals for the prompt
+  const formatList = (meals: PastMeal[]) =>
+    meals.slice(0, 12).map((m, i) =>
+      `${i + 1}. "${m.description}" — ${Math.round(m.calories)}kcal, ${Math.round(m.protein_g)}g P, ${Math.round(m.carbs_g)}g C, ${Math.round(m.fat_g)}g F`
+    ).join('\n')
 
-  const prompt = `${langInstruction}You are a personal nutrition coach. Create a complete daily meal plan tailored to this user's goals and personal food habits.
-${dietaryBlock}
-User's goal: ${goalType.replace(/_/g, ' ')}
+  const sections = slots.map(slot => {
+    const options = byType[slot].length > 0 ? byType[slot] : [...byType.any, ...allMeals].slice(0, 8)
+    return `${slot.toUpperCase()} (${options.length} options):\n${formatList(options)}`
+  }).join('\n\n')
+
+  const prompt = `You are a meal planner. Select one meal per slot to build a balanced daily menu.
+
+⚠️ CRITICAL RULES — no exceptions:
+1. You MUST ONLY choose meals from the lists below.
+2. Do NOT invent, create, or suggest any meal not in this list.
+3. Copy the description EXACTLY as written (do not paraphrase or modify it).
+
 Daily targets: ${Math.round(targets.calories)} kcal | ${Math.round(targets.protein)}g protein | ${Math.round(targets.carbs)}g carbs | ${Math.round(targets.fat)}g fat
-${mealTimingContext}${foodGroupContext}
+Goal: ${goalType.replace(/_/g, ' ')}
 
-Ingredients this user frequently eats — prefer these in your suggestions:
-${topIngredients || 'No history yet — use generally healthy whole foods'}
+=== AVAILABLE MEALS ===
+${sections}
 
-Create exactly ${mealTypes.length} meals: ${mealTypes.join(', ')}.
-The combined totals for all meals should be close to the daily targets (within ~10%).
-Use the user's familiar ingredients wherever they fit the goal. Keep descriptions specific enough to log immediately (e.g. "150g grilled chicken, 200g cooked rice, steamed broccoli").
-
-Return ONLY a JSON array, no text outside it:
+Pick the combination that best matches the daily targets. Return ONLY a JSON array (no other text):
 [
   {
-    "meal_type": "breakfast|lunch|dinner|snack",
-    "name": "Short meal name",
-    "description": "Specific ingredients and quantities",
-    "calories": 450,
-    "protein_g": 35,
-    "carbs_g": 45,
-    "fat_g": 12
+    "meal_type": "${slots[0]}",
+    "description": "<exact description from list>",
+    "name": "<short display name, 1-4 words>"
   }
 ]`
 
@@ -105,24 +135,34 @@ Return ONLY a JSON array, no text outside it:
     const completion = await client.chat.completions.create({
       model: MODEL,
       messages: [{ role: 'user', content: prompt }],
-      temperature: 0.7,
-      max_tokens: 1200,
+      temperature: 0.3,  // low temp — we want selection, not creativity
+      max_tokens: 800,
     })
 
     const content = completion.choices[0]?.message?.content ?? ''
     const jsonMatch = content.match(/\[[\s\S]*\]/)
     if (!jsonMatch) throw new Error(`No JSON in response: ${content.slice(0, 200)}`)
 
-    const meals = JSON.parse(jsonMatch[0])
-    if (!Array.isArray(meals) || meals.length === 0) throw new Error('Invalid format')
+    const aiSelections: { meal_type: string; description: string; name: string }[] = JSON.parse(jsonMatch[0])
+    if (!Array.isArray(aiSelections) || aiSelections.length === 0) throw new Error('Invalid format')
+
+    // Map AI selections back to real DB macros — prevents hallucinated nutrition values
+    const meals = aiSelections.flatMap(sel => {
+      const entry = mealMap.get(normKey(sel.description))
+      if (!entry) {
+        // Fuzzy fallback: find closest match by prefix
+        const fallback = Array.from(mealMap.entries()).find(([k]) => k.startsWith(normKey(sel.description).slice(0, 20)))
+        if (!fallback) return []  // discard if truly not found
+        const [, m] = fallback
+        return [{ meal_type: sel.meal_type, name: sel.name, description: m.description, calories: Math.round(m.calories), protein_g: Math.round(m.protein_g), carbs_g: Math.round(m.carbs_g), fat_g: Math.round(m.fat_g) }]
+      }
+      return [{ meal_type: sel.meal_type, name: sel.name, description: entry.description, calories: Math.round(entry.calories), protein_g: Math.round(entry.protein_g), carbs_g: Math.round(entry.carbs_g), fat_g: Math.round(entry.fat_g) }]
+    })
+
+    if (meals.length === 0) throw new Error('No matched meals')
 
     const total = meals.reduce(
-      (acc: { calories: number; protein_g: number; carbs_g: number; fat_g: number }, m: { calories?: number; protein_g?: number; carbs_g?: number; fat_g?: number }) => ({
-        calories: acc.calories + (m.calories ?? 0),
-        protein_g: acc.protein_g + (m.protein_g ?? 0),
-        carbs_g: acc.carbs_g + (m.carbs_g ?? 0),
-        fat_g: acc.fat_g + (m.fat_g ?? 0),
-      }),
+      (acc, m) => ({ calories: acc.calories + m.calories, protein_g: acc.protein_g + m.protein_g, carbs_g: acc.carbs_g + m.carbs_g, fat_g: acc.fat_g + m.fat_g }),
       { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0 }
     )
 

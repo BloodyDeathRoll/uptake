@@ -306,8 +306,8 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
         </div>
       )}
 
-      {/* Daily menu suggestion — today only */}
-      {isToday && (
+      {/* Daily menu suggestion — today only, and only when enough budget remains */}
+      {isToday && scaledGoal.calories > 0 && agg.calories < scaledGoal.calories * 0.75 && (
         <div className="mt-4">
           <DailyMenuSuggestion
             key={g.goal_type}
