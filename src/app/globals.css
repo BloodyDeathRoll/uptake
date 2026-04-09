@@ -75,7 +75,49 @@ html[lang="he"] {
 }
 
 :root {
-  /* Anthropic dark palette */
+  /* Light palette — warm off-white */
+  color-scheme: light;
+  --background: #FAFAF8;
+  --foreground: #1C1917;
+  --card: #F5F0EB;
+  --card-foreground: #1C1917;
+  --popover: #F5F0EB;
+  --popover-foreground: #1C1917;
+  --primary: #4A4540;
+  --primary-foreground: #FAF9F7;
+  --secondary: #EAE5DF;
+  --secondary-foreground: #1C1917;
+  --muted: #EAE5DF;
+  --muted-foreground: #78716C;
+  --accent: #D97756;
+  --accent-foreground: #FAF9F7;
+  --destructive: #E5534B;
+  --border: #D6D0CB;
+  --input-bg: #F5F0EB;
+  --input-border: #C8C0B8;
+  --input-border-hover: #A8A29E;
+  --input-shadow: 0px 1px 3px rgba(0, 0, 0, 0.07), 0px 1px 2px rgba(0, 0, 0, 0.05);
+  --ring: #D97756;
+  --chart-1: #6B7280;   /* calories  */
+  --chart-2: #9CA3AF;   /* protein   */
+  --chart-3: #4B5563;   /* carbs     */
+  --chart-4: #D1D5DB;   /* fat       */
+  --chart-5: #A8A29E;
+  --radius: 0.5rem;
+  --card-shadow: 0px 2px 5px rgba(0, 0, 0, 0.06), 0px 1px 2px rgba(0, 0, 0, 0.04);
+  --sidebar: #FAFAF8;
+  --sidebar-foreground: #1C1917;
+  --sidebar-primary: #4A4540;
+  --sidebar-primary-foreground: #FAF9F7;
+  --sidebar-accent: #EAE5DF;
+  --sidebar-accent-foreground: #1C1917;
+  --sidebar-border: #D6D0CB;
+  --sidebar-ring: #D97756;
+}
+
+.dark {
+  /* Anthropic warm dark palette */
+  color-scheme: dark;
   --background: #1C1917;
   --foreground: #F5F0E8;
   --card: #292524;
@@ -102,7 +144,6 @@ html[lang="he"] {
   --chart-3: #4B5563;   /* carbs     */
   --chart-4: #D1D5DB;   /* fat       */
   --chart-5: #A8A29E;
-  --radius: 0.5rem;
   --card-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3), 0px 1px 2px rgba(0, 0, 0, 0.2);
   --sidebar: #1C1917;
   --sidebar-foreground: #F5F0E8;
@@ -112,40 +153,6 @@ html[lang="he"] {
   --sidebar-accent-foreground: #F5F0E8;
   --sidebar-border: #3D3833;
   --sidebar-ring: #D97756;
-}
-
-.dark {
-  --background: var(--color-neutral-950);
-  --foreground: var(--color-neutral-50);
-  --card: var(--color-neutral-900);
-  --card-foreground: var(--color-neutral-50);
-  --popover: var(--color-neutral-900);
-  --popover-foreground: var(--color-neutral-50);
-  --primary: var(--color-neutral-200);
-  --primary-foreground: var(--color-neutral-900);
-  --secondary: var(--color-neutral-800);
-  --secondary-foreground: var(--color-neutral-50);
-  --muted: var(--color-neutral-800);
-  --muted-foreground: var(--color-neutral-400);
-  --accent: var(--color-neutral-800);
-  --accent-foreground: var(--color-neutral-50);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: var(--color-neutral-500);
-  --chart-1: var(--color-neutral-300);
-  --chart-2: var(--color-neutral-500);
-  --chart-3: var(--color-neutral-600);
-  --chart-4: var(--color-neutral-700);
-  --chart-5: var(--color-neutral-800);
-  --sidebar: var(--color-neutral-900);
-  --sidebar-foreground: var(--color-neutral-50);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: var(--color-neutral-50);
-  --sidebar-accent: var(--color-neutral-800);
-  --sidebar-accent-foreground: var(--color-neutral-50);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: var(--color-neutral-500);
 }
 
 @keyframes goal-enter-from-right {
@@ -179,7 +186,7 @@ html[lang="he"] {
     @apply bg-background text-foreground;
   }
   input[type=number] {
-    color-scheme: dark;
+    color-scheme: inherit;
   }
   html {
     @apply font-sans;
