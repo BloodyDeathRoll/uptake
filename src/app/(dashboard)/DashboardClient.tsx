@@ -114,9 +114,9 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
     }
   }, [])
 
-  // If returning from a meal edit on a past date, fetch meals for that date
+  // If returning from a meal edit, fetch meals for that date (including today)
   useEffect(() => {
-    if (initialDate && initialDate !== today) {
+    if (initialDate) {
       fetchMeals({ start: initialDate, end: initialDate, days: 1 })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
