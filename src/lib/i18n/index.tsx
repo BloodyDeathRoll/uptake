@@ -273,6 +273,15 @@ const en = {
   confidence_low: 'Low confidence',
   // Goal switcher
   goal_section_label: 'Goal',
+  // Daily menu
+  daily_menu_title: 'Daily Menu Plan',
+  generate_daily_menu: 'Suggest a full-day menu based on your habits',
+  generating_menu: 'Building your personalized menu…',
+  menu_error: 'Could not generate menu',
+  menu_not_ready_title: 'Keep logging meals to unlock your personalized daily menu',
+  days_logged: 'days logged',
+  refresh_menu: 'Refresh menu',
+  day_total: 'Day total',
   // Units
   unit_kcal: 'kcal',
 } as const
@@ -539,6 +548,15 @@ const he: Translations = {
   confidence_low: 'ביטחון נמוך',
   // Goal switcher
   goal_section_label: 'מטרה',
+  // Daily menu
+  daily_menu_title: 'תפריט יומי',
+  generate_daily_menu: 'הצע תפריט יום שלם בהתאם להרגלים שלך',
+  generating_menu: 'בונה את התפריט האישי שלך…',
+  menu_error: 'לא הצלחנו ליצור תפריט',
+  menu_not_ready_title: 'המשך לרשום ארוחות לפתיחת התפריט היומי האישי',
+  days_logged: 'ימים נרשמו',
+  refresh_menu: 'רענן תפריט',
+  day_total: 'סה"כ יומי',
   // Units
   unit_kcal: "קל'",
 }

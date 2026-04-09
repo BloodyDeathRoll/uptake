@@ -8,6 +8,7 @@ import CalorieRings from './components/CalorieRings'
 import DeficitBar from './components/DeficitBar'
 import MealTimeline from './components/MealTimeline'
 import MealSuggestions from './components/MealSuggestions'
+import DailyMenuSuggestion from './components/DailyMenuSuggestion'
 import GoalDropdown from './components/GoalDropdown'
 import DateRangeSelector, { type DateRange } from './components/DateRangeSelector'
 import NutrientBar from '@/components/shared/NutrientBar'
@@ -299,6 +300,17 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
           <MealSuggestions
             key={g.goal_type}
             consumed={{ calories: agg.calories, protein: agg.protein, carbs: agg.carbs, fat: agg.fat }}
+            targets={{ calories: scaledGoal.calories, protein: scaledGoal.protein, carbs: scaledGoal.carbs, fat: scaledGoal.fat }}
+            goalType={g.goal_type}
+          />
+        </div>
+      )}
+
+      {/* Daily menu suggestion — today only */}
+      {isToday && (
+        <div className="mt-4">
+          <DailyMenuSuggestion
+            key={g.goal_type}
             targets={{ calories: scaledGoal.calories, protein: scaledGoal.protein, carbs: scaledGoal.carbs, fat: scaledGoal.fat }}
             goalType={g.goal_type}
           />
