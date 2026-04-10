@@ -44,8 +44,12 @@ function NewMealPageInner() {
   const returnDate = searchParams.get('returnDate')
   const isEdit = !!revisionOf
 
-  const [mealType, setMealType] = useState<MealType>('snack')
-  const [description, setDescription] = useState('')
+  // Pre-populate from daily menu suggestion link (?description=...&mealType=...)
+  const urlDescription = searchParams.get('description') ?? ''
+  const urlMealType = (searchParams.get('mealType') as MealType) || null
+
+  const [mealType, setMealType] = useState<MealType>(urlMealType ?? 'snack')
+  const [description, setDescription] = useState(urlDescription)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [pendingImage, setPendingImage] = useState<{ base64: string; mimeType: string } | null>(null)
   const [items, setItems] = useState<MealItem[] | null>(null)
@@ -58,6 +62,13 @@ function NewMealPageInner() {
   const [showPhotoChoice, setShowPhotoChoice] = useState(false)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
+
+  // Auto-analyze when opened from a daily menu "Log this" link
+  useEffect(() => {
+    if (!urlDescription || revisionOf) return
+    handleEstimate()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // intentionally runs once on mount; description is already set in initial state
 
   // Pre-populate when editing an existing meal
   useEffect(() => {

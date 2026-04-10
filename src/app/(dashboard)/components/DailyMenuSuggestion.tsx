@@ -26,6 +26,8 @@ interface DailyTotal {
 
 interface Props {
   targets: { calories: number; protein: number; carbs: number; fat: number }
+  consumed: { calories: number; protein: number; carbs: number; fat: number }
+  loggedTypes: string[]
   goalType: string
 }
 
@@ -38,7 +40,7 @@ const MEAL_ICONS: Record<string, LucideIcon> = {
 
 type ViewState = 'idle' | 'loading' | 'ready' | 'not_ready' | 'error'
 
-export default function DailyMenuSuggestion({ targets, goalType }: Props) {
+export default function DailyMenuSuggestion({ targets, consumed, loggedTypes, goalType }: Props) {
   const { t, lang } = useLanguage()
   const [state, setState] = useState<ViewState>('idle')
   const [meals, setMeals] = useState<DailyMeal[]>([])
@@ -51,7 +53,7 @@ export default function DailyMenuSuggestion({ targets, goalType }: Props) {
       const res = await fetch('/api/ai/suggest-daily-menu', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targets, goalType, lang }),
+        body: JSON.stringify({ targets, consumed, loggedTypes, goalType, lang }),
       })
       const data = await res.json()
       if (!res.ok) { setState('error'); return }
@@ -68,7 +70,7 @@ export default function DailyMenuSuggestion({ targets, goalType }: Props) {
     } catch {
       setState('error')
     }
-  }, [targets, goalType, lang])
+  }, [targets, consumed, loggedTypes, goalType, lang])
 
   // ── Idle: prompt card ───────────────────────────────────────────────────────
   if (state === 'idle') {
@@ -201,7 +203,7 @@ export default function DailyMenuSuggestion({ targets, goalType }: Props) {
                         <span><span className="font-medium text-foreground">{meal.fat_g}g</span> {t.fat}</span>
                       </div>
                       <Link
-                        href={`/meal/new?description=${encodeURIComponent(meal.description)}`}
+                        href={`/meal/new?description=${encodeURIComponent(meal.description)}&mealType=${meal.meal_type}`}
                         className="text-xs font-medium text-accent hover:underline flex-shrink-0 ms-3"
                       >
                         {t.log_this}

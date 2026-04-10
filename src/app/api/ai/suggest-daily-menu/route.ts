@@ -25,6 +25,15 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json()
   const { targets, goalType, lang } = body
+  const consumed: { calories: number; protein: number; carbs: number; fat: number } = body.consumed ?? { calories: 0, protein: 0, carbs: 0, fat: 0 }
+  const loggedTypes: string[] = body.loggedTypes ?? []
+
+  const remaining = {
+    calories: Math.max(targets.calories - consumed.calories, 0),
+    protein:  Math.max(targets.protein  - consumed.protein,  0),
+    carbs:    Math.max(targets.carbs    - consumed.carbs,    0),
+    fat:      Math.max(targets.fat      - consumed.fat,      0),
+  }
 
   const [
     { data: recentMeals },
@@ -95,7 +104,13 @@ export async function POST(request: NextRequest) {
 
   const mealsPerDay: number = profile?.meals_per_day ?? 3
   const includeSnack = mealsPerDay >= 4
-  const slots = includeSnack ? ['breakfast', 'lunch', 'dinner', 'snack'] : ['breakfast', 'lunch', 'dinner']
+  const allSlots = includeSnack ? ['breakfast', 'lunch', 'dinner', 'snack'] : ['breakfast', 'lunch', 'dinner']
+  // Only suggest meal types the user hasn't already logged today
+  const slots = allSlots.filter(s => !loggedTypes.includes(s))
+
+  if (slots.length === 0) {
+    return NextResponse.json({ ready: true, meals: [], total: { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0 } })
+  }
 
   // Format a list of meals for the prompt
   const formatList = (meals: PastMeal[]) =>
@@ -108,15 +123,16 @@ export async function POST(request: NextRequest) {
     return `${slot.toUpperCase()} (${options.length} options):\n${formatList(options)}`
   }).join('\n\n')
 
-  const prompt = `You are a meal planner. Select one meal per slot to build a balanced daily menu.
+  const hasConsumed = consumed.calories > 0
+  const prompt = `You are a meal planner. Select one meal per slot to fill the user's remaining daily nutrition budget.
 
 ⚠️ CRITICAL RULES — no exceptions:
 1. You MUST ONLY choose meals from the lists below.
 2. Do NOT invent, create, or suggest any meal not in this list.
 3. Copy the description EXACTLY as written (do not paraphrase or modify it).
 
-Daily targets: ${Math.round(targets.calories)} kcal | ${Math.round(targets.protein)}g protein | ${Math.round(targets.carbs)}g carbs | ${Math.round(targets.fat)}g fat
 Goal: ${goalType.replace(/_/g, ' ')}
+${hasConsumed ? `Already eaten today: ${Math.round(consumed.calories)} kcal | ${Math.round(consumed.protein)}g protein | ${Math.round(consumed.carbs)}g carbs | ${Math.round(consumed.fat)}g fat\n` : ''}Remaining budget: ${Math.round(remaining.calories)} kcal | ${Math.round(remaining.protein)}g protein | ${Math.round(remaining.carbs)}g carbs | ${Math.round(remaining.fat)}g fat
 
 === AVAILABLE MEALS ===
 ${sections}

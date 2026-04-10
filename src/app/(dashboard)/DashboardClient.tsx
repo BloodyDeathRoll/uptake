@@ -312,6 +312,8 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
           <DailyMenuSuggestion
             key={g.goal_type}
             targets={{ calories: scaledGoal.calories, protein: scaledGoal.protein, carbs: scaledGoal.carbs, fat: scaledGoal.fat }}
+            consumed={{ calories: agg.calories, protein: agg.protein, carbs: agg.carbs, fat: agg.fat }}
+            loggedTypes={[...new Set(meals.map(m => m.meal_type))]}
             goalType={g.goal_type}
           />
         </div>
