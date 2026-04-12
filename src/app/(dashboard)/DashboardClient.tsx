@@ -173,7 +173,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
   }
 
   return (
-    <div className="px-4 py-6 relative">
+    <div className="px-4 pt-0 pb-4 md:pb-6 relative flex flex-col gap-4 md:gap-6">
 
       {/* Goal-switching overlay */}
       {goalSwitching && (
@@ -183,7 +183,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
       )}
 
       {/* Goal + date — full width card */}
-      <div className="mb-6 animate-in fade-in slide-in-from-bottom-4 duration-500 bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 py-3">
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 py-3">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           {profile ? (
             <GoalDropdown
@@ -211,7 +211,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
       </div>
 
       {/* 2-column section: rings+deficit | remaining */}
-      <div className="space-y-6 md:grid md:grid-cols-2 md:gap-5 md:items-stretch md:space-y-0">
+      <div className="space-y-4 md:grid md:grid-cols-2 md:gap-5 md:items-stretch md:space-y-0">
 
         {/* Col 1: rings */}
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 py-2 flex flex-col">
@@ -298,7 +298,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
 
       {/* Suggested next meal — today only */}
       {isToday && (
-        <div className="mt-6">
+        <div>
           <MealSuggestions
             key={g.goal_type}
             consumed={{ calories: agg.calories, protein: agg.protein, carbs: agg.carbs, fat: agg.fat }}
@@ -322,7 +322,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
       )}
 
       {/* Meal list — 3 columns on desktop */}
-      <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+      <div className="mt-4 md:mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-base flex items-center gap-2">
             <UtensilsCrossed className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
