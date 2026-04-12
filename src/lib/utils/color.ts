@@ -1,22 +1,39 @@
 // Bidirectional progress color scale:
 // 0% = red, 50% = orange, 80% = yellow, 100% = green (goal hit)
 // 120% = yellow, 150% = orange, 200%+ = red (over goal)
+// Stop colors are defined in globals.css as --nutrition-{red,orange,yellow,green}
 
-const STOPS_UP: [number, [number, number, number]][] = [
-  [0.00, [239,  68,  68]], // red
-  [0.50, [249, 115,  22]], // orange
-  [0.80, [234, 179,   8]], // yellow
-  [1.00, [ 34, 197,  94]], // green
-]
+type RGB = [number, number, number]
 
-const STOPS_OVER: [number, [number, number, number]][] = [
-  [1.00, [ 34, 197,  94]], // green
-  [1.20, [234, 179,   8]], // yellow
-  [1.50, [249, 115,  22]], // orange
-  [2.00, [239,  68,  68]], // red
-]
+function parseCssColor(v: string): RGB | null {
+  v = v.trim()
+  if (v.startsWith('#') && v.length === 7) {
+    const n = parseInt(v.slice(1), 16)
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+  }
+  const m = v.match(/\d+/g)
+  if (m && m.length >= 3) return [+m[0], +m[1], +m[2]]
+  return null
+}
 
-function interpolate(stops: [number, [number, number, number]][], r: number): string {
+function cssRgb(prop: string, fallback: RGB): RGB {
+  if (typeof document === 'undefined') return fallback
+  const v = getComputedStyle(document.documentElement).getPropertyValue(prop)
+  return parseCssColor(v) ?? fallback
+}
+
+function colorStops() {
+  const red:    RGB = cssRgb('--nutrition-red',    [239,  68,  68])
+  const orange: RGB = cssRgb('--nutrition-orange', [249, 115,  22])
+  const yellow: RGB = cssRgb('--nutrition-yellow', [234, 179,   8])
+  const green:  RGB = cssRgb('--nutrition-green',  [ 34, 197,  94])
+  return {
+    up:   [[0.00, red], [0.50, orange], [0.80, yellow], [1.00, green]] as [number, RGB][],
+    over: [[1.00, green], [1.20, yellow], [1.50, orange], [2.00, red]] as [number, RGB][],
+  }
+}
+
+function interpolate(stops: [number, RGB][], r: number): string {
   for (let i = stops.length - 2; i >= 0; i--) {
     if (r >= stops[i][0]) {
       const t = Math.min((r - stops[i][0]) / (stops[i + 1][0] - stops[i][0]), 1)
@@ -29,6 +46,7 @@ function interpolate(stops: [number, [number, number, number]][], r: number): st
 
 export function nutritionColor(ratio: number): string {
   const r = Math.max(0, ratio)
-  if (r <= 1) return interpolate(STOPS_UP, r)
-  return interpolate(STOPS_OVER, Math.min(r, 2))
+  const { up, over } = colorStops()
+  if (r <= 1) return interpolate(up, r)
+  return interpolate(over, Math.min(r, 2))
 }

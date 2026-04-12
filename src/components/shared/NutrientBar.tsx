@@ -35,7 +35,7 @@ export default function NutrientBar({ label, current, target, unit = 'g', barCol
           <span className="font-semibold tabular-nums" style={{ color: nutritionColor(ratio) }}>{pctValue}%</span>
         </span>
       </div>
-      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--emphasis-bg)' }}>
         <div
           className="h-full rounded-full"
           style={{

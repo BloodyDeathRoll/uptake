@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react'
 import { useLanguage } from '@/lib/i18n'
 
 // Gradient: red (deficit/surplus extremes) → amber → green (on target, center)
-// Center (50%) represents exactly at target
-const GRADIENT = 'linear-gradient(to right, #E04040 0%, #F07840 18%, #F5B942 34%, #7EC8A0 50%, #F5B942 66%, #F07840 82%, #E04040 100%)'
+// Center (50%) represents exactly at target. Defined in globals.css as --nutrition-gradient
+const GRADIENT = 'var(--nutrition-gradient)'
 const TRANSITION = 'width 0.9s cubic-bezier(0.4, 0, 0.2, 1)'
 
-const TODAY_COLOR = '#ab947c'
+const TODAY_COLOR = 'var(--emphasis)'
 
 interface Props {
   calories: number

@@ -7,7 +7,7 @@ import { nutritionColor } from '@/lib/utils/color'
 import { useLanguage } from '@/lib/i18n'
 import { translateUnit } from '@/lib/utils/translate-unit'
 
-const TODAY_COLOR = '#ab947c'
+const TODAY_COLOR = 'var(--emphasis)'
 
 interface Props {
   calories: { current: number; target: number }
@@ -35,17 +35,16 @@ function Ring({ pct, icon: Icon, isToday }: { pct: number; icon: LucideIcon; isT
   return (
     <div className="relative w-[80px] h-[80px] md:w-[120px] md:h-[120px]">
       <svg width="100%" height="100%" viewBox={`0 0 ${VB} ${VB}`}>
-        <circle cx={VB / 2} cy={VB / 2} r={R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={STROKE} />
+        <circle cx={VB / 2} cy={VB / 2} r={R} fill="none" strokeWidth={STROKE} style={{ stroke: 'var(--emphasis-bg)' }} />
         <circle
           cx={VB / 2} cy={VB / 2} r={R}
           fill="none"
-          stroke={color}
           strokeWidth={STROKE}
           strokeLinecap="round"
           strokeDasharray={CIRC}
           strokeDashoffset={offset}
           transform={`rotate(-90 ${VB / 2} ${VB / 2})`}
-          style={{ transition: 'stroke-dashoffset 0.9s cubic-bezier(0.4, 0, 0.2, 1)' }}
+          style={{ stroke: color, transition: 'stroke-dashoffset 0.9s cubic-bezier(0.4, 0, 0.2, 1)' }}
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">

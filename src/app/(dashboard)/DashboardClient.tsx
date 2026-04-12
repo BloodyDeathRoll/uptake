@@ -182,30 +182,32 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
         </div>
       )}
 
-      {/* Goal + date — full width */}
-      <div className="flex flex-col gap-3 mb-6 animate-in fade-in slide-in-from-bottom-4 duration-500 md:flex-row md:items-start md:justify-between">
-        {profile ? (
-          <GoalDropdown
-            initialGoalType={(goal?.goal_type ?? 'maintenance') as GoalType}
-            profile={profile}
-            onLoadingChange={setGoalSwitching}
-            onGoalChange={(goalType, targets) =>
-              setGoal(prev => ({
-                ...prev!,
-                goal_type: goalType,
-                calories_target: targets.calories,
-                protein_g: targets.protein_g,
-                carbs_g: targets.carbs_g,
-                fat_g: targets.fat_g,
-                fiber_g: targets.fiber_g,
-                water_ml: targets.water_ml,
-              }))
-            }
-          />
-        ) : (
-          <span className="font-semibold text-base">{(t[('goalLabel_' + g.goal_type) as keyof Translations] as string) ?? g.goal_type.replace(/_/g, ' ')}</span>
-        )}
-        <DateRangeSelector onChange={handleRangeChange} initialDate={startDate !== today ? startDate : undefined} />
+      {/* Goal + date — full width card */}
+      <div className="mb-6 animate-in fade-in slide-in-from-bottom-4 duration-500 bg-card rounded-xl shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 py-3">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          {profile ? (
+            <GoalDropdown
+              initialGoalType={(goal?.goal_type ?? 'maintenance') as GoalType}
+              profile={profile}
+              onLoadingChange={setGoalSwitching}
+              onGoalChange={(goalType, targets) =>
+                setGoal(prev => ({
+                  ...prev!,
+                  goal_type: goalType,
+                  calories_target: targets.calories,
+                  protein_g: targets.protein_g,
+                  carbs_g: targets.carbs_g,
+                  fat_g: targets.fat_g,
+                  fiber_g: targets.fiber_g,
+                  water_ml: targets.water_ml,
+                }))
+              }
+            />
+          ) : (
+            <span className="font-semibold text-base">{(t[('goalLabel_' + g.goal_type) as keyof Translations] as string) ?? g.goal_type.replace(/_/g, ' ')}</span>
+          )}
+          <DateRangeSelector onChange={handleRangeChange} initialDate={startDate !== today ? startDate : undefined} />
+        </div>
       </div>
 
       {/* 2-column section: rings+deficit | remaining */}
@@ -269,7 +271,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
                           current={fetchingMeals ? 0 : c.current}
                           target={c.target}
                           unit={c.unit}
-                          barColor={isToday ? '#ab947c' : undefined}
+                          barColor={isToday ? 'var(--emphasis)' : undefined}
                           labelIcon={<Info className="w-3 h-3 text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors" />}
                         />
                       </button>
