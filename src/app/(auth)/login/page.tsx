@@ -132,15 +132,22 @@ function LoginForm() {
               required
               autoComplete="email"
             />
-            <FloatingLabelInput
-              id="password"
-              label={t.password_field}
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
+            <div className="space-y-1">
+              <FloatingLabelInput
+                id="password"
+                label={t.password_field}
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
+              <div className="flex justify-end">
+                <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                  {t.forgot_password}
+                </Link>
+              </div>
+            </div>
 
             {error && (
               <div className="flex items-center gap-2 text-sm text-destructive animate-in fade-in slide-in-from-top-2 duration-200">
