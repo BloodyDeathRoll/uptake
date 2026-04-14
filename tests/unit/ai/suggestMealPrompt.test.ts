@@ -1,4 +1,12 @@
 import { buildDietaryBlock, buildSuggestMealPrompt } from '@/lib/ai/prompts/suggest-meal'
+import type { PrioritySignal } from '@/lib/nutrition/priority'
+
+const BASE_PRIORITY: PrioritySignal = {
+  nutrient: 'protein',
+  pct: 33,
+  direction: 'under',
+  label: 'Protein',
+}
 
 const BASE_PARAMS = {
   consumed: { calories: 800, protein: 40, carbs: 90, fat: 25 },
@@ -7,6 +15,7 @@ const BASE_PARAMS = {
   hourOfDay: 12,
   dietaryPreferences: [],
   allergies: [],
+  priority: BASE_PRIORITY,
 }
 
 // ─── buildDietaryBlock ────────────────────────────────────────────────────────
@@ -152,5 +161,36 @@ describe('buildSuggestMealPrompt — dietary constraints in prompt', () => {
     expect(prompt).toContain('JSON array')
     expect(prompt).toContain('meal_type')
     expect(prompt).toContain('protein_g')
+  })
+
+  test('includes critical calorie constraint when significantly over quota', () => {
+    const overQuota = {
+      ...BASE_PARAMS,
+      consumed: { calories: 2080, protein: 40, carbs: 90, fat: 25 }, // 4% over 2000 target
+    }
+    const prompt = buildSuggestMealPrompt(overQuota)
+    expect(prompt).toContain('CRITICAL CALORIE CONSTRAINT')
+    expect(prompt).toContain('exceeded their daily calorie target')
+    expect(prompt).toContain('extremely low-calorie')
+    expect(prompt).toContain('high-protein')
+  })
+
+  test('does not include calorie constraint when under or slightly over quota', () => {
+    const slightlyOver = {
+      ...BASE_PARAMS,
+      consumed: { calories: 2020, protein: 40, carbs: 90, fat: 25 }, // Only 1% over
+    }
+    const prompt = buildSuggestMealPrompt(slightlyOver)
+    expect(prompt).not.toContain('CRITICAL CALORIE CONSTRAINT')
+  })
+
+  test('calorie constraint specifies maximum calorie limits based on target', () => {
+    const overQuota = {
+      ...BASE_PARAMS,
+      consumed: { calories: 2100, protein: 40, carbs: 90, fat: 25 }, // 5% over
+    }
+    const prompt = buildSuggestMealPrompt(overQuota)
+    // Should suggest max 10% of 2000 = 200 kcal
+    expect(prompt).toContain('200 kcal')
   })
 })

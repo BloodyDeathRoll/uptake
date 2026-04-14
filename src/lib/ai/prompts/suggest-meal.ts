@@ -50,6 +50,12 @@ export function buildSuggestMealPrompt(params: {
     fat: Math.max(targets.fat - consumed.fat, 0),
   }
 
+  // Calculate calorie overage percentage
+  const calorieOveragePct = consumed.calories > targets.calories
+    ? ((consumed.calories - targets.calories) / targets.calories) * 100
+    : 0
+  const isSignificantlyOverCalories = calorieOveragePct > 2 // More than 2% over quota
+
   const mealTimeHint =
     hourOfDay < 10 ? 'breakfast'
     : hourOfDay < 14 ? 'lunch'
@@ -60,6 +66,18 @@ export function buildSuggestMealPrompt(params: {
   const locationLine = location ? `User location: ${location} — suggest meals that are culturally relevant and locally available there.\n` : ''
 
   const directionWord = priority.direction === 'under' ? `high-${priority.nutrient}` : `low-${priority.nutrient}`
+
+  // Build calorie constraint block for when user is over quota
+  const calorieConstraintBlock = isSignificantlyOverCalories ? `
+
+🚨 CRITICAL CALORIE CONSTRAINT — User has exceeded their daily calorie target by ${Math.round(calorieOveragePct)}%!
+- ONLY suggest extremely low-calorie options (ideally under ${Math.round(targets.calories * 0.05)} kcal, maximum ${Math.round(targets.calories * 0.10)} kcal per suggestion)
+- Focus on high-protein, zero/very-low-calorie options: protein shakes, egg whites, lean protein, non-starchy vegetables
+- If you cannot find 3 suggestions that are truly beneficial (i.e., very low calorie AND help with the priority nutrient), suggest fewer options or very minimal portions
+- DO NOT suggest meals that would significantly worsen the calorie overage (anything over ${Math.round(targets.calories * 0.10)} kcal is too much)
+- The user needs to minimize further calorie intake while still addressing nutritional gaps
+` : ''
+
   const priorityBlock = `
 ⚡ TOP PRIORITY: "${priority.label}" is the most critical nutritional issue for this user's goal right now (currently at ${priority.pct}% of target, ${priority.direction}).
 All 3 suggestions MUST be optimized for ${directionWord} content. If other macros conflict (e.g. carbs are over but protein is severely under), ${priority.label.toLowerCase()} takes precedence — suggest meals that fix the priority gap first, and keep other macros as reasonable as possible within that constraint.`
@@ -67,7 +85,7 @@ All 3 suggestions MUST be optimized for ${directionWord} content. If other macro
   const langInstruction = lang === 'he' ? 'IMPORTANT: Respond entirely in Hebrew (עברית). All meal names, descriptions, and text must be in Hebrew.\n\n' : ''
 
   return `${langInstruction}You are a nutrition coach. Your job is to suggest the 3 best next meals that will make the most meaningful progress towards the user's goal given what they've eaten so far today.
-${dietaryBlock}${priorityBlock}${mealTimingContext ?? ''}${foodGroupContext ?? ''}
+${dietaryBlock}${priorityBlock}${calorieConstraintBlock}${mealTimingContext ?? ''}${foodGroupContext ?? ''}
 ${locationLine}User's goal: ${goalType.replace(/_/g, ' ')}
 Time of day: ~${hourOfDay}:00 — suggest ${mealTimeHint}
 
