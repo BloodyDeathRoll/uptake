@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/server'
+import DeleteUserButton from './DeleteUserButton'
 
 const PAGE_SIZE = 50
 
@@ -65,6 +66,7 @@ export default async function AdminUsersPage({
               <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Profile</th>
               <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Goal</th>
               <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right">Meals</th>
+              <th className="px-4 py-3 w-10" />
             </tr>
           </thead>
           <tbody>
@@ -98,12 +100,15 @@ export default async function AdminUsersPage({
                     {goal ? goal.replace(/_/g, ' ') : '—'}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums font-semibold">{meals}</td>
+                  <td className="px-4 py-3 text-right">
+                    <DeleteUserButton userId={u.id} userEmail={u.email} />
+                  </td>
                 </tr>
               )
             })}
             {users.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No users found</td>
+                <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No users found</td>
               </tr>
             )}
           </tbody>

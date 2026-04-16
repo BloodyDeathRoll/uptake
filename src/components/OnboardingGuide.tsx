@@ -5,7 +5,6 @@ import { MessageSquare, Layers, Camera, ChevronRight, Sparkles, ArrowRight, X } 
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import Link from 'next/link'
 
 const STORAGE_KEY = 'uptake_onboarding_seen'
 const ANIM_MS = 280
@@ -96,7 +95,7 @@ export default function OnboardingGuide({ show }: Props) {
   const [current, setCurrent] = useState(0)
   const [prev, setPrev] = useState<number | null>(null)
   const [dir, setDir] = useState<1 | -1>(1)
-  const animTimer = useRef<ReturnType<typeof setTimeout>>()
+  const animTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const pointerStartX = useRef<number | null>(null)
 
   // Inject keyframes once
@@ -201,12 +200,10 @@ export default function OnboardingGuide({ show }: Props) {
             {/* Footer */}
             <div className="px-5 pb-5 pt-1">
               {isLast ? (
-                <Link href="/meal/new" onClick={dismiss} className="block">
-                  <Button className="w-full gap-1.5">
-                    Log my first meal
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </Link>
+                <Button className="w-full gap-1.5" onClick={dismiss}>
+                  Let's start
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
               ) : (
                 <Button onClick={next} className="w-full gap-1">
                   Next
