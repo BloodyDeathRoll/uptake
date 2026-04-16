@@ -46,7 +46,7 @@ interface Props {
 export default function OnboardingGuide({ show }: Props) {
   const [open, setOpen] = useState(false)
   const [current, setCurrent] = useState(0)
-  const touchStartX = useRef<number | null>(null)
+  const pointerStartX = useRef<number | null>(null)
 
   useEffect(() => {
     if (show && typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY)) {
@@ -62,15 +62,15 @@ export default function OnboardingGuide({ show }: Props) {
 
   const next = () => setCurrent(c => Math.min(c + 1, SLIDES.length - 1))
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
+  const handlePointerDown = (e: React.PointerEvent) => {
+    pointerStartX.current = e.clientX
   }
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return
-    const delta = e.changedTouches[0].clientX - touchStartX.current
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (pointerStartX.current === null) return
+    const delta = e.clientX - pointerStartX.current
     if (delta < -50) next()
     else if (delta > 50) setCurrent(c => Math.max(c - 1, 0))
-    touchStartX.current = null
+    pointerStartX.current = null
   }
 
   const isLast = current === SLIDES.length - 1
@@ -82,12 +82,12 @@ export default function OnboardingGuide({ show }: Props) {
         <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px] data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 duration-200" />
         <DialogPrimitive.Popup
           aria-label="How to use Uptake"
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
           className="fixed top-1/2 left-1/2 z-50 w-full max-w-[calc(100%-2rem)] sm:max-w-xs -translate-x-1/2 -translate-y-1/2 outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 duration-200"
         >
           <div
             className="bg-card rounded-2xl ring-1 ring-foreground/10 shadow-2xl overflow-hidden select-none"
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
           >
 
             {/* X close button */}
