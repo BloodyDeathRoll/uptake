@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { MessageSquare, Layers, Camera, ChevronLeft, ChevronRight, Sparkles, ArrowRight } from 'lucide-react'
+import { MessageSquare, Layers, Camera, ChevronRight, Sparkles, ArrowRight, X } from 'lucide-react'
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -11,8 +11,6 @@ const STORAGE_KEY = 'uptake_onboarding_seen'
 
 interface Slide {
   icon: React.ReactNode
-  iconColor: string
-  iconBg: string
   title: string
   body: string
 }
@@ -20,29 +18,21 @@ interface Slide {
 const SLIDES: Slide[] = [
   {
     icon: <Sparkles className="w-9 h-9" />,
-    iconColor: 'text-primary',
-    iconBg: 'bg-primary/10',
     title: 'How to Use Uptake',
     body: 'Log meals in 3 different ways. The AI handles the nutrition — you just tell it what you ate.',
   },
   {
     icon: <MessageSquare className="w-9 h-9" />,
-    iconColor: 'text-sky-500',
-    iconBg: 'bg-sky-500/10',
     title: 'Free Text',
     body: "Describe your meal in plain language. The AI estimates quantities if you don't include them. Edit any ingredient and it learns from your corrections.",
   },
   {
     icon: <Layers className="w-9 h-9" />,
-    iconColor: 'text-emerald-500',
-    iconBg: 'bg-emerald-500/10',
     title: 'By Ingredient',
     body: 'Add ingredients one by one. Tap the quantity for a 100g / 100ml baseline, then adjust to match your actual portion.',
   },
   {
     icon: <Camera className="w-9 h-9" />,
-    iconColor: 'text-orange-500',
-    iconBg: 'bg-orange-500/10',
     title: 'By Photo',
     body: 'Take a picture of your meal and let the AI identify what it sees. Correct it and it gets smarter every time.',
   },
@@ -60,7 +50,6 @@ export default function OnboardingGuide({ show }: Props) {
 
   useEffect(() => {
     if (show && typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY)) {
-      // Small delay so the dashboard finishes its entrance animation first
       const t = setTimeout(() => setOpen(true), 600)
       return () => clearTimeout(t)
     }
@@ -72,7 +61,6 @@ export default function OnboardingGuide({ show }: Props) {
   }
 
   const next = () => setCurrent(c => Math.min(c + 1, SLIDES.length - 1))
-  const prev = () => setCurrent(c => Math.max(c - 1, 0))
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
@@ -81,11 +69,10 @@ export default function OnboardingGuide({ show }: Props) {
     if (touchStartX.current === null) return
     const delta = e.changedTouches[0].clientX - touchStartX.current
     if (delta < -50) next()
-    else if (delta > 50) prev()
+    else if (delta > 50) setCurrent(c => Math.max(c - 1, 0))
     touchStartX.current = null
   }
 
-  const isFirst = current === 0
   const isLast = current === SLIDES.length - 1
   const slide = SLIDES[current]
 
@@ -103,13 +90,24 @@ export default function OnboardingGuide({ show }: Props) {
             onTouchEnd={handleTouchEnd}
           >
 
+            {/* X close button */}
+            <div className="flex justify-end px-4 pt-4 pb-0">
+              <button
+                onClick={dismiss}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
             {/* Slide body */}
-            <div className="px-6 pt-8 pb-4 flex flex-col items-center text-center gap-5 min-h-[220px]">
+            <div className="px-6 pt-4 pb-4 flex flex-col items-center text-center gap-5 min-h-[200px]">
               <div
                 key={current}
                 className="contents animate-in fade-in zoom-in-95 duration-200"
               >
-                <div className={cn('w-[4.5rem] h-[4.5rem] rounded-2xl flex items-center justify-center shrink-0', slide.iconBg, slide.iconColor)}>
+                <div className="w-[4.5rem] h-[4.5rem] rounded-2xl flex items-center justify-center shrink-0 bg-[var(--emphasis-bg)] text-[var(--emphasis)]">
                   {slide.icon}
                 </div>
                 <div className="space-y-1.5">
@@ -129,7 +127,7 @@ export default function OnboardingGuide({ show }: Props) {
                   className={cn(
                     'h-1.5 rounded-full transition-all duration-300',
                     i === current
-                      ? 'w-5 bg-primary'
+                      ? 'w-5 bg-[var(--emphasis)]'
                       : 'w-1.5 bg-muted-foreground/25 hover:bg-muted-foreground/40'
                   )}
                 />
@@ -137,50 +135,18 @@ export default function OnboardingGuide({ show }: Props) {
             </div>
 
             {/* Footer nav */}
-            <div className="px-5 pb-5 pt-1 flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={prev}
-                disabled={isFirst}
-                className="text-muted-foreground shrink-0"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-
-              <div className="flex-1">
-                {isLast ? (
-                  <Link href="/meal/new" onClick={dismiss} className="block">
-                    <Button className="w-full gap-1.5">
-                      Log my first meal
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  </Link>
-                ) : (
-                  <Button onClick={next} className="w-full gap-1">
-                    Next
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-
+            <div className="px-5 pb-5 pt-1">
               {isLast ? (
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={dismiss}
-                  className="text-muted-foreground shrink-0 text-xs"
-                >
-                  <span className="text-xs">Skip</span>
-                </Button>
+                <Link href="/meal/new" onClick={dismiss} className="block">
+                  <Button className="w-full gap-1.5">
+                    Log my first meal
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
               ) : (
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={dismiss}
-                  className="text-muted-foreground shrink-0"
-                >
-                  <span className="text-xs">Skip</span>
+                <Button onClick={next} className="w-full gap-1">
+                  Next
+                  <ChevronRight className="w-4 h-4" />
                 </Button>
               )}
             </div>
