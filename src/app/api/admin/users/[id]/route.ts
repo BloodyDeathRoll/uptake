@@ -15,6 +15,11 @@ export async function DELETE(
 
   const { id } = await params
   const admin = createAdminClient()
+
+  // Explicitly delete the profile first so FK cascades clean up meals/goals/etc.
+  // This guarantees a clean slate even if auth.users deletion doesn't cascade.
+  await admin.from('profiles').delete().eq('id', id)
+
   const { error } = await admin.auth.admin.deleteUser(id)
 
   if (error) {
