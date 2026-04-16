@@ -21,6 +21,7 @@ import type { GoalProfile } from './components/GoalSwitcher'
 import { createSequentialFetcher } from '@/lib/utils/sequential-fetch'
 import { useLanguage, type Translations } from '@/lib/i18n'
 import { translateUnit } from '@/lib/utils/translate-unit'
+import OnboardingGuide from '@/components/OnboardingGuide'
 
 interface Snapshot {
   total_calories: number | null; total_protein_g: number | null; total_carbs_g: number | null
@@ -39,6 +40,7 @@ interface Props {
   meals: Meal[]
   profile: GoalProfile | null
   initialDate?: string
+  hasAnyMeals?: boolean
 }
 
 function localToday(): string {
@@ -80,7 +82,7 @@ function aggregateQuality(meals: Meal[]) {
   )
 }
 
-export default function DashboardClient({ snapshot, goal: initialGoal, meals: serverMeals, profile, initialDate }: Props) {
+export default function DashboardClient({ snapshot, goal: initialGoal, meals: serverMeals, profile, initialDate, hasAnyMeals }: Props) {
   const today = localToday()
   const router = useRouter()
   const { t, lang } = useLanguage()
@@ -174,6 +176,8 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
 
   return (
     <div className="px-4 pt-0 pb-4 md:pb-6 relative flex flex-col gap-4 md:gap-6">
+
+      <OnboardingGuide show={!hasAnyMeals} />
 
       {/* Goal-switching overlay */}
       {goalSwitching && (
