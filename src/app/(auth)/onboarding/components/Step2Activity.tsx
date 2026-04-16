@@ -97,7 +97,7 @@ export default function Step2Activity({ onNext, onBack }: Props) {
                 key={`${level}-${i}`}
                 onClick={() => setSelectedLevel(prev => prev === level ? null : level)}
                 className={`relative snap-start shrink-0 w-full h-full flex flex-col rounded-2xl cursor-pointer select-none overflow-hidden transition-colors ${
-                  isSelected ? 'bg-white' : 'bg-[#C8BCAE]'
+                  isSelected ? 'bg-[#C8BCAE]' : 'bg-white'
                 }`}
               >
                 {isSelected && (
