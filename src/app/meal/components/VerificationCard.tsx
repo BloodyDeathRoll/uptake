@@ -171,7 +171,11 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
 
       if (field === 'quantity') {
         const newQty = Number(value)
-        if (item._perUnit) {
+        if (newQty <= 0) {
+          // User cleared the field to re-enter — preserve macros and anchor _perUnit
+          // so proportional scaling works when they type the new value
+          patch = { quantity: newQty, _perUnit: item._perUnit ?? computePerUnit(item) }
+        } else if (item._perUnit) {
           patch = applyPerUnit(item._perUnit, newQty)
         } else {
           patch = scaleMacros(item, newQty)
@@ -275,7 +279,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                 <span className="w-3.5 h-3.5 border border-current border-t-transparent rounded-full animate-spin shrink-0" />
                 {scanningIngredient === i ? t.scanning_label : t.estimating_nutrition}
               </div>
-            ) : item.quantity > 0 ? (
+            ) : item.quantity > 0 || item._perUnit != null ? (
               <div className="grid grid-cols-5 gap-1.5">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[10px] text-muted-foreground truncate">{t.col_amt} {item.unit}</span>
@@ -295,6 +299,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                     onChange={e => update(i, 'calories', e.target.value === '' ? null : Number(e.target.value))}
                     placeholder="—"
                     className="w-full h-8 text-xs px-1.5"
+                    disabled={item.quantity === 0}
                   />
                 </div>
                 <div className="flex flex-col gap-0.5">
@@ -305,6 +310,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                     onChange={e => update(i, 'protein_g', e.target.value === '' ? null : Number(e.target.value))}
                     placeholder="—"
                     className="w-full h-8 text-xs px-1.5"
+                    disabled={item.quantity === 0}
                   />
                 </div>
                 <div className="flex flex-col gap-0.5">
@@ -315,6 +321,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                     onChange={e => update(i, 'carbs_g', e.target.value === '' ? null : Number(e.target.value))}
                     placeholder="—"
                     className="w-full h-8 text-xs px-1.5"
+                    disabled={item.quantity === 0}
                   />
                 </div>
                 <div className="flex flex-col gap-0.5">
@@ -325,6 +332,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
                     onChange={e => update(i, 'fat_g', e.target.value === '' ? null : Number(e.target.value))}
                     placeholder="—"
                     className="w-full h-8 text-xs px-1.5"
+                    disabled={item.quantity === 0}
                   />
                 </div>
               </div>
