@@ -79,7 +79,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
-      <div className="flex flex-col flex-1 items-center px-6 pt-8">
+      <div className="flex flex-col flex-1 items-center px-6 pt-8 pb-8">
         <div className="w-full max-w-[38.4rem] flex flex-col flex-1">
           {/* Progress + cancel */}
           <div className="mb-8 shrink-0">
