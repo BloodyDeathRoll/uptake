@@ -41,8 +41,9 @@ export async function POST(request: NextRequest) {
 
   // Check for user-saved nutrition overrides before calling AI
   const names = parsed.data.map(i => i.name)
-  const { data: overrides } = await supabase
-    .from('ingredient_nutrition_overrides' as 'portion_priors')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: overrides } = await (supabase as any)
+    .from('ingredient_nutrition_overrides')
     .select('ingredient_name, unit, calories_per_100, protein_g_per_100, carbs_g_per_100, fat_g_per_100, fiber_g_per_100, food_group')
     .eq('user_id', user.id)
     .in('ingredient_name', names)

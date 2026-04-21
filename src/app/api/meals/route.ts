@@ -67,7 +67,7 @@ async function updateNutritionOverrides(userId: string, items: Record<string, un
   })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (supabase.from('ingredient_nutrition_overrides') as any).upsert(upserts, { onConflict: 'user_id,ingredient_name,unit' })
+  await (supabase as any).from('ingredient_nutrition_overrides').upsert(upserts, { onConflict: 'user_id,ingredient_name,unit' })
 }
 
 // IMMUTABLE: This route only does INSERT — never UPDATE meals
