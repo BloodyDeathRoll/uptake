@@ -197,7 +197,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
       return {
         ...item,
         ...patch,
-        was_corrected: wasAI,
+        was_corrected: wasAI || item.was_corrected,
         source: wasAI ? 'user_manual' as const : item.source,
       }
     }))
