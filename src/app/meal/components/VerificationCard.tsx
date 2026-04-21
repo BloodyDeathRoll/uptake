@@ -90,6 +90,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
             fiber_g:    est.fiber_g    ?? null,
             food_group: est.food_group ?? null,
             confidence: est.confidence ?? 'low',
+            source:     'ai_text' as const,
           }
           filled._perUnit = computePerUnit(filled)
           filled._ver = (item._ver ?? 0) + 1

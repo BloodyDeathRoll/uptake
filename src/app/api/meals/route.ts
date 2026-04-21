@@ -38,6 +38,38 @@ async function updatePortionPriors(userId: string, items: Record<string, unknown
   await (supabase.from('portion_priors') as any).upsert(upserts, { onConflict: 'user_id,ingredient_name' })
 }
 
+// Save per-100-unit nutrition for items the user accepted from AI or explicitly corrected.
+async function updateNutritionOverrides(userId: string, items: Record<string, unknown>[]) {
+  const eligible = items.filter(i =>
+    (i.was_corrected || i.source === 'ai_text' || i.source === 'ai_vision') &&
+    typeof i.quantity === 'number' && (i.quantity as number) > 0 && i.unit
+  )
+  if (eligible.length === 0) return
+
+  const supabase = await createClient()
+  const r1dp = (v: unknown, factor: number) =>
+    typeof v === 'number' ? Math.round(v * factor * 10) / 10 : null
+
+  const upserts = eligible.map(item => {
+    const factor = 100 / (item.quantity as number)
+    return {
+      user_id: userId,
+      ingredient_name: item.ingredient_name as string,
+      unit: item.unit as string,
+      calories_per_100: r1dp(item.calories, factor),
+      protein_g_per_100: r1dp(item.protein_g, factor),
+      carbs_g_per_100: r1dp(item.carbs_g, factor),
+      fat_g_per_100: r1dp(item.fat_g, factor),
+      fiber_g_per_100: r1dp(item.fiber_g, factor),
+      food_group: (item.food_group as string) ?? null,
+      updated_at: new Date().toISOString(),
+    }
+  })
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase.from('ingredient_nutrition_overrides') as any).upsert(upserts, { onConflict: 'user_id,ingredient_name,unit' })
+}
+
 // IMMUTABLE: This route only does INSERT — never UPDATE meals
 // Corrections create new meals with revision_of pointing to the original
 
@@ -123,8 +155,9 @@ export async function POST(request: NextRequest) {
     body: JSON.stringify({ userId: user.id, date }),
   }).catch(() => {/* silent — snapshot will be rebuilt by cron */})
 
-  // Update portion priors from corrected items (fire and forget)
+  // Update portion priors and nutrition overrides from corrected/AI-accepted items (fire and forget)
   updatePortionPriors(user.id, mealItems).catch(() => {})
+  updateNutritionOverrides(user.id, mealItems).catch(() => {})
 
   return NextResponse.json({ data: { ...meal, items: mealItems } }, { status: 201 })
 }
