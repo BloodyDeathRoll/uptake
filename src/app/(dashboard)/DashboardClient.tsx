@@ -175,7 +175,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
   }
 
   return (
-    <div className="px-4 pt-0 pb-4 md:pb-6 relative flex flex-col gap-4 md:gap-6">
+    <div className="px-4 pt-0 pb-24 sm:pb-4 md:pb-6 relative flex flex-col gap-4 md:gap-6">
 
       <OnboardingGuide show={!hasAnyMeals} />
 
