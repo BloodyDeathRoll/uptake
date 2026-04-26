@@ -1,15 +1,30 @@
 'use client'
 
-import { useState, useRef, useEffect, Suspense } from 'react'
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Camera, ImageIcon, X } from 'lucide-react'
+import { Camera, ImageIcon, X, Sunrise, Sandwich, Moon, Cookie, Utensils } from 'lucide-react'
 import VerificationCard from '../components/VerificationCard'
 import type { MealItem } from '@/hooks/useMeals'
 import type { MealType } from '@/lib/utils/constants'
-import { useLanguage } from '@/lib/i18n'
+import { useLanguage, type Translations } from '@/lib/i18n'
+
+interface RecentMeal {
+  id: string
+  meal_type: string
+  human_description: string | null
+  logged_at: string
+  meal_items: Array<{ calories: number | null; [key: string]: unknown }>
+}
+
+const MEAL_ICON: Record<string, React.ElementType> = {
+  breakfast: Sunrise,
+  lunch: Sandwich,
+  dinner: Moon,
+  snack: Cookie,
+}
 
 function mapItems(
   items: Record<string, unknown>[],
@@ -41,6 +56,7 @@ function NewMealPageInner() {
   const searchParams = useSearchParams()
   const { t, lang } = useLanguage()
   const revisionOf = searchParams.get('revisionOf')
+  const relogOf = searchParams.get('relogOf')
   const returnDate = searchParams.get('returnDate')
   const isEdit = !!revisionOf
 
@@ -60,8 +76,49 @@ function NewMealPageInner() {
   const [saving, setSaving] = useState(false)
   const [navigating, setNavigating] = useState(false)
   const [showPhotoChoice, setShowPhotoChoice] = useState(false)
+  const [recentMeals, setRecentMeals] = useState<RecentMeal[] | null>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
+
+  const mealLabel = (type: string) =>
+    (t[('meal_' + type) as keyof Translations] as string) ?? type
+
+  // Shared function: fetch a meal by ID and populate state (used for relogOf param and suggestion cards)
+  const loadRelogMeal = useCallback((id: string) => {
+    setLoading(true)
+    setError(null)
+    fetch(`/api/meals/${id}`)
+      .then(r => r.json())
+      .then(json => {
+        if (!json.data) return
+        const meal = json.data
+        setMealType(meal.meal_type as MealType)
+        setDescription(meal.human_description ?? '')
+        setAnalyzeCount(c => c + 1)
+        setItems(
+          (meal.meal_items ?? []).map((item: Record<string, unknown>) => ({
+            ingredient_name: item.ingredient_name as string,
+            quantity: item.quantity as number,
+            unit: item.unit as string,
+            calories: item.calories as number ?? null,
+            protein_g: item.protein_g as number ?? null,
+            carbs_g: item.carbs_g as number ?? null,
+            fat_g: item.fat_g as number ?? null,
+            fiber_g: item.fiber_g as number ?? null,
+            sugar_g: item.sugar_g as number ?? null,
+            saturated_fat_g: item.saturated_fat_g as number ?? null,
+            sodium_mg: item.sodium_mg as number ?? null,
+            food_group: item.food_group as string ?? null,
+            confidence: item.confidence as 'high' | 'medium' | 'low' ?? null,
+            source: 'memory' as MealItem['source'],
+            was_corrected: false,
+            original_ai_estimate: null,
+          }))
+        )
+      })
+      .catch(() => setError(t.err_load_meal))
+      .finally(() => setLoading(false))
+  }, [t.err_load_meal])
 
   // Auto-analyze when opened from a daily menu "Log this" link
   useEffect(() => {
@@ -70,7 +127,7 @@ function NewMealPageInner() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // intentionally runs once on mount; description is already set in initial state
 
-  // Pre-populate when editing an existing meal
+  // Pre-populate when editing an existing meal (revision)
   useEffect(() => {
     if (!revisionOf) return
     setLoading(true)
@@ -106,6 +163,21 @@ function NewMealPageInner() {
       .catch(() => setError(t.err_load_meal))
       .finally(() => setLoading(false))
   }, [revisionOf])
+
+  // Pre-populate when opened via ?relogOf=<id> (e.g. "Log again" from detail page)
+  useEffect(() => {
+    if (!relogOf) return
+    loadRelogMeal(relogOf)
+  }, [relogOf, loadRelogMeal])
+
+  // Fetch recent meals for the suggestions strip (only on a blank new meal form)
+  useEffect(() => {
+    if (revisionOf || relogOf || urlDescription) return
+    fetch('/api/meals/recent')
+      .then(r => r.json())
+      .then(json => setRecentMeals(json.data ?? []))
+      .catch(() => setRecentMeals([]))
+  }, [revisionOf, relogOf, urlDescription])
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -298,6 +370,31 @@ function NewMealPageInner() {
             >
               <Camera className="w-4 h-4 mr-2" /> {t.add_photo}
             </Button>
+          )}
+
+          {/* Recent meals suggestions — only when form is blank */}
+          {items === null && !description && !imagePreview && recentMeals && recentMeals.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">{t.recent_meals}</p>
+              <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+                {recentMeals.map(meal => {
+                  const Icon = MEAL_ICON[meal.meal_type] ?? Utensils
+                  const kcal = Math.round(meal.meal_items.reduce((s, i) => s + (i.calories ?? 0), 0))
+                  const label = meal.human_description ?? mealLabel(meal.meal_type)
+                  return (
+                    <button
+                      key={meal.id}
+                      onClick={() => loadRelogMeal(meal.id)}
+                      className="flex-shrink-0 w-28 flex flex-col items-start gap-1 p-2.5 rounded-xl bg-card border border-border text-left hover:border-accent/50 transition-colors"
+                    >
+                      <Icon className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
+                      <span className="text-xs font-medium leading-tight line-clamp-2">{label}</span>
+                      <span className="text-[10px] text-muted-foreground">{kcal} {t.unit_kcal}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           )}
 
           <Textarea

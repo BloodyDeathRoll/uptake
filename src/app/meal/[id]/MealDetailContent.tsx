@@ -57,7 +57,10 @@ export default function MealDetailContent({ meal, returnDate }: Props) {
       <div dir="ltr" className="sticky top-0 bg-background/80 backdrop-blur-sm shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 h-14 flex items-center justify-between">
         <NavBackButton href={returnDate ? `/dashboard?date=${returnDate}` : '/dashboard'} />
         <span className="font-semibold capitalize">{mealLabel(meal.meal_type)}</span>
-        <Link href={`/meal/new?revisionOf=${meal.id}${returnDate ? `&returnDate=${returnDate}` : ''}`} className="text-accent text-sm">{t.edit_btn}</Link>
+        <div className="flex items-center gap-3">
+          <Link href={`/meal/new?relogOf=${meal.id}`} className="text-accent text-sm">{t.log_again}</Link>
+          <Link href={`/meal/new?revisionOf=${meal.id}${returnDate ? `&returnDate=${returnDate}` : ''}`} className="text-accent text-sm">{t.edit_btn}</Link>
+        </div>
       </div>
 
       <div className="px-4 py-6 max-w-[38.4rem] mx-auto space-y-6">

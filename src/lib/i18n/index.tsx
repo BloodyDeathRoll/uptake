@@ -163,6 +163,8 @@ const en = {
   revised_version: 'This is a revised version of an earlier log.',
   view_original: 'View original',
   edit_btn: 'Edit',
+  log_again: 'Log again',
+  recent_meals: 'Recent meals',
   // Settings
   settings: 'Settings',
   profile_section: 'Profile',
@@ -450,6 +452,8 @@ const he: Translations = {
   revised_version: 'זהו גרסה מתוקנת של רישום קודם.',
   view_original: 'צפה במקורי',
   edit_btn: 'ערוך',
+  log_again: 'רשום שוב',
+  recent_meals: 'ארוחות אחרונות',
   // Settings
   settings: 'הגדרות',
   profile_section: 'פרופיל',
