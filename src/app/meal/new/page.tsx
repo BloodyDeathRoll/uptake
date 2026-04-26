@@ -4,8 +4,7 @@ import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Camera, ImageIcon, X, Sunrise, Sandwich, Moon, Cookie, Utensils, PenLine } from 'lucide-react'
+import { Camera, ImageIcon, X, Sunrise, Sandwich, Moon, Cookie, Utensils, ListPlus } from 'lucide-react'
 import VerificationCard from '../components/VerificationCard'
 import type { MealItem } from '@/hooks/useMeals'
 import type { MealType } from '@/lib/utils/constants'
@@ -312,14 +311,21 @@ function NewMealPageInner() {
       <div className="px-4 py-6 space-y-6 max-w-[38.4rem] mx-auto">
 
         {/* Meal type */}
-        <Tabs value={mealType} onValueChange={v => setMealType(v as MealType)}>
-          <TabsList className="w-full">
-            <TabsTrigger value="breakfast" className="flex-1">{t.meal_breakfast}</TabsTrigger>
-            <TabsTrigger value="lunch" className="flex-1">{t.meal_lunch}</TabsTrigger>
-            <TabsTrigger value="dinner" className="flex-1">{t.meal_dinner}</TabsTrigger>
-            <TabsTrigger value="snack" className="flex-1">{t.meal_snack}</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex gap-1 p-1 rounded-xl bg-muted/50">
+          {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map(type => (
+            <button
+              key={type}
+              onClick={() => setMealType(type)}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+                mealType === type
+                  ? 'bg-muted text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground/70'
+              }`}
+            >
+              {t[`meal_${type}` as keyof typeof t] as string}
+            </button>
+          ))}
+        </div>
 
         {/* Form: suggestions → image preview → textarea → CTAs */}
         <div className="space-y-3">
@@ -412,17 +418,8 @@ function NewMealPageInner() {
                 </Button>
               </div>
             ) : (
-              // [ 📷 ]  [ Estimate nutrition ]  [ ✏ ]
+              // [ Estimate nutrition ]  [ 📷 ]  [ ✏ ]
               <div className="flex gap-2 items-stretch">
-                <Button
-                  variant="outline"
-                  className="h-12 w-12 flex-shrink-0 p-0"
-                  onClick={() => setShowPhotoChoice(true)}
-                  disabled={loading}
-                  title={t.add_photo}
-                >
-                  <Camera className="w-5 h-5" />
-                </Button>
                 <Button
                   onClick={handleEstimate}
                   disabled={loading || !canEstimate}
@@ -435,14 +432,21 @@ function NewMealPageInner() {
                     </span>
                   ) : t.estimate_nutrition}
                 </Button>
-                <Button
-                  variant="outline"
-                  className="h-12 w-12 flex-shrink-0 p-0"
+                <button
+                  className="h-12 w-12 flex-shrink-0 flex items-center justify-center rounded-xl bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                  onClick={() => setShowPhotoChoice(true)}
+                  disabled={loading}
+                  title={t.add_photo}
+                >
+                  <Camera className="w-5 h-5" />
+                </button>
+                <button
+                  className="h-12 w-12 flex-shrink-0 flex items-center justify-center rounded-xl bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                   onClick={() => setItems([])}
                   title={t.enter_manually}
                 >
-                  <PenLine className="w-4 h-4" />
-                </Button>
+                  <ListPlus className="w-5 h-5" />
+                </button>
               </div>
             )
           ) : (
