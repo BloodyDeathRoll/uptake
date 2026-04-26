@@ -320,13 +320,42 @@ function NewMealPageInner() {
           </TabsList>
         </Tabs>
 
-        {/* Photo + description — always visible */}
+        {/* Form: suggestions → image preview → textarea → CTAs */}
         <div className="space-y-3">
-          {/* Two hidden inputs: one forces camera, one opens gallery/files */}
+          {/* Hidden file inputs */}
           <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { setShowPhotoChoice(false); handleImageUpload(e) }} />
           <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={e => { setShowPhotoChoice(false); handleImageUpload(e) }} />
 
-          {imagePreview ? (
+          {/* Recent meals suggestions — only when form is blank */}
+          {items === null && !description && !imagePreview && recentMeals && recentMeals.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">{t.recent_meals}</p>
+              <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none snap-x snap-mandatory">
+                {recentMeals.map(meal => {
+                  const Icon = MEAL_ICON[meal.meal_type] ?? Utensils
+                  const kcal = Math.round(meal.meal_items.reduce((s, i) => s + (i.calories ?? 0), 0))
+                  return (
+                    <button
+                      key={meal.id}
+                      onClick={() => loadRelogMeal(meal.id)}
+                      style={{ width: 'calc(100% / 2.2 - 5px)', minWidth: 'calc(100% / 2.2 - 5px)' }}
+                      className="snap-start flex flex-col gap-1.5 p-3 rounded-xl bg-card border border-border text-left hover:border-accent/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <Icon className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" strokeWidth={1.5} />
+                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">{mealLabel(meal.meal_type)}</span>
+                      </div>
+                      <span className="text-xs font-medium leading-snug line-clamp-3">{meal.display_description}</span>
+                      <span className="text-[10px] text-muted-foreground mt-auto">{kcal} {t.unit_kcal}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Image preview */}
+          {imagePreview && (
             <div className="relative rounded-xl overflow-hidden">
               <img src={imagePreview} alt="Meal photo" className="w-full h-48 object-cover" />
               <button
@@ -353,51 +382,6 @@ function NewMealPageInner() {
                 </button>
               )}
             </div>
-          ) : showPhotoChoice ? (
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => { setShowPhotoChoice(false); cameraInputRef.current?.click() }} disabled={loading}>
-                <Camera className="w-4 h-4 mr-2" /> {t.camera_btn}
-              </Button>
-              <Button variant="outline" className="flex-1" onClick={() => { setShowPhotoChoice(false); galleryInputRef.current?.click() }} disabled={loading}>
-                <ImageIcon className="w-4 h-4 mr-2" /> {t.gallery_btn}
-              </Button>
-            </div>
-          ) : (
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => setShowPhotoChoice(true)}
-              disabled={loading}
-            >
-              <Camera className="w-4 h-4 mr-2" /> {t.add_photo}
-            </Button>
-          )}
-
-          {/* Recent meals suggestions — only when form is blank */}
-          {items === null && !description && !imagePreview && recentMeals && recentMeals.length > 0 && (
-            <div>
-              <p className="text-xs font-medium text-muted-foreground mb-2">{t.recent_meals}</p>
-              <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
-                {recentMeals.map(meal => {
-                  const Icon = MEAL_ICON[meal.meal_type] ?? Utensils
-                  const kcal = Math.round(meal.meal_items.reduce((s, i) => s + (i.calories ?? 0), 0))
-                  return (
-                    <button
-                      key={meal.id}
-                      onClick={() => loadRelogMeal(meal.id)}
-                      className="flex-shrink-0 w-36 flex flex-col gap-1.5 p-3 rounded-xl bg-card border border-border text-left hover:border-accent/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <Icon className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" strokeWidth={1.5} />
-                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">{mealLabel(meal.meal_type)}</span>
-                      </div>
-                      <span className="text-xs font-medium leading-snug line-clamp-3">{meal.display_description}</span>
-                      <span className="text-[10px] text-muted-foreground mt-auto">{kcal} {t.unit_kcal}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
           )}
 
           <Textarea
@@ -410,6 +394,7 @@ function NewMealPageInner() {
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
+          {/* Primary CTA */}
           <Button
             onClick={handleEstimate}
             disabled={loading || !canEstimate}
@@ -423,10 +408,27 @@ function NewMealPageInner() {
             ) : items !== null ? t.re_analyze : t.estimate_nutrition}
           </Button>
 
+          {/* Secondary CTAs: photo + manual — collapse into camera/gallery picker when triggered */}
           {items === null && (
-            <Button variant="outline" onClick={() => setItems([])} className="w-full">
-              {t.enter_manually}
-            </Button>
+            showPhotoChoice ? (
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={() => { setShowPhotoChoice(false); cameraInputRef.current?.click() }} disabled={loading}>
+                  <Camera className="w-4 h-4 mr-2" /> {t.camera_btn}
+                </Button>
+                <Button variant="outline" className="flex-1" onClick={() => { setShowPhotoChoice(false); galleryInputRef.current?.click() }} disabled={loading}>
+                  <ImageIcon className="w-4 h-4 mr-2" /> {t.gallery_btn}
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={() => setShowPhotoChoice(true)} disabled={loading}>
+                  <Camera className="w-4 h-4 mr-2" /> {t.add_photo}
+                </Button>
+                <Button variant="outline" className="flex-1" onClick={() => setItems([])}>
+                  {t.enter_manually}
+                </Button>
+              </div>
+            )
           )}
         </div>
 
