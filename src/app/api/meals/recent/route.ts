@@ -24,13 +24,17 @@ export async function GET() {
   const seen = new Set<string>()
   const unique = []
   for (const meal of meals) {
-    const items = (meal.meal_items as { ingredient_name: string }[] ?? [])
+    const items = (meal.meal_items as { ingredient_name: string; calories?: number | null }[] ?? [])
+    const ingredientList = items.map(i => i.ingredient_name)
     const fingerprint = meal.human_description
       ? meal.human_description.toLowerCase().trim()
-      : items.map(i => i.ingredient_name).sort().join(',')
+      : ingredientList.sort().join(',')
     if (!fingerprint || seen.has(fingerprint)) continue
     seen.add(fingerprint)
-    unique.push(meal)
+    // Generate a display description if the user never typed one
+    const display_description = meal.human_description
+      || ingredientList.slice(0, 4).join(', ')
+    unique.push({ ...meal, display_description })
     if (unique.length >= 8) break
   }
 

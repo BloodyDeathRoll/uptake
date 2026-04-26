@@ -15,6 +15,7 @@ interface RecentMeal {
   id: string
   meal_type: string
   human_description: string | null
+  display_description: string
   logged_at: string
   meal_items: Array<{ calories: number | null; [key: string]: unknown }>
 }
@@ -380,16 +381,18 @@ function NewMealPageInner() {
                 {recentMeals.map(meal => {
                   const Icon = MEAL_ICON[meal.meal_type] ?? Utensils
                   const kcal = Math.round(meal.meal_items.reduce((s, i) => s + (i.calories ?? 0), 0))
-                  const label = meal.human_description ?? mealLabel(meal.meal_type)
                   return (
                     <button
                       key={meal.id}
                       onClick={() => loadRelogMeal(meal.id)}
-                      className="flex-shrink-0 w-28 flex flex-col items-start gap-1 p-2.5 rounded-xl bg-card border border-border text-left hover:border-accent/50 transition-colors"
+                      className="flex-shrink-0 w-36 flex flex-col gap-1.5 p-3 rounded-xl bg-card border border-border text-left hover:border-accent/50 transition-colors"
                     >
-                      <Icon className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
-                      <span className="text-xs font-medium leading-tight line-clamp-2">{label}</span>
-                      <span className="text-[10px] text-muted-foreground">{kcal} {t.unit_kcal}</span>
+                      <div className="flex items-center gap-1.5">
+                        <Icon className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" strokeWidth={1.5} />
+                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">{mealLabel(meal.meal_type)}</span>
+                      </div>
+                      <span className="text-xs font-medium leading-snug line-clamp-3">{meal.display_description}</span>
+                      <span className="text-[10px] text-muted-foreground mt-auto">{kcal} {t.unit_kcal}</span>
                     </button>
                   )
                 })}
