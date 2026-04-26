@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Camera, ImageIcon, X, Sunrise, Sandwich, Moon, Cookie, Utensils } from 'lucide-react'
+import { Camera, ImageIcon, X, Sunrise, Sandwich, Moon, Cookie, Utensils, PenLine } from 'lucide-react'
 import VerificationCard from '../components/VerificationCard'
 import type { MealItem } from '@/hooks/useMeals'
 import type { MealType } from '@/lib/utils/constants'
@@ -399,41 +399,67 @@ function NewMealPageInner() {
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          {/* Primary CTA */}
-          <Button
-            onClick={handleEstimate}
-            disabled={loading || !canEstimate}
-            className="w-full h-12"
-          >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                {t.analyzing_meal}
-              </span>
-            ) : items !== null ? t.re_analyze : t.estimate_nutrition}
-          </Button>
-
-          {/* Secondary CTAs: photo + manual — collapse into camera/gallery picker when triggered */}
-          {items === null && (
+          {/* CTAs */}
+          {items === null ? (
             showPhotoChoice ? (
+              // Expanded camera/gallery picker
               <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => { setShowPhotoChoice(false); cameraInputRef.current?.click() }} disabled={loading}>
+                <Button variant="outline" className="flex-1 h-12" onClick={() => { setShowPhotoChoice(false); cameraInputRef.current?.click() }} disabled={loading}>
                   <Camera className="w-4 h-4 mr-2" /> {t.camera_btn}
                 </Button>
-                <Button variant="outline" className="flex-1" onClick={() => { setShowPhotoChoice(false); galleryInputRef.current?.click() }} disabled={loading}>
+                <Button variant="outline" className="flex-1 h-12" onClick={() => { setShowPhotoChoice(false); galleryInputRef.current?.click() }} disabled={loading}>
                   <ImageIcon className="w-4 h-4 mr-2" /> {t.gallery_btn}
                 </Button>
               </div>
             ) : (
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => setShowPhotoChoice(true)} disabled={loading}>
-                  <Camera className="w-4 h-4 mr-2" /> {t.add_photo}
+              // [ 📷 ]  [ Estimate nutrition ]  [ ✏ ]
+              <div className="flex gap-2 items-stretch">
+                <Button
+                  variant="outline"
+                  className="h-12 w-12 flex-shrink-0 p-0"
+                  onClick={() => setShowPhotoChoice(true)}
+                  disabled={loading}
+                  title={t.add_photo}
+                >
+                  <Camera className="w-5 h-5" />
                 </Button>
-                <Button variant="outline" className="flex-1" onClick={() => setItems([])}>
-                  {t.enter_manually}
+                <Button
+                  onClick={handleEstimate}
+                  disabled={loading || !canEstimate}
+                  className="flex-1 h-12"
+                >
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      {t.analyzing_meal}
+                    </span>
+                  ) : t.estimate_nutrition}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-12 w-12 flex-shrink-0 p-0"
+                  onClick={() => setItems([])}
+                  title={t.enter_manually}
+                >
+                  <PenLine className="w-4 h-4" />
                 </Button>
               </div>
             )
+          ) : (
+            // Re-analyze (VerificationCard is open)
+            <Button
+              variant="outline"
+              onClick={handleEstimate}
+              disabled={loading || !canEstimate}
+              className="w-full"
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  {t.analyzing_meal}
+                </span>
+              ) : t.re_analyze}
+            </Button>
           )}
         </div>
 
