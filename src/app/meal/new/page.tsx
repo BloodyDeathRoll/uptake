@@ -80,6 +80,7 @@ function NewMealPageInner() {
   const [recentMeals, setRecentMeals] = useState<RecentMeal[] | null>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
+  const suggestionScrolling = useRef(false)
 
   const mealLabel = (type: string) =>
     (t[('meal_' + type) as keyof Translations] as string) ?? type
@@ -330,14 +331,18 @@ function NewMealPageInner() {
           {items === null && !description && !imagePreview && recentMeals && recentMeals.length > 0 && (
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-2">{t.recent_meals}</p>
-              <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none snap-x snap-mandatory">
+              <div
+                className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none snap-x snap-mandatory"
+                onScroll={() => { suggestionScrolling.current = true }}
+              >
                 {recentMeals.map(meal => {
                   const Icon = MEAL_ICON[meal.meal_type] ?? Utensils
                   const kcal = Math.round(meal.meal_items.reduce((s, i) => s + (i.calories ?? 0), 0))
                   return (
                     <button
                       key={meal.id}
-                      onClick={() => loadRelogMeal(meal.id)}
+                      onPointerDown={() => { suggestionScrolling.current = false }}
+                      onClick={() => { if (!suggestionScrolling.current) loadRelogMeal(meal.id) }}
                       style={{ width: 'calc(100% / 2.2 - 5px)', minWidth: 'calc(100% / 2.2 - 5px)' }}
                       className="snap-start flex flex-col gap-1.5 p-3 rounded-xl bg-card border border-border text-left hover:border-accent/50 transition-colors"
                     >
