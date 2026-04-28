@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import Groq from 'groq-sdk'
+import { buildDietaryBlock, filterMealsByAllergens } from '@/lib/ai/prompts/suggest-meal'
 
 const MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct'
 const MIN_DAYS = 5
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .gte('logged_at', new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()),
     supabase.from('profiles')
-      .select('meals_per_day')
+      .select('meals_per_day, dietary_preferences, allergies')
       .eq('id', user.id)
       .single(),
     // Past meals with their actual nutrition
@@ -94,7 +95,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ready: false, daysLogged: distinctDays, daysNeeded: MIN_DAYS })
   }
 
-  const allMeals = Array.from(mealMap.values())
+  const allergies: string[] = profile?.allergies ?? []
+  const dietaryPreferences: string[] = profile?.dietary_preferences ?? []
+
+  // Hard-filter candidate pool before the AI ever sees it — allergenic meals are never offered
+  const allMeals = filterMealsByAllergens(Array.from(mealMap.values()), allergies)
+
+  if (allMeals.length === 0) {
+    return NextResponse.json({ ready: false, daysLogged: distinctDays, daysNeeded: MIN_DAYS })
+  }
+
   const byType: Record<string, PastMeal[]> = { breakfast: [], lunch: [], dinner: [], snack: [], any: [] }
 
   for (const m of allMeals) {
@@ -123,6 +133,7 @@ export async function POST(request: NextRequest) {
     return `${slot.toUpperCase()} (${options.length} options):\n${formatList(options)}`
   }).join('\n\n')
 
+  const dietaryBlock = buildDietaryBlock(dietaryPreferences, allergies, goalType)
   const hasConsumed = consumed.calories > 0
   const prompt = `You are a meal planner. Select one meal per slot to fill the user's remaining daily nutrition budget.
 
@@ -130,7 +141,8 @@ export async function POST(request: NextRequest) {
 1. You MUST ONLY choose meals from the lists below.
 2. Do NOT invent, create, or suggest any meal not in this list.
 3. Copy the description EXACTLY as written (do not paraphrase or modify it).
-
+4. Every selected meal MUST comply with all dietary constraints below.
+${dietaryBlock}
 Goal: ${goalType.replace(/_/g, ' ')}
 ${hasConsumed ? `Already eaten today: ${Math.round(consumed.calories)} kcal | ${Math.round(consumed.protein)}g protein | ${Math.round(consumed.carbs)}g carbs | ${Math.round(consumed.fat)}g fat\n` : ''}Remaining budget: ${Math.round(remaining.calories)} kcal | ${Math.round(remaining.protein)}g protein | ${Math.round(remaining.carbs)}g carbs | ${Math.round(remaining.fat)}g fat
 

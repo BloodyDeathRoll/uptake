@@ -1,4 +1,4 @@
-import { buildDietaryBlock, buildSuggestMealPrompt } from '@/lib/ai/prompts/suggest-meal'
+import { buildDietaryBlock, buildGoalConstraints, buildSuggestMealPrompt, filterMealsByAllergens } from '@/lib/ai/prompts/suggest-meal'
 import type { PrioritySignal } from '@/lib/nutrition/priority'
 
 const BASE_PRIORITY: PrioritySignal = {
@@ -192,5 +192,273 @@ describe('buildSuggestMealPrompt — dietary constraints in prompt', () => {
     const prompt = buildSuggestMealPrompt(overQuota)
     // Should suggest max 10% of 2000 = 200 kcal
     expect(prompt).toContain('200 kcal')
+  })
+})
+
+// ─── buildGoalConstraints ─────────────────────────────────────────────────────
+
+describe('buildGoalConstraints', () => {
+  test('diabetic: forbids added sugar, sugary drinks, and sweetened foods', () => {
+    const rules = buildGoalConstraints('diabetic')
+    expect(rules.some(r => r.includes('NO added sugar'))).toBe(true)
+    expect(rules.some(r => r.includes('sugary drinks'))).toBe(true)
+  })
+
+  test('diabetic: forbids refined carbohydrates including white bread and white rice', () => {
+    const rules = buildGoalConstraints('diabetic')
+    expect(rules.some(r => r.includes('white bread') && r.includes('white rice'))).toBe(true)
+    expect(rules.some(r => r.includes('refined carbohydrates'))).toBe(true)
+  })
+
+  test('diabetic: specifies a net carb limit per meal', () => {
+    const rules = buildGoalConstraints('diabetic')
+    expect(rules.some(r => r.includes('net carbs'))).toBe(true)
+  })
+
+  test('heart_healthy: forbids fried foods and trans fats', () => {
+    const rules = buildGoalConstraints('heart_healthy')
+    expect(rules.some(r => r.includes('NO fried foods') && r.includes('trans fat'))).toBe(true)
+  })
+
+  test('heart_healthy: limits saturated fat and sodium', () => {
+    const rules = buildGoalConstraints('heart_healthy')
+    expect(rules.some(r => r.includes('saturated fat'))).toBe(true)
+    expect(rules.some(r => r.includes('sodium'))).toBe(true)
+  })
+
+  test('longevity: excludes ultra-processed foods', () => {
+    const rules = buildGoalConstraints('longevity')
+    expect(rules.some(r => r.includes('ultra-processed'))).toBe(true)
+  })
+
+  test('longevity: excludes added sugar', () => {
+    const rules = buildGoalConstraints('longevity')
+    expect(rules.some(r => r.includes('NO added sugar'))).toBe(true)
+  })
+
+  test('recovery: excludes alcohol and promotes anti-inflammatory foods', () => {
+    const rules = buildGoalConstraints('recovery')
+    expect(rules.some(r => r.includes('alcohol'))).toBe(true)
+    expect(rules.some(r => r.includes('anti-inflammatory'))).toBe(true)
+  })
+
+  test('weight_loss: excludes liquid calories and fried foods', () => {
+    const rules = buildGoalConstraints('weight_loss')
+    expect(rules.some(r => r.includes('liquid calories'))).toBe(true)
+    expect(rules.some(r => r.includes('fried'))).toBe(true)
+  })
+
+  test('athlete_cut: excludes liquid calories (same as weight_loss)', () => {
+    const rules = buildGoalConstraints('athlete_cut')
+    expect(rules.some(r => r.includes('liquid calories'))).toBe(true)
+  })
+
+  test('maintenance: returns no constraints', () => {
+    expect(buildGoalConstraints('maintenance')).toEqual([])
+  })
+
+  test('muscle_gain: returns no food exclusions', () => {
+    expect(buildGoalConstraints('muscle_gain')).toEqual([])
+  })
+
+  test('endurance: returns no exclusions (carb-heavy diet is fine)', () => {
+    expect(buildGoalConstraints('endurance')).toEqual([])
+  })
+
+  test('recomposition: returns no exclusions', () => {
+    expect(buildGoalConstraints('recomposition')).toEqual([])
+  })
+
+  test('custom: returns no exclusions', () => {
+    expect(buildGoalConstraints('custom')).toEqual([])
+  })
+
+  test('unknown goal type: returns no constraints', () => {
+    expect(buildGoalConstraints('unknown_goal')).toEqual([])
+  })
+
+  test('is case-insensitive for goal matching', () => {
+    const rules = buildGoalConstraints('Diabetic')
+    expect(rules.some(r => r.includes('NO added sugar'))).toBe(true)
+  })
+
+  test('handles goal with spaces instead of underscores', () => {
+    const rules = buildGoalConstraints('heart healthy')
+    expect(rules.some(r => r.includes('NO fried foods'))).toBe(true)
+  })
+})
+
+// ─── buildDietaryBlock — goal constraint integration ─────────────────────────
+
+describe('buildDietaryBlock — goal constraints', () => {
+  test('diabetic goal produces a HARD CONSTRAINTS block even with no preferences or allergies', () => {
+    const block = buildDietaryBlock([], [], 'diabetic')
+    expect(block).toContain('HARD DIETARY CONSTRAINTS')
+    expect(block).toContain('NO added sugar')
+    expect(block).toContain('net carbs')
+  })
+
+  test('heart_healthy goal: block contains sodium and saturated fat restrictions', () => {
+    const block = buildDietaryBlock([], [], 'heart_healthy')
+    expect(block).toContain('NO fried foods')
+    expect(block).toContain('sodium')
+    expect(block).toContain('saturated fat')
+  })
+
+  test('longevity goal: block contains ultra-processed food exclusion', () => {
+    const block = buildDietaryBlock([], [], 'longevity')
+    expect(block).toContain('ultra-processed')
+    expect(block).toContain('NO added sugar')
+  })
+
+  test('recovery goal: block excludes alcohol and calls for anti-inflammatory foods', () => {
+    const block = buildDietaryBlock([], [], 'recovery')
+    expect(block).toContain('alcohol')
+    expect(block).toContain('anti-inflammatory')
+  })
+
+  test('weight_loss goal: block calls out liquid calories and fried foods', () => {
+    const block = buildDietaryBlock([], [], 'weight_loss')
+    expect(block).toContain('liquid calories')
+    expect(block).toContain('fried')
+  })
+
+  test('maintenance goal with no restrictions: returns empty string', () => {
+    expect(buildDietaryBlock([], [], 'maintenance')).toBe('')
+  })
+
+  test('goal constraints combine with dietary preferences in one block', () => {
+    const block = buildDietaryBlock(['vegan'], [], 'diabetic')
+    expect(block).toContain('NO meat, poultry, fish, seafood, eggs, dairy')
+    expect(block).toContain('NO added sugar')
+    expect(block).toContain('HARD DIETARY CONSTRAINTS')
+  })
+
+  test('goal constraints combine with allergies in one block', () => {
+    const block = buildDietaryBlock([], ['peanuts'], 'heart_healthy')
+    expect(block).toContain('NEVER include')
+    expect(block).toContain('peanuts')
+    expect(block).toContain('NO fried foods')
+  })
+
+  test('all three sources (preference + allergy + goal) appear in one block', () => {
+    const block = buildDietaryBlock(['gluten-free'], ['shellfish'], 'diabetic')
+    expect(block).toContain('NO gluten')
+    expect(block).toContain('shellfish')
+    expect(block).toContain('NO added sugar')
+    expect(block).toContain('HARD DIETARY CONSTRAINTS')
+  })
+})
+
+// ─── buildSuggestMealPrompt — goal-specific constraints ───────────────────────
+
+describe('buildSuggestMealPrompt — goal-specific constraints in prompt', () => {
+  test('diabetic: prompt explicitly forbids sugar and refined carbs', () => {
+    const prompt = buildSuggestMealPrompt({ ...BASE_PARAMS, goalType: 'diabetic' })
+    expect(prompt).toContain('NO added sugar')
+    expect(prompt).toContain('HARD DIETARY CONSTRAINTS')
+    expect(prompt).toContain('refined carbohydrates')
+  })
+
+  test('heart_healthy: prompt contains sodium and fat restrictions', () => {
+    const prompt = buildSuggestMealPrompt({ ...BASE_PARAMS, goalType: 'heart_healthy' })
+    expect(prompt).toContain('NO fried foods')
+    expect(prompt).toContain('sodium')
+  })
+
+  test('longevity: prompt contains ultra-processed food exclusion', () => {
+    const prompt = buildSuggestMealPrompt({ ...BASE_PARAMS, goalType: 'longevity' })
+    expect(prompt).toContain('ultra-processed')
+  })
+
+  test('recovery: prompt excludes alcohol', () => {
+    const prompt = buildSuggestMealPrompt({ ...BASE_PARAMS, goalType: 'recovery' })
+    expect(prompt).toContain('alcohol')
+  })
+
+  test('maintenance: no hard constraint block when no other restrictions', () => {
+    const prompt = buildSuggestMealPrompt({ ...BASE_PARAMS, goalType: 'maintenance' })
+    expect(prompt).not.toContain('HARD DIETARY CONSTRAINTS')
+  })
+
+  test('diabetic + vegan: prompt contains both animal-product and sugar exclusions', () => {
+    const prompt = buildSuggestMealPrompt({
+      ...BASE_PARAMS,
+      goalType: 'diabetic',
+      dietaryPreferences: ['vegan'],
+    })
+    expect(prompt).toContain('NO meat, poultry, fish, seafood, eggs, dairy')
+    expect(prompt).toContain('NO added sugar')
+  })
+
+  test('diabetic + peanut allergy: prompt contains both sugar rule and peanut NEVER include', () => {
+    const prompt = buildSuggestMealPrompt({
+      ...BASE_PARAMS,
+      goalType: 'diabetic',
+      allergies: ['peanuts'],
+    })
+    expect(prompt).toContain('NEVER include')
+    expect(prompt).toContain('peanuts')
+    expect(prompt).toContain('NO added sugar')
+  })
+})
+
+// ─── filterMealsByAllergens ───────────────────────────────────────────────────
+
+describe('filterMealsByAllergens', () => {
+  const meals = [
+    { description: 'Grilled chicken with rice and broccoli' },
+    { description: 'Peanut butter toast with banana' },
+    { description: 'Salmon salad with mixed greens' },
+    { description: 'Shellfish pasta with garlic butter' },
+    { description: 'Oats with blueberries and honey' },
+    { description: 'Greek yogurt with granola and walnuts' },
+  ]
+
+  test('returns all meals when no allergens provided', () => {
+    expect(filterMealsByAllergens(meals, [])).toHaveLength(meals.length)
+  })
+
+  test('removes meals containing the allergen keyword', () => {
+    const result = filterMealsByAllergens(meals, ['peanut'])
+    expect(result.some(m => m.description.includes('Peanut'))).toBe(false)
+    expect(result).toHaveLength(meals.length - 1)
+  })
+
+  test('is case-insensitive', () => {
+    const result = filterMealsByAllergens(meals, ['PEANUT'])
+    expect(result.some(m => m.description.toLowerCase().includes('peanut'))).toBe(false)
+  })
+
+  test('removes multiple meals when multiple allergens match', () => {
+    const result = filterMealsByAllergens(meals, ['peanut', 'shellfish'])
+    expect(result.some(m => m.description.toLowerCase().includes('peanut'))).toBe(false)
+    expect(result.some(m => m.description.toLowerCase().includes('shellfish'))).toBe(false)
+    expect(result).toHaveLength(meals.length - 2)
+  })
+
+  test('returns empty array when every meal contains an allergen', () => {
+    const peanutOnly = [
+      { description: 'Peanut soup' },
+      { description: 'Peanut butter cookies' },
+    ]
+    expect(filterMealsByAllergens(peanutOnly, ['peanut'])).toHaveLength(0)
+  })
+
+  test('keeps meals that contain no allergen', () => {
+    const result = filterMealsByAllergens(meals, ['walnut'])
+    // Only the walnut entry should be removed
+    expect(result.some(m => m.description.includes('walnuts'))).toBe(false)
+    expect(result.some(m => m.description.includes('Grilled chicken'))).toBe(true)
+  })
+
+  test('works with extra meal properties beyond description', () => {
+    const richMeals = [
+      { description: 'Peanut stew', calories: 400, meal_type: 'lunch' },
+      { description: 'Rice bowl', calories: 300, meal_type: 'dinner' },
+    ]
+    const result = filterMealsByAllergens(richMeals, ['peanut'])
+    expect(result).toHaveLength(1)
+    expect(result[0].description).toBe('Rice bowl')
   })
 })

@@ -1,6 +1,56 @@
 import type { PrioritySignal } from '@/lib/nutrition/priority'
 
-export function buildDietaryBlock(preferences: string[], allergies: string[]): string {
+// Returns explicit food rules that must be enforced for a given goal type.
+export function buildGoalConstraints(goalType: string): string[] {
+  switch (goalType.toLowerCase().replace(/\s+/g, '_')) {
+    case 'diabetic':
+      return [
+        'NO added sugar, sugary drinks, candy, sweetened foods, honey, syrup, or fruit juice',
+        'NO white bread, white rice, or other refined carbohydrates — use whole-grain alternatives',
+        'NO high-GI foods (e.g. white potato, white pasta in large portions)',
+        'Keep net carbs per meal low (target under ~30 g net carbs)',
+      ]
+    case 'heart_healthy':
+      return [
+        'NO fried foods, NO trans fats (no margarine, shortening, partially-hydrogenated oils)',
+        'Limit saturated fat — avoid fatty red meat, full-fat dairy, palm oil, coconut oil',
+        'Limit sodium — avoid cured/processed meats, salty snacks, high-sodium sauces',
+        'Prefer omega-3 sources (salmon, sardines, walnuts, flaxseed) and soluble fiber',
+      ]
+    case 'longevity':
+      return [
+        'NO ultra-processed foods (packaged snacks, fast food, processed meats)',
+        'NO added sugar or sugary drinks',
+        'Prefer whole plants, legumes, nuts, seeds, and fermented foods',
+      ]
+    case 'recovery':
+      return [
+        'Avoid alcohol, fried foods, and high-sugar items that drive inflammation',
+        'Prefer anti-inflammatory foods: fatty fish, berries, leafy greens, turmeric, ginger',
+      ]
+    case 'weight_loss':
+    case 'athlete_cut':
+      return [
+        'Avoid liquid calories (juice, soda, sugary coffee drinks, alcohol)',
+        'Avoid calorie-dense fried foods and cream-based or oil-heavy sauces',
+      ]
+    default:
+      return []
+  }
+}
+
+// Removes meals whose descriptions mention any of the given allergen keywords.
+export function filterMealsByAllergens<T extends { description: string }>(
+  meals: T[],
+  allergens: string[],
+): T[] {
+  if (allergens.length === 0) return meals
+  return meals.filter(m =>
+    !allergens.some(a => m.description.toLowerCase().includes(a.toLowerCase()))
+  )
+}
+
+export function buildDietaryBlock(preferences: string[], allergies: string[], goalType = ''): string {
   const lines: string[] = []
 
   if (preferences.length > 0) {
@@ -22,6 +72,12 @@ export function buildDietaryBlock(preferences: string[], allergies: string[]): s
 
   if (allergies.length > 0) {
     lines.push(`Allergies — NEVER include: ${allergies.join(', ')}`)
+  }
+
+  const goalRules = buildGoalConstraints(goalType)
+  if (goalRules.length > 0) {
+    lines.push(`Goal constraints (${goalType.replace(/_/g, ' ')}):`)
+    lines.push(...goalRules)
   }
 
   if (lines.length === 0) return ''
@@ -62,7 +118,7 @@ export function buildSuggestMealPrompt(params: {
     : hourOfDay < 18 ? 'snack'
     : 'dinner'
 
-  const dietaryBlock = buildDietaryBlock(dietaryPreferences, allergies)
+  const dietaryBlock = buildDietaryBlock(dietaryPreferences, allergies, goalType)
   const locationLine = location ? `User location: ${location} — suggest meals that are culturally relevant and locally available there.\n` : ''
 
   const directionWord = priority.direction === 'under' ? `high-${priority.nutrient}` : `low-${priority.nutrient}`
