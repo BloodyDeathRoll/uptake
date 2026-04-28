@@ -16,7 +16,7 @@ export default function LandingPage() {
         <div className="min-h-screen bg-background flex flex-col">
 
           {/* Nav */}
-          <header className="px-6 h-14 flex items-center justify-between">
+          <header dir="ltr" className="px-6 h-14 flex items-center justify-between">
             <span className="font-bold text-lg tracking-tight flex items-center gap-2">
               <Image src="/uptake-icon.svg" alt="Uptake" width={24} height={24} priority />
               Uptake
