@@ -38,14 +38,13 @@ const MEAL_ICONS: Record<string, LucideIcon> = {
   snack: Cookie,
 }
 
-type ViewState = 'idle' | 'loading' | 'ready' | 'not_ready' | 'error'
+type ViewState = 'idle' | 'loading' | 'ready' | 'error'
 
 export default function DailyMenuSuggestion({ targets, consumed, loggedTypes, goalType }: Props) {
   const { t, lang } = useLanguage()
   const [state, setState] = useState<ViewState>('idle')
   const [meals, setMeals] = useState<DailyMeal[]>([])
   const [total, setTotal] = useState<DailyTotal | null>(null)
-  const [notReady, setNotReady] = useState<{ daysLogged: number; daysNeeded: number } | null>(null)
 
   const generate = useCallback(async () => {
     setState('loading')
@@ -57,12 +56,6 @@ export default function DailyMenuSuggestion({ targets, consumed, loggedTypes, go
       })
       const data = await res.json()
       if (!res.ok) { setState('error'); return }
-
-      if (!data.ready) {
-        setNotReady({ daysLogged: data.daysLogged, daysNeeded: data.daysNeeded })
-        setState('not_ready')
-        return
-      }
 
       setMeals(data.meals)
       setTotal(data.total)
@@ -112,35 +105,6 @@ export default function DailyMenuSuggestion({ targets, consumed, loggedTypes, go
           ))}
         </div>
         <p className="text-xs text-muted-foreground text-center mt-3">{t.generating_menu}</p>
-      </div>
-    )
-  }
-
-  // ── Not enough history ───────────────────────────────────────────────────────
-  if (state === 'not_ready' && notReady) {
-    const pct = Math.min(100, Math.round((notReady.daysLogged / notReady.daysNeeded) * 100))
-    return (
-      <div className="animate-in fade-in duration-300">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-base flex items-center gap-2">
-            <CalendarDays className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
-            {t.daily_menu_title}
-          </h2>
-        </div>
-        <Card>
-          <CardContent className="py-5 flex flex-col items-center text-center gap-3">
-            <p className="text-sm text-muted-foreground max-w-xs">{t.menu_not_ready_title}</p>
-            <div className="w-full max-w-48">
-              <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
-                <span>{notReady.daysLogged} / {notReady.daysNeeded} {t.days_logged}</span>
-                <span>{pct}%</span>
-              </div>
-              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-accent rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     )
   }
