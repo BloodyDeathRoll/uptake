@@ -10,6 +10,10 @@ export const metadata: Metadata = {
   title: 'Uptake — Nutrition Tracker',
   description: 'Track your food intake with AI-powered nutrition estimation',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
