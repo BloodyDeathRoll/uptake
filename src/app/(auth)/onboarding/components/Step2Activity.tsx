@@ -13,21 +13,27 @@ interface Props {
 }
 
 const LEVELS: ActivityLevel[] = ['sedentary', 'light', 'moderate', 'very_active', 'athlete']
-const EXTENDED = [LEVELS[LEVELS.length - 1], ...LEVELS, LEVELS[0]]
 
 export default function Step2Activity({ onNext, onBack }: Props) {
-  const { t } = useLanguage()
+  const { lang, t } = useLanguage()
+  const isRTL = lang === 'he'
   const actLabel = (l: string) => (t[('actLabel_' + l) as keyof Translations] as string) ?? l
   const actDesc  = (l: string) => (t[('actDesc_'  + l) as keyof Translations] as string) ?? l
-  const [activeIndex, setActiveIndex] = useState(1)
+  const n = LEVELS.length
+  const workLevels = isRTL ? ([...LEVELS].reverse() as ActivityLevel[]) : LEVELS
+  const extended = [workLevels[n - 1], ...workLevels, workLevels[0]] as ActivityLevel[]
+  const [activeIndex, setActiveIndex] = useState(isRTL ? n : 1)
   const [selectedLevel, setSelectedLevel] = useState<ActivityLevel | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const scrollTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const jumping = useRef(false)
 
-  const realIndex = (activeIndex - 1 + LEVELS.length) % LEVELS.length
-  const displayNum = (i: number) =>
-    i === 0 ? LEVELS.length : i === EXTENDED.length - 1 ? 1 : i
+  const physicalRealIndex = (activeIndex - 1 + n) % n
+  const realIndex = isRTL ? n - 1 - physicalRealIndex : physicalRealIndex
+  const displayNum = (i: number) => {
+    const ltr = i === 0 ? n : i === extended.length - 1 ? 1 : i
+    return isRTL ? n + 1 - ltr : ltr
+  }
 
   const jumpTo = useCallback((extIndex: number) => {
     if (!scrollRef.current) return
@@ -43,7 +49,7 @@ export default function Step2Activity({ onNext, onBack }: Props) {
     setActiveIndex(extIndex)
   }, [])
 
-  useEffect(() => { jumpTo(1) }, [jumpTo])
+  useEffect(() => { jumpTo(isRTL ? n : 1) }, [jumpTo, isRTL, n])
 
   const handleScroll = () => {
     if (jumping.current || !scrollRef.current) return
@@ -61,14 +67,14 @@ export default function Step2Activity({ onNext, onBack }: Props) {
     scrollTimer.current = setTimeout(() => {
       if (!scrollRef.current) return
       jumping.current = true
-      if (closest === 0) jumpTo(LEVELS.length)
-      else if (closest === EXTENDED.length - 1) jumpTo(1)
+      if (closest === 0) jumpTo(n)
+      else if (closest === extended.length - 1) jumpTo(1)
       jumping.current = false
     }, 120)
   }
 
-  const handlePrev = () => smoothTo(activeIndex <= 1 ? LEVELS.length : activeIndex - 1)
-  const handleNext = () => smoothTo(activeIndex >= LEVELS.length ? 1 : activeIndex + 1)
+  const handlePrev = () => smoothTo(activeIndex <= 1 ? n : activeIndex - 1)
+  const handleNext = () => smoothTo(activeIndex >= n ? 1 : activeIndex + 1)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,7 +96,7 @@ export default function Step2Activity({ onNext, onBack }: Props) {
           className="absolute inset-0 flex gap-3 overflow-x-auto snap-x snap-mandatory"
           style={{ scrollbarWidth: 'none' }}
         >
-          {EXTENDED.map((level, i) => {
+          {extended.map((level, i) => {
             const isSelected = selectedLevel === level
             const imgIndex = LEVELS.indexOf(level) + 1
             return (

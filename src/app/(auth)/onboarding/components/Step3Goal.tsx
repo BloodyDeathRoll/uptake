@@ -17,22 +17,28 @@ const GOALS: GoalType[] = [
   'recomposition', 'endurance', 'heart_healthy', 'longevity',
   'diabetic', 'recovery'
 ]
-const EXTENDED = [GOALS[GOALS.length - 1], ...GOALS, GOALS[0]]
 
 export default function Step3Goal({ onNext, onBack }: Props) {
-  const { t } = useLanguage()
+  const { lang, t } = useLanguage()
+  const isRTL = lang === 'he'
   const goalLabel = (g: string) => (t[('goalLabel_' + g) as keyof Translations] as string) ?? g
   const goalDesc  = (g: string) => (t[('goalDesc_'  + g) as keyof Translations] as string) ?? g
   const goalFocus = (g: string) => (t[('goalFocus_' + g) as keyof Translations] as string) ?? g
-  const [activeIndex, setActiveIndex] = useState(1)
+  const n = GOALS.length
+  const workGoals = isRTL ? ([...GOALS].reverse() as GoalType[]) : GOALS
+  const extended = [workGoals[n - 1], ...workGoals, workGoals[0]] as GoalType[]
+  const [activeIndex, setActiveIndex] = useState(isRTL ? n : 1)
   const [selectedGoal, setSelectedGoal] = useState<GoalType | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const scrollTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const jumping = useRef(false)
 
-  const realIndex = (activeIndex - 1 + GOALS.length) % GOALS.length
-  const displayNum = (i: number) =>
-    i === 0 ? GOALS.length : i === EXTENDED.length - 1 ? 1 : i
+  const physicalRealIndex = (activeIndex - 1 + n) % n
+  const realIndex = isRTL ? n - 1 - physicalRealIndex : physicalRealIndex
+  const displayNum = (i: number) => {
+    const ltr = i === 0 ? n : i === extended.length - 1 ? 1 : i
+    return isRTL ? n + 1 - ltr : ltr
+  }
 
   const jumpTo = useCallback((extIndex: number) => {
     if (!scrollRef.current) return
@@ -48,7 +54,7 @@ export default function Step3Goal({ onNext, onBack }: Props) {
     setActiveIndex(extIndex)
   }, [])
 
-  useEffect(() => { jumpTo(1) }, [jumpTo])
+  useEffect(() => { jumpTo(isRTL ? n : 1) }, [jumpTo, isRTL, n])
 
   const handleScroll = () => {
     if (jumping.current || !scrollRef.current) return
@@ -66,14 +72,14 @@ export default function Step3Goal({ onNext, onBack }: Props) {
     scrollTimer.current = setTimeout(() => {
       if (!scrollRef.current) return
       jumping.current = true
-      if (closest === 0) jumpTo(GOALS.length)
-      else if (closest === EXTENDED.length - 1) jumpTo(1)
+      if (closest === 0) jumpTo(n)
+      else if (closest === extended.length - 1) jumpTo(1)
       jumping.current = false
     }, 120)
   }
 
-  const handlePrev = () => smoothTo(activeIndex <= 1 ? GOALS.length : activeIndex - 1)
-  const handleNext = () => smoothTo(activeIndex >= GOALS.length ? 1 : activeIndex + 1)
+  const handlePrev = () => smoothTo(activeIndex <= 1 ? n : activeIndex - 1)
+  const handleNext = () => smoothTo(activeIndex >= n ? 1 : activeIndex + 1)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -95,7 +101,7 @@ export default function Step3Goal({ onNext, onBack }: Props) {
           className="absolute inset-0 flex gap-3 overflow-x-auto snap-x snap-mandatory"
           style={{ scrollbarWidth: 'none' }}
         >
-          {EXTENDED.map((goal, i) => {
+          {extended.map((goal, i) => {
             const isSelected = selectedGoal === goal
             const imgIndex = GOALS.indexOf(goal) + 1
             return (
