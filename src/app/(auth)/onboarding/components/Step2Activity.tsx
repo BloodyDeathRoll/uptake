@@ -86,6 +86,7 @@ export default function Step2Activity({ onNext, onBack }: Props) {
         <div
           ref={scrollRef}
           onScroll={handleScroll}
+          dir="ltr"
           className="absolute inset-0 flex gap-3 overflow-x-auto snap-x snap-mandatory"
           style={{ scrollbarWidth: 'none' }}
         >
@@ -114,7 +115,7 @@ export default function Step2Activity({ onNext, onBack }: Props) {
                   />
                 </div>
                 {/* Text — pinned to bottom */}
-                <div className="shrink-0 px-6 pb-6">
+                <div dir="auto" className="shrink-0 px-6 pb-6">
                   <p className="text-[10px] font-medium text-black/60 uppercase tracking-widest mb-1">
                     {displayNum(i)} / {LEVELS.length}
                   </p>
