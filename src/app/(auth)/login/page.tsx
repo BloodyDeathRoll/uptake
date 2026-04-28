@@ -78,6 +78,7 @@ function LoginForm() {
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
         ...(provider === 'azure' ? { scopes: 'email profile' } : {}),
+        queryParams: provider === 'google' ? { prompt: 'select_account' } : undefined,
       },
     })
   }
