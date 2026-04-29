@@ -22,7 +22,7 @@ function prefKey(pref: string): keyof Translations {
 export default function Step4Preferences({ onNext, onBack, initialData }: Props) {
   const { t } = useLanguage()
   const [preferences, setPreferences] = useState<string[]>(initialData.dietaryPreferences ?? [])
-  const [allergies, setAllergies] = useState<string[]>(initialData.allergies ?? [])
+  const [allergies, setAllergies] = useState<string[]>((initialData.allergies ?? []).map(a => a.toLowerCase()))
   const [allergyInput, setAllergyInput] = useState('')
   const [mealsPerDay, setMealsPerDay] = useState(String(initialData.mealsPerDay ?? 3))
 
@@ -30,8 +30,8 @@ export default function Step4Preferences({ onNext, onBack, initialData }: Props)
     setPreferences(prev => prev.includes(pref) ? prev.filter(p => p !== pref) : [...prev, pref])
 
   const addAllergy = () => {
-    const t = allergyInput.trim()
-    if (t && !allergies.includes(t)) { setAllergies(prev => [...prev, t]); setAllergyInput('') }
+    const v = allergyInput.trim().toLowerCase()
+    if (v && !allergies.includes(v)) { setAllergies(prev => [...prev, v]); setAllergyInput('') }
   }
 
   const handleSkip = () => onNext({ dietaryPreferences: [], allergies: [], mealsPerDay: 3 })

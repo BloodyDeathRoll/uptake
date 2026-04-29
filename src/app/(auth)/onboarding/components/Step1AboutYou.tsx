@@ -49,7 +49,7 @@ export default function Step1AboutYou({ onNext }: Props) {
     setPreferences(prev => prev.includes(pref) ? prev.filter(p => p !== pref) : [...prev, pref])
 
   const addAllergy = () => {
-    const v = allergyInput.trim()
+    const v = allergyInput.trim().toLowerCase()
     if (v && !allergies.includes(v)) { setAllergies(prev => [...prev, v]); setAllergyInput('') }
   }
 
