@@ -82,7 +82,7 @@ export default function GoalDropdown({ initialGoalType, profile, onGoalChange, o
       </button>
 
       {open && (
-        <div className="absolute top-full start-0 mt-2 bg-background border border-border rounded-xl shadow-md z-50 w-56 overflow-hidden">
+        <div className="absolute top-full start-0 mt-2 bg-popover border border-border rounded-xl shadow-md z-50 w-56 overflow-hidden">
           {ORDERED_GOALS.map(g => (
             <button
               key={g}
