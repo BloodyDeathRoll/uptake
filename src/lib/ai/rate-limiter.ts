@@ -79,13 +79,8 @@ export async function execute<T extends LLMResponse>(
   }
 
   if (!limits.rpm) {
-    // Wait for next minute window and retry once
-    await new Promise(resolve => setTimeout(resolve, 60_000))
-    const retryLimits = await isWithinLimits(provider)
-    if (!retryLimits.rpm) {
-      if (fallback) return execute('fallback', fallback)
-      throw new RateLimitExhaustedError(provider)
-    }
+    if (fallback) return execute('fallback', fallback)
+    throw new RateLimitExhaustedError(provider)
   }
 
   const result = await fn()

@@ -1,10 +1,24 @@
 import type { Metadata, Viewport } from 'next'
+import { Inter, Noto_Sans_Hebrew } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 import ServiceWorkerRegistrar from '@/components/ServiceWorkerRegistrar'
 import TimezoneSync from '@/components/TimezoneSync'
 import { LanguageProvider } from '@/lib/i18n'
 import { ThemeProvider } from '@/components/layout/ThemeProvider'
 import './globals.css'
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+})
+
+const notoSansHebrew = Noto_Sans_Hebrew({
+  subsets: ['hebrew', 'latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-noto-hebrew',
+})
 
 export const metadata: Metadata = {
   title: 'Uptake — Nutrition Tracker',
@@ -33,14 +47,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://rsms.me/" />
-        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@100..900&display=swap" />
-      </head>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${notoSansHebrew.variable}`}>
       <body className="antialiased">
         <ThemeProvider>
           <LanguageProvider>

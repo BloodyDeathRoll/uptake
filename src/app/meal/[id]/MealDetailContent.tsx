@@ -56,7 +56,7 @@ export default function MealDetailContent({ meal, returnDate }: Props) {
     <div className="min-h-screen bg-background pb-20">
       <div dir="ltr" className="sticky top-0 bg-background/80 backdrop-blur-sm shadow-[0_0_2px_0_rgba(0,0,0,0.1)] px-4 h-14 flex items-center justify-between">
         <NavBackButton href={returnDate ? `/dashboard?date=${returnDate}` : '/dashboard'} />
-        <span className="font-semibold capitalize">{mealLabel(meal.meal_type)}</span>
+        <div className="w-24" />
         <div className="flex items-center gap-3">
           <Link href={`/meal/new?relogOf=${meal.id}`} className="text-accent text-sm">{t.log_again}</Link>
           <Link href={`/meal/new?revisionOf=${meal.id}${returnDate ? `&returnDate=${returnDate}` : ''}`} className="text-accent text-sm">{t.edit_btn}</Link>
@@ -64,15 +64,19 @@ export default function MealDetailContent({ meal, returnDate }: Props) {
       </div>
 
       <div className="px-4 py-6 max-w-[38.4rem] mx-auto space-y-6">
-        <div className="text-sm text-muted-foreground">{formatTime(meal.logged_at)}</div>
-
         {meal.image_url && (
           <img src={meal.image_url} alt="Meal photo" className="w-full h-48 object-cover rounded-xl" />
         )}
 
-        {meal.human_description && (
-          <p className="text-sm text-muted-foreground">{meal.human_description}</p>
-        )}
+        <div>
+          {meal.human_description && (
+            <h1 className="text-xl font-semibold leading-snug mb-2">{meal.human_description}</h1>
+          )}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="px-2 py-0.5 rounded-full bg-muted font-medium capitalize">{mealLabel(meal.meal_type)}</span>
+            <span>{formatTime(meal.logged_at)}</span>
+          </div>
+        </div>
 
         {/* Summary */}
         <div className="grid grid-cols-4 gap-2 text-center">

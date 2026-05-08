@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Camera, ImageIcon, X, Sunrise, Sandwich, Moon, Cookie, Utensils, ListPlus } from 'lucide-react'
+import { Camera, ImageIcon, X, Sunrise, Sandwich, Moon, Cookie, Utensils, ListPlus, Mic, MicOff } from 'lucide-react'
 import VerificationCard from '../components/VerificationCard'
 import type { MealItem } from '@/hooks/useMeals'
 import type { MealType } from '@/lib/utils/constants'
@@ -77,9 +77,12 @@ function NewMealPageInner() {
   const [navigating, setNavigating] = useState(false)
   const [showPhotoChoice, setShowPhotoChoice] = useState(false)
   const [recentMeals, setRecentMeals] = useState<RecentMeal[] | null>(null)
+  const [listening, setListening] = useState(false)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
   const suggestionScrolling = useRef(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null)
 
   const mealLabel = (type: string) =>
     (t[('meal_' + type) as keyof Translations] as string) ?? type
@@ -180,40 +183,90 @@ function NewMealPageInner() {
       .catch(() => setRecentMeals([]))
   }, [revisionOf, relogOf, urlDescription])
 
+  const compressImage = (file: File): Promise<{ base64: string; mimeType: string; previewUrl: string }> =>
+    new Promise(resolve => {
+      const img = new Image()
+      const url = URL.createObjectURL(file)
+      img.onload = () => {
+        const maxDim = 1280
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height))
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(img.width * scale)
+        canvas.height = Math.round(img.height * scale)
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+        URL.revokeObjectURL(url)
+        canvas.toBlob(blob => {
+          const reader = new FileReader()
+          reader.onload = () => {
+            const dataUrl = reader.result as string
+            resolve({ base64: dataUrl.split(',')[1], mimeType: 'image/jpeg', previewUrl: dataUrl })
+          }
+          reader.readAsDataURL(blob!)
+        }, 'image/jpeg', 0.85)
+      }
+      img.onerror = () => {
+        // Fall back to original if compression fails
+        const reader = new FileReader()
+        reader.onload = () => {
+          const dataUrl = reader.result as string
+          resolve({ base64: dataUrl.split(',')[1], mimeType: file.type, previewUrl: dataUrl })
+        }
+        reader.readAsDataURL(file)
+      }
+      img.src = url
+    })
+
+  const toggleVoice = () => {
+    if (listening) {
+      recognitionRef.current?.stop()
+      return
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition
+    if (!SR) return
+    const recognition = new SR()
+    recognition.lang = lang === 'he' ? 'he-IL' : 'en-US'
+    recognition.continuous = false
+    recognition.interimResults = false
+    recognition.onresult = (e: { results: { [x: number]: { [x: number]: { transcript: string } } } }) => {
+      const transcript = e.results[0]?.[0]?.transcript ?? ''
+      if (transcript) setDescription(d => d ? `${d} ${transcript}` : transcript)
+    }
+    recognition.onend = () => setListening(false)
+    recognition.onerror = () => setListening(false)
+    recognitionRef.current = recognition
+    recognition.start()
+    setListening(true)
+  }
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     setLoading(true)
     setError(null)
-    const reader = new FileReader()
-    reader.onload = async () => {
-      const dataUrl = reader.result as string
-      const base64 = dataUrl.split(',')[1]
-      setImagePreview(dataUrl)
-      setPendingImage({ base64, mimeType: file.type })
-      try {
-        const res = await fetch('/api/ai/parse-image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: base64, mimeType: file.type, lang }),
-        })
-        const json = await res.json()
-        if (json.error) { setError(json.error); setLoading(false); return }
-        setItems(mapItems(json.data.items, 'ai_vision'))
-        setImageType(json.data.image_type ?? 'meal')
-        setAnalyzeCount(c => c + 1)
-        // Pre-fill description with AI suggestion only if user hasn't typed anything yet
-        const suggested = json.data.suggested_description as string | undefined
-        if (suggested && !description.trim()) {
-          setDescription(suggested)
-        }
-      } catch {
-        setError(t.err_analyze_image)
-      } finally {
-        setLoading(false)
+    try {
+      const { base64, mimeType, previewUrl } = await compressImage(file)
+      setImagePreview(previewUrl)
+      setPendingImage({ base64, mimeType })
+      const res = await fetch('/api/ai/parse-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, mimeType, lang }),
+      })
+      const json = await res.json()
+      if (json.error) { setError(json.error); return }
+      setItems(mapItems(json.data.items, 'ai_vision'))
+      setImageType(json.data.image_type ?? 'meal')
+      setAnalyzeCount(c => c + 1)
+      const suggested = json.data.suggested_description as string | undefined
+      if (suggested && !description.trim()) {
+        setDescription(suggested)
       }
+    } catch {
+      setError(t.err_analyze_image)
+    } finally {
+      setLoading(false)
     }
-    reader.readAsDataURL(file)
   }
 
   const clearImage = () => {
@@ -395,13 +448,27 @@ function NewMealPageInner() {
             </div>
           )}
 
-          <Textarea
-            placeholder={t.meal_placeholder}
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            rows={3}
-            className="resize-none"
-          />
+          <div className="relative">
+            <Textarea
+              placeholder={t.meal_placeholder}
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              rows={3}
+              className="resize-none pe-10"
+            />
+            <button
+              type="button"
+              onClick={toggleVoice}
+              className={`absolute end-2.5 top-2.5 p-1 rounded-md transition-colors ${
+                listening
+                  ? 'text-destructive animate-pulse'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Voice input"
+            >
+              {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </button>
+          </div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
