@@ -107,14 +107,13 @@ function MealRow({ meal, onDelete, translatedNames }: { meal: Meal; onDelete?: (
       )}
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-sm">
-            {mealLabel(meal.meal_type)}
-          </span>
-          <span className="text-xs text-muted-foreground">{formatTime(meal.logged_at)}</span>
-        </div>
-        <div className="text-xs text-muted-foreground truncate mt-0.5">
+        <div className="text-sm font-medium truncate">
           {meal.human_description ?? meal.meal_items.map(i => (translatedNames?.[i.ingredient_name] ?? i.ingredient_name)).join(', ')}
+        </div>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="text-xs text-muted-foreground">{mealLabel(meal.meal_type)}</span>
+          <span className="text-xs text-muted-foreground/50">·</span>
+          <span className="text-xs text-muted-foreground">{formatTime(meal.logged_at)}</span>
         </div>
       </div>
 
