@@ -44,25 +44,30 @@ async function incrementCounter(provider: string) {
 }
 
 async function isWithinLimits(provider: string): Promise<{ rpm: boolean; rpd: boolean }> {
-  const counter = await getCounter(provider)
-  const limits = PROVIDER_LIMITS[provider]
+  try {
+    const counter = await getCounter(provider)
+    const limits = PROVIDER_LIMITS[provider]
 
-  if (!counter || !limits) return { rpm: true, rpd: true }
+    if (!counter || !limits) return { rpm: true, rpd: true }
 
-  const now = new Date()
-  const lastRpmReset = new Date(counter.last_rpm_reset)
-  const lastRpdReset = new Date(counter.last_rpd_reset)
+    const now = new Date()
+    const lastRpmReset = new Date(counter.last_rpm_reset)
+    const lastRpdReset = new Date(counter.last_rpd_reset)
 
-  const rpmExpired = now.getTime() - lastRpmReset.getTime() > 60_000
-  const rpdExpired =
-    now.toISOString().slice(0, 10) !== lastRpdReset.toISOString().slice(0, 10)
+    const rpmExpired = now.getTime() - lastRpmReset.getTime() > 60_000
+    const rpdExpired =
+      now.toISOString().slice(0, 10) !== lastRpdReset.toISOString().slice(0, 10)
 
-  const currentRpm = rpmExpired ? 0 : counter.rpm
-  const currentRpd = rpdExpired ? 0 : counter.rpd
+    const currentRpm = rpmExpired ? 0 : counter.rpm
+    const currentRpd = rpdExpired ? 0 : counter.rpd
 
-  return {
-    rpm: currentRpm < limits.rpm,
-    rpd: currentRpd < limits.rpd,
+    return {
+      rpm: currentRpm < limits.rpm,
+      rpd: currentRpd < limits.rpd,
+    }
+  } catch {
+    // If DB is unavailable, allow the call rather than blocking it
+    return { rpm: true, rpd: true }
   }
 }
 
@@ -83,7 +88,13 @@ export async function execute<T extends LLMResponse>(
     throw new RateLimitExhaustedError(provider)
   }
 
-  const result = await fn()
-  await incrementCounter(provider)
-  return result
+  try {
+    const result = await fn()
+    await incrementCounter(provider).catch(() => {})
+    return result
+  } catch (err) {
+    // Primary provider failed — try the fallback before giving up
+    if (fallback) return execute('fallback', fallback)
+    throw err
+  }
 }
