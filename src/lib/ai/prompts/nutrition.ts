@@ -15,6 +15,7 @@ Return ONLY valid JSON matching this exact schema (no markdown, no explanation):
   "items": [
     {
       "name": "ingredient name (same as input, normalized)",
+      "canonical_name": "stable English identifier (lowercase, singular, no brand names, e.g. 'apple', 'chicken breast', 'olive oil')",
       "quantity": <number matching input>,
       "unit": "<unit matching input>",
       "calories": <number>,
@@ -35,6 +36,7 @@ Return ONLY valid JSON matching this exact schema (no markdown, no explanation):
 Rules:
 - Match the input ingredient names and quantities exactly
 - Use standard serving size data for nutritional estimates
+- canonical_name MUST always be in English, lowercase, singular, and stable across languages: "apple" and "תפוח" both have canonical_name "apple"; "chicken breast" and "חזה עוף" both have canonical_name "chicken breast". Do not include brand names, adjectives that don't change the food (e.g. "fresh", "organic"), or quantities.
 - confidence "high" = well-known item with clear quantity
 - confidence "medium" = reasonable estimate
 - confidence "low" = ambiguous item or unusual preparation`

@@ -1,5 +1,6 @@
 export interface NutritionItem {
   name: string
+  canonical_name?: string
   quantity: number
   unit: string
   calories: number

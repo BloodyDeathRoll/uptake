@@ -33,6 +33,7 @@ function mapItems(
 ): MealItem[] {
   return items.map(item => ({
     ingredient_name: (item.name ?? item.ingredient_name) as string,
+    canonical_name: (item.canonical_name as string | undefined) ?? undefined,
     quantity: item.quantity as number,
     unit: item.unit as string,
     calories: item.calories as number ?? null,
@@ -102,6 +103,7 @@ function NewMealPageInner() {
         setItems(
           (meal.meal_items ?? []).map((item: Record<string, unknown>) => ({
             ingredient_name: item.ingredient_name as string,
+            canonical_name: (item.canonical_name as string | undefined) ?? undefined,
             quantity: item.quantity as number,
             unit: item.unit as string,
             calories: item.calories as number ?? null,
@@ -146,6 +148,7 @@ function NewMealPageInner() {
         setItems(
           (meal.meal_items ?? []).map((item: Record<string, unknown>) => ({
             ingredient_name: item.ingredient_name as string,
+            canonical_name: (item.canonical_name as string | undefined) ?? undefined,
             quantity: item.quantity as number,
             unit: item.unit as string,
             calories: item.calories as number ?? null,

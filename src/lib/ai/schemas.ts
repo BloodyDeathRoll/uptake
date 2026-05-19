@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 export const nutritionItemSchema = z.object({
   name: z.string().min(1),
+  canonical_name: z.string().min(1).optional(),
   quantity: z.number().positive(),
   unit: z.string().min(1),
   calories: z.number().min(0),

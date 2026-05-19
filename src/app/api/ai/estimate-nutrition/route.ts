@@ -39,39 +39,43 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Check for user-saved nutrition overrides before calling AI
+  const r1dp = (v: unknown, factor: number) =>
+    typeof v === 'number' ? Math.round(v * factor * 10) / 10 : null
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const overrideToItem = (ingredient: { name: string; quantity: number; unit: string }, ov: any, canonical?: string) => {
+    const factor = ingredient.quantity / 100
+    return {
+      name: ingredient.name,
+      canonical_name: canonical ?? (ov.canonical_name as string | undefined),
+      quantity: ingredient.quantity,
+      unit: ingredient.unit,
+      calories: typeof ov.calories_per_100 === 'number' ? Math.round(ov.calories_per_100 * factor) : null,
+      protein_g: r1dp(ov.protein_g_per_100, factor),
+      carbs_g: r1dp(ov.carbs_g_per_100, factor),
+      fat_g: r1dp(ov.fat_g_per_100, factor),
+      fiber_g: r1dp(ov.fiber_g_per_100, factor),
+      food_group: ov.food_group ?? null,
+      confidence: 'high' as const,
+    }
+  }
+
+  // Fast path: same-language match by ingredient_name. Skips the AI call when
+  // the user has already overridden every ingredient in the input language.
   const names = parsed.data.map(i => i.name)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: overrides } = await (supabase as any)
+  const { data: nameOverrides } = await (supabase as any)
     .from('ingredient_nutrition_overrides')
-    .select('ingredient_name, unit, calories_per_100, protein_g_per_100, carbs_g_per_100, fat_g_per_100, fiber_g_per_100, food_group')
+    .select('ingredient_name, canonical_name, unit, calories_per_100, protein_g_per_100, carbs_g_per_100, fat_g_per_100, fiber_g_per_100, food_group')
     .eq('user_id', user.id)
     .in('ingredient_name', names)
 
-  if (overrides && overrides.length > 0) {
+  if (nameOverrides && nameOverrides.length > 0) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const overrideMap = new Map((overrides as any[]).map((o: Record<string, unknown>) => [`${o.ingredient_name}::${o.unit}`, o]))
-    const r1dp = (v: unknown, factor: number) =>
-      typeof v === 'number' ? Math.round(v * factor * 10) / 10 : null
-
+    const map = new Map((nameOverrides as any[]).map((o: Record<string, unknown>) => [`${o.ingredient_name}::${o.unit}`, o]))
     const resolved = parsed.data.map(ingredient => {
-      const key = `${ingredient.name}::${ingredient.unit}`
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const ov = overrideMap.get(key) as any
-      if (!ov) return null
-      const factor = ingredient.quantity / 100
-      return {
-        name: ingredient.name,
-        quantity: ingredient.quantity,
-        unit: ingredient.unit,
-        calories: typeof ov.calories_per_100 === 'number' ? Math.round(ov.calories_per_100 * factor) : null,
-        protein_g: r1dp(ov.protein_g_per_100, factor),
-        carbs_g: r1dp(ov.carbs_g_per_100, factor),
-        fat_g: r1dp(ov.fat_g_per_100, factor),
-        fiber_g: r1dp(ov.fiber_g_per_100, factor),
-        food_group: ov.food_group ?? null,
-        confidence: 'high' as const,
-      }
+      const ov = map.get(`${ingredient.name}::${ingredient.unit}`)
+      return ov ? overrideToItem(ingredient, ov) : null
     })
 
     if (resolved.every(r => r !== null)) {
@@ -79,6 +83,8 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Slow path: call AI to get nutrition + canonical_name, then prefer any
+  // existing override keyed on canonical_name (covers cross-language matches).
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const response = await execute(
@@ -89,7 +95,39 @@ export async function POST(request: NextRequest) {
 
       const raw = parseNutritionResponse(response.content)
       const validated = validateNutritionResponse(raw)
-      return NextResponse.json({ data: validated, provider: response.provider })
+
+      const canonicals = validated.items
+        .map(i => i.canonical_name)
+        .filter((c): c is string => typeof c === 'string' && c.length > 0)
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let canonicalOverrides: any[] = []
+      if (canonicals.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data } = await (supabase as any)
+          .from('ingredient_nutrition_overrides')
+          .select('canonical_name, unit, calories_per_100, protein_g_per_100, carbs_g_per_100, fat_g_per_100, fiber_g_per_100, food_group')
+          .eq('user_id', user.id)
+          .in('canonical_name', canonicals)
+        canonicalOverrides = data ?? []
+      }
+
+      const overrideMap = new Map(
+        canonicalOverrides.map(o => [`${o.canonical_name}::${o.unit}`, o])
+      )
+
+      const merged = validated.items.map(item => {
+        const canonical = item.canonical_name
+        const ov = canonical ? overrideMap.get(`${canonical}::${item.unit}`) : undefined
+        if (!ov) return item
+        return overrideToItem(
+          { name: item.name, quantity: item.quantity, unit: item.unit },
+          ov,
+          canonical,
+        )
+      })
+
+      return NextResponse.json({ data: { ...validated, items: merged }, provider: response.provider })
     } catch (err) {
       if (attempt === 0 && !(err instanceof RateLimitExhaustedError)) continue
       if (attempt === 1) {

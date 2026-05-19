@@ -5,6 +5,7 @@ import { useState, useCallback } from 'react'
 export interface MealItem {
   id?: string
   ingredient_name: string
+  canonical_name?: string
   quantity: number
   unit: string
   calories: number | null

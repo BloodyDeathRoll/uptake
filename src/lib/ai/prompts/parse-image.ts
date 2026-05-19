@@ -17,7 +17,8 @@ Return ONLY valid JSON matching this exact schema (no markdown, no explanation):
   "suggested_description": "A concise natural-language label, e.g. 'Grilled chicken with brown rice and mixed salad'",
   "items": [
     {
-      "name": "ingredient name (normalized, lowercase)",
+      "name": "ingredient name (normalized, lowercase, in the user's language)",
+      "canonical_name": "stable English identifier (lowercase, singular, no brand names, e.g. 'apple', 'chicken breast', 'olive oil')",
       "quantity": <number>,
       "unit": "g | ml | oz | cup | piece | tbsp | tsp | slice | serving",
       "calories": <number>,
@@ -33,6 +34,8 @@ Return ONLY valid JSON matching this exact schema (no markdown, no explanation):
   "total_calories": <number>,
   "notes": "describe what you see and any assumptions"
 }
+
+canonical_name MUST always be in English, lowercase, singular, and stable across languages: "apple" and "תפוח" both have canonical_name "apple"; "chicken breast" and "חזה עוף" both have canonical_name "chicken breast". Do not include brand names, adjectives that don't change the food (e.g. "fresh", "organic"), or quantities.
 
 Rules for "meal" images:
 - Identify all visible food items

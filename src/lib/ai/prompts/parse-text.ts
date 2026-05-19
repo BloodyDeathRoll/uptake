@@ -12,7 +12,8 @@ Return ONLY valid JSON matching this exact schema (no markdown, no explanation):
 {
   "items": [
     {
-      "name": "ingredient name (normalized, lowercase)",
+      "name": "ingredient name (normalized, lowercase, in the user's language)",
+      "canonical_name": "stable English identifier (lowercase, singular, no brand names, e.g. 'apple', 'chicken breast', 'olive oil')",
       "quantity": <number>,
       "unit": "g | ml | oz | cup | piece | tbsp | tsp | slice | serving",
       "calories": <number>,
@@ -38,5 +39,6 @@ Rules:
 - Set confidence "low" for items where portion is ambiguous or inferred
 - Set confidence "high" only when quantity is explicitly stated
 - Normalize ingredient names (e.g., "chicken breast" not "Chicken Breast")
+- canonical_name MUST always be in English, lowercase, singular, and stable across languages: "apple" and "תפוח" both have canonical_name "apple"; "chicken breast" and "חזה עוף" both have canonical_name "chicken breast". Do not include brand names, adjectives that don't change the food (e.g. "fresh", "organic"), or quantities.
 - Only return {"items": [], "total_calories": 0} if the input contains no food whatsoever (e.g. purely non-food text)`
 }

@@ -81,6 +81,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
           if (i !== index) return item
           const filled: LocalItem = {
             ...item,
+            canonical_name: est.canonical_name ?? item.canonical_name,
             quantity:   qty,
             unit,
             calories:   est.calories   ?? null,
@@ -137,6 +138,7 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
             const filled: LocalItem = {
               ...item,
               ingredient_name: item.ingredient_name.trim() || (est.name ?? item.ingredient_name),
+              canonical_name: est.canonical_name ?? item.canonical_name,
               quantity:  qty,
               unit:      est.unit      ?? item.unit,
               calories:  est.calories  ?? null,
@@ -170,7 +172,11 @@ export default function VerificationCard({ initialItems, onSave, onReset, saving
 
       let patch: Partial<LocalItem> = { [field]: value }
 
-      if (field === 'quantity') {
+      if (field === 'ingredient_name') {
+        // Clear canonical_name so a hand-edited name doesn't get mapped to the
+        // previous food's canonical key on save. fallbackCanonical(name) takes over.
+        patch = { ingredient_name: value as string, canonical_name: undefined }
+      } else if (field === 'quantity') {
         const newQty = Number(value)
         if (newQty <= 0) {
           // User cleared the field to re-enter — preserve macros and anchor _perUnit
