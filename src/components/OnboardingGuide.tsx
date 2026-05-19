@@ -1,40 +1,41 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { MessageSquare, Layers, Camera, ChevronRight, Sparkles, ArrowRight, X } from 'lucide-react'
+import { MessageSquare, Layers, Camera, ChevronRight, ChevronLeft, Sparkles, ArrowRight, ArrowLeft, X } from 'lucide-react'
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useLanguage, type Translations } from '@/lib/i18n'
 
 const STORAGE_KEY = 'uptake_onboarding_seen'
 const ANIM_MS = 280
 
 interface Slide {
   icon: React.ReactNode
-  title: string
-  body: string
+  titleKey: keyof Translations
+  bodyKey: keyof Translations
 }
 
 const SLIDES: Slide[] = [
   {
     icon: <Sparkles className="w-9 h-9" />,
-    title: 'How to Use Uptake',
-    body: 'Log meals in 3 different ways. The AI handles the nutrition — you just tell it what you ate.',
+    titleKey: 'guide_slide1_title',
+    bodyKey: 'guide_slide1_body',
   },
   {
     icon: <MessageSquare className="w-9 h-9" />,
-    title: 'Free Text',
-    body: "Describe your meal in plain language. The AI estimates quantities if you don't include them. Edit any ingredient and it learns from your corrections.",
+    titleKey: 'guide_slide2_title',
+    bodyKey: 'guide_slide2_body',
   },
   {
     icon: <Layers className="w-9 h-9" />,
-    title: 'By Ingredient',
-    body: 'Add ingredients one by one. Tap the quantity for a 100g / 100ml baseline, then adjust to match your actual portion.',
+    titleKey: 'guide_slide3_title',
+    bodyKey: 'guide_slide3_body',
   },
   {
     icon: <Camera className="w-9 h-9" />,
-    title: 'By Photo',
-    body: 'Take a picture of your meal and let the AI identify what it sees. Correct it and it gets smarter every time.',
+    titleKey: 'guide_slide4_title',
+    bodyKey: 'guide_slide4_body',
   },
 ]
 
@@ -50,11 +51,16 @@ function SlidePanel({
   slide,
   role,
   dir,
+  title,
+  body,
 }: {
   slide: Slide
   role: 'idle' | 'entering' | 'exiting'
   dir: 1 | -1
+  title: string
+  body: string
 }) {
+  // dir is the visual direction: 1 means "new slide enters from right"
   const animName =
     role === 'entering' ? (dir === 1 ? 'guide-from-right' : 'guide-from-left') :
     role === 'exiting'  ? (dir === 1 ? 'guide-to-left'    : 'guide-to-right')  :
@@ -79,8 +85,8 @@ function SlidePanel({
         {slide.icon}
       </div>
       <div className="space-y-1.5">
-        <h2 className="font-semibold text-base tracking-tight">{slide.title}</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">{slide.body}</p>
+        <h2 className="font-semibold text-base tracking-tight">{title}</h2>
+        <p className="text-muted-foreground text-sm leading-relaxed">{body}</p>
       </div>
     </div>
   )
@@ -91,12 +97,19 @@ interface Props {
 }
 
 export default function OnboardingGuide({ show }: Props) {
+  const { t, lang } = useLanguage()
+  const isRTL = lang === 'he'
   const [open, setOpen] = useState(false)
   const [current, setCurrent] = useState(0)
   const [prev, setPrev] = useState<number | null>(null)
+  // dir is logical: 1 = forward (next), -1 = backward (back).
   const [dir, setDir] = useState<1 | -1>(1)
   const animTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const pointerStartX = useRef<number | null>(null)
+
+  // Visual direction for the slide animation. In RTL, forward navigation
+  // should slide in from the left and exit to the right.
+  const visualDir: 1 | -1 = (isRTL ? -dir : dir) as 1 | -1
 
   // Inject keyframes once
   useEffect(() => {
@@ -109,8 +122,8 @@ export default function OnboardingGuide({ show }: Props) {
 
   useEffect(() => {
     if (show && !localStorage.getItem(STORAGE_KEY)) {
-      const t = setTimeout(() => setOpen(true), 600)
-      return () => clearTimeout(t)
+      const timer = setTimeout(() => setOpen(true), 600)
+      return () => clearTimeout(timer)
     }
   }, [show])
 
@@ -137,19 +150,24 @@ export default function OnboardingGuide({ show }: Props) {
   const handlePointerUp = (e: React.PointerEvent) => {
     if (pointerStartX.current === null) return
     const delta = e.clientX - pointerStartX.current
-    if (delta < -50) next()
-    else if (delta > 50) back()
+    // In RTL, swipe right = forward (next); in LTR, swipe left = forward.
+    const forward = isRTL ? delta > 50 : delta < -50
+    const backward = isRTL ? delta < -50 : delta > 50
+    if (forward) next()
+    else if (backward) back()
     pointerStartX.current = null
   }
 
   const isLast = current === SLIDES.length - 1
+  const NextIcon = isRTL ? ChevronLeft : ChevronRight
+  const StartIcon = isRTL ? ArrowLeft : ArrowRight
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={(o) => { if (!o) dismiss() }}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px] data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 duration-200" />
         <DialogPrimitive.Popup
-          aria-label="How to use Uptake"
+          aria-label={t.guide_aria_label}
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}
           className="fixed top-1/2 left-1/2 z-50 w-full max-w-[calc(100%-2rem)] sm:max-w-xs -translate-x-1/2 -translate-y-1/2 outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 duration-200"
@@ -161,7 +179,7 @@ export default function OnboardingGuide({ show }: Props) {
               <button
                 onClick={dismiss}
                 className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                aria-label="Close"
+                aria-label={t.guide_close}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -170,13 +188,22 @@ export default function OnboardingGuide({ show }: Props) {
             {/* Slide area — fixed height, clips the animation */}
             <div className="relative overflow-hidden" style={{ height: 220 }}>
               {prev !== null && (
-                <SlidePanel key={`prev-${prev}`} slide={SLIDES[prev]} role="exiting" dir={dir} />
+                <SlidePanel
+                  key={`prev-${prev}`}
+                  slide={SLIDES[prev]}
+                  role="exiting"
+                  dir={visualDir}
+                  title={t[SLIDES[prev].titleKey]}
+                  body={t[SLIDES[prev].bodyKey]}
+                />
               )}
               <SlidePanel
                 key={`curr-${current}`}
                 slide={SLIDES[current]}
                 role={prev !== null ? 'entering' : 'idle'}
-                dir={dir}
+                dir={visualDir}
+                title={t[SLIDES[current].titleKey]}
+                body={t[SLIDES[current].bodyKey]}
               />
             </div>
 
@@ -186,7 +213,7 @@ export default function OnboardingGuide({ show }: Props) {
                 <button
                   key={i}
                   onClick={() => go(i, i > current ? 1 : -1)}
-                  aria-label={`Slide ${i + 1}`}
+                  aria-label={`${t.guide_slide_aria} ${i + 1}`}
                   className={cn(
                     'h-1.5 rounded-full transition-all duration-300',
                     i === current
@@ -201,13 +228,13 @@ export default function OnboardingGuide({ show }: Props) {
             <div className="px-5 pb-5 pt-1">
               {isLast ? (
                 <Button className="w-full gap-1.5" onClick={dismiss}>
-                  Let's start
-                  <ArrowRight className="w-4 h-4" />
+                  {t.guide_lets_start}
+                  <StartIcon className="w-4 h-4" />
                 </Button>
               ) : (
                 <Button onClick={next} className="w-full gap-1">
-                  Next
-                  <ChevronRight className="w-4 h-4" />
+                  {t.next}
+                  <NextIcon className="w-4 h-4" />
                 </Button>
               )}
             </div>

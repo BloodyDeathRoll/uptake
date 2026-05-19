@@ -298,6 +298,19 @@ const en = {
   day_total: 'Day total',
   // Units
   unit_kcal: 'kcal',
+  // Onboarding guide
+  guide_slide1_title: 'How to Use Uptake',
+  guide_slide1_body: 'Log meals in 3 different ways. The AI handles the nutrition — you just tell it what you ate.',
+  guide_slide2_title: 'Free Text',
+  guide_slide2_body: "Describe your meal in plain language. The AI estimates quantities if you don't include them. Edit any ingredient and it learns from your corrections.",
+  guide_slide3_title: 'By Ingredient',
+  guide_slide3_body: 'Add ingredients one by one. Tap the quantity for a 100g / 100ml baseline, then adjust to match your actual portion.',
+  guide_slide4_title: 'By Photo',
+  guide_slide4_body: 'Take a picture of your meal and let the AI identify what it sees. Correct it and it gets smarter every time.',
+  guide_lets_start: "Let's start",
+  guide_close: 'Close',
+  guide_slide_aria: 'Slide',
+  guide_aria_label: 'How to use Uptake',
 } as const
 
 const he: Translations = {
@@ -587,6 +600,19 @@ const he: Translations = {
   day_total: 'סה"כ יומי',
   // Units
   unit_kcal: "קל'",
+  // Onboarding guide
+  guide_slide1_title: 'איך משתמשים ב-Uptake',
+  guide_slide1_body: 'תעד ארוחות ב-3 דרכים שונות. ה-AI מטפל בערכים התזונתיים — אתה רק אומר מה אכלת.',
+  guide_slide2_title: 'טקסט חופשי',
+  guide_slide2_body: 'תאר את הארוחה בשפה חופשית. אם לא ציינת כמויות, ה-AI יעריך אותן. ערוך כל מרכיב והוא ילמד מהתיקונים שלך.',
+  guide_slide3_title: 'לפי מרכיב',
+  guide_slide3_body: 'הוסף מרכיבים אחד-אחד. הקש על הכמות לבסיס של 100 גרם / 100 מ"ל, ואז התאם למנה האמיתית שלך.',
+  guide_slide4_title: 'לפי תמונה',
+  guide_slide4_body: 'צלם את הארוחה שלך ותן ל-AI לזהות מה הוא רואה. תקן אותו והוא ישתפר בכל פעם.',
+  guide_lets_start: 'בוא נתחיל',
+  guide_close: 'סגור',
+  guide_slide_aria: 'שקופית',
+  guide_aria_label: 'איך להשתמש ב-Uptake',
 }
 
 export type Translations = { [K in keyof typeof en]: string }
