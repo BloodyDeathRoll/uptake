@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { Sunrise, Sandwich, Moon, Cookie, Utensils, Pencil, Trash2 } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Sunrise, Sandwich, Moon, Cookie, Utensils, Pencil, Trash2, Search, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { formatTime, formatDate } from '@/lib/utils/format'
 import { MEAL_TYPE_LABELS } from '@/lib/utils/constants'
@@ -16,6 +16,18 @@ interface Props {
   showDates?: boolean
   onDelete?: (id: string) => void
   multiColumn?: boolean
+  searchable?: boolean
+}
+
+function mealMatchesQuery(meal: Meal, q: string): boolean {
+  if (!q) return true
+  const needle = q.trim().toLowerCase()
+  if (!needle) return true
+  if (meal.human_description?.toLowerCase().includes(needle)) return true
+  return meal.meal_items.some(item =>
+    item.ingredient_name.toLowerCase().includes(needle) ||
+    (item.canonical_name?.toLowerCase().includes(needle) ?? false)
+  )
 }
 
 function totalCalories(meal: Meal) {
@@ -139,13 +151,41 @@ function MealRow({ meal, onDelete, translatedNames }: { meal: Meal; onDelete?: (
   )
 }
 
-export default function MealTimeline({ meals, showDates = false, onDelete, multiColumn = false }: Props) {
+export default function MealTimeline({ meals, showDates = false, onDelete, multiColumn = false, searchable = false }: Props) {
   const { t, lang } = useLanguage()
-  const allNames = meals.flatMap(m => m.meal_items.map(i => i.ingredient_name))
+  const [query, setQuery] = useState('')
+  const filteredMeals = useMemo(
+    () => (searchable && query.trim() ? meals.filter(m => mealMatchesQuery(m, query)) : meals),
+    [meals, searchable, query]
+  )
+  const allNames = filteredMeals.flatMap(m => m.meal_items.map(i => i.ingredient_name))
   const translatedNames = useTranslatedNames(allNames, lang)
   const gridClass = multiColumn
     ? 'grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-3'
     : 'space-y-2'
+
+  const searchBar = searchable && meals.length > 0 ? (
+    <div className="relative mb-3">
+      <Search className="w-4 h-4 text-muted-foreground absolute start-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+      <input
+        type="text"
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        placeholder={t.search_meals_placeholder}
+        className="w-full h-9 ps-9 pe-9 text-sm rounded-lg bg-card border border-border focus:outline-none focus:ring-2 focus:ring-[var(--emphasis)]/30 focus:border-[var(--emphasis)]/50 transition-colors"
+      />
+      {query && (
+        <button
+          type="button"
+          onClick={() => setQuery('')}
+          aria-label={t.search_clear}
+          className="absolute end-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      )}
+    </div>
+  ) : null
 
   if (meals.length === 0) {
     return (
@@ -155,26 +195,41 @@ export default function MealTimeline({ meals, showDates = false, onDelete, multi
     )
   }
 
-  if (!showDates) {
+  if (filteredMeals.length === 0) {
     return (
-      <div className={gridClass}>
-        {meals.map((meal, i) => (
-          <div
-            key={meal.id}
-            className="animate-in fade-in slide-in-from-bottom-3"
-            style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
-          >
-            <MealRow meal={meal} onDelete={onDelete} translatedNames={translatedNames} />
-          </div>
-        ))}
-      </div>
+      <>
+        {searchBar}
+        <div className="text-center py-10 text-muted-foreground text-sm">
+          {t.search_no_results}
+        </div>
+      </>
     )
   }
 
-  const groups = groupByDate(meals, t)
+  if (!showDates) {
+    return (
+      <>
+        {searchBar}
+        <div className={gridClass}>
+          {filteredMeals.map((meal, i) => (
+            <div
+              key={meal.id}
+              className="animate-in fade-in slide-in-from-bottom-3"
+              style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
+            >
+              <MealRow meal={meal} onDelete={onDelete} translatedNames={translatedNames} />
+            </div>
+          ))}
+        </div>
+      </>
+    )
+  }
+
+  const groups = groupByDate(filteredMeals, t)
 
   return (
     <div className="space-y-4">
+      {searchBar}
       {groups.map(({ dateKey, label, meals: groupMeals }) => (
         <div key={dateKey}>
           <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{label}</div>

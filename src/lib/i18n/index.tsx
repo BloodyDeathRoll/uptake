@@ -311,6 +311,10 @@ const en = {
   guide_close: 'Close',
   guide_slide_aria: 'Slide',
   guide_aria_label: 'How to use Uptake',
+  // Meal search
+  search_meals_placeholder: 'Search meals…',
+  search_no_results: 'No meals match your search.',
+  search_clear: 'Clear search',
 } as const
 
 const he: Translations = {
@@ -613,6 +617,10 @@ const he: Translations = {
   guide_close: 'סגור',
   guide_slide_aria: 'שקופית',
   guide_aria_label: 'איך להשתמש ב-Uptake',
+  // Meal search
+  search_meals_placeholder: 'חיפוש ארוחות…',
+  search_no_results: 'לא נמצאו ארוחות התואמות לחיפוש.',
+  search_clear: 'נקה חיפוש',
 }
 
 export type Translations = { [K in keyof typeof en]: string }

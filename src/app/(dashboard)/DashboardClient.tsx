@@ -344,6 +344,7 @@ export default function DashboardClient({ snapshot, goal: initialGoal, meals: se
           showDates={!isToday || dateRange.days > 1}
           onDelete={handleDelete}
           multiColumn
+          searchable={dateRange.days > 1}
         />
       </div>
 
