@@ -12,8 +12,9 @@ const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  // camera: photo capture; microphone: voice input on /meal/new.
-  { key: 'Permissions-Policy', value: 'camera=(self), microphone=(self), geolocation=(), payment=()' },
+  // camera: photo capture; microphone: voice input on /meal/new;
+  // geolocation: location-based meal suggestions.
+  { key: 'Permissions-Policy', value: 'camera=(self), microphone=(self), geolocation=(self), payment=()' },
 ]
 
 const nextConfig: NextConfig = {
