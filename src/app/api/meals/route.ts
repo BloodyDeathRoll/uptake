@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { rebuildDailySnapshot } from '@/lib/snapshots'
 
 // Best-effort fallback when the AI didn't supply a canonical_name (e.g. fully
 // manual entry). Lowercase + trim is good enough for English; cross-language
@@ -166,13 +167,10 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Update daily snapshot asynchronously (fire and forget)
+  // Update the daily snapshot (fire and forget) — in-process with the user's
+  // own client; no HTTP hop, no forgeable "internal" header (audit 2026-09-11).
   const date = new Date(meal.logged_at).toISOString().slice(0, 10)
-  fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/snapshots`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-internal-request': '1' },
-    body: JSON.stringify({ userId: user.id, date }),
-  }).catch(() => {/* silent — snapshot will be rebuilt by cron */})
+  rebuildDailySnapshot(supabase, user.id, date).catch(() => {/* silent — snapshot will be rebuilt by cron */})
 
   // Update portion priors and nutrition overrides from corrected/AI-accepted items (fire and forget)
   updatePortionPriors(user.id, mealItems).catch(() => {})
